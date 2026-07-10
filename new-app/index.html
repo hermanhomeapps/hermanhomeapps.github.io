@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --bg: #EAF0FB;
@@ -54,27 +53,13 @@
   }
   .tagline { color: var(--ink-soft); margin-top: 8px; font-size: 1rem; }
  
-  /* Drive status bar */
-  .drive-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    font-size: 0.85rem;
-    color: var(--ink-soft);
-    margin-bottom: 24px;
+  .status-bar {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 24px;
   }
-  .drive-dot { width: 8px; height: 8px; border-radius: 50%; background: #C7CFE8; display: inline-block; }
-  .drive-dot.on { background: var(--mint); }
-  .drive-connect-btn {
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem;
-    padding: 7px 16px; border-radius: 999px; border: none; cursor: pointer;
-    background: var(--sky); color: #fff;
-  }
-  .drive-connect-btn:hover { filter: brightness(1.05); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #C7CFE8; display: inline-block; }
+  .status-dot.on { background: var(--mint); }
  
-  /* Progress pegs */
   .progress { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 30px; }
   .peg {
     width: 30px; height: 30px; border-radius: 50%; background: var(--paper);
@@ -130,7 +115,7 @@
   .review-block dt:first-child { margin-top: 0; }
   .review-block dd { margin: 2px 0 0; color: var(--ink-soft); white-space: pre-wrap; }
  
-  .actions { display: flex; justify-content: space-between; margin-top: 30px; gap: 12px; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; gap: 12px; }
   button.btn {
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 12px 22px;
     border-radius: 999px; border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -140,6 +125,10 @@
   .btn-primary { background: var(--coral); color: #fff; box-shadow: 0 6px 14px rgba(255,107,91,0.35); margin-left: auto; }
   .btn-secondary { background: var(--bg-deep); color: var(--ink); }
   .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .skip-link {
+    background: none; border: none; color: var(--ink-soft); font-family: 'Inter', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;
+  }
  
   .output-block { margin-top: 18px; }
   .output-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
@@ -158,7 +147,6 @@
   .celebrate { text-align: center; margin-bottom: 8px; }
   .celebrate .emoji { font-size: 2rem; }
  
-  /* Resume banner */
   .resume-panel {
     background: var(--paper); border-radius: 20px; padding: 28px; margin-bottom: 20px;
     box-shadow: 0 10px 24px var(--card-shadow); border-top: 6px solid var(--grape);
@@ -189,7 +177,7 @@
     <p class="tagline">Answer a few questions, get a ready-to-paste brief for your AI coder</p>
   </header>
  
-  <div class="drive-bar" id="drive-bar"></div>
+  <div class="status-bar" id="status-bar"></div>
   <div id="resume-container"></div>
  
   <div class="progress" id="progress"></div>
@@ -198,37 +186,29 @@
  
 <script>
   /*
-    GOOGLE DRIVE DRAFT SAVING — ONE-TIME SETUP
-    -------------------------------------------
-    1. In Google Cloud Console, create or reuse a project.
-    2. APIs & Services > Library > enable "Google Drive API".
-    3. APIs & Services > OAuth consent screen > configure it (External is fine for
-       a small family app — add each family member's Google account as a test
-       user, or publish the app if you don't want that limit).
-    4. APIs & Services > Credentials > Create Credentials > OAuth client ID >
-       Application type: Web application.
-    5. Under "Authorized JavaScript origins", add https://hermanhomeapps.github.io
-       (and http://localhost:PORT too if you test locally).
-    6. Copy the Client ID and paste it below.
-    Until this is filled in, draft saving is simply skipped — everything else
-    in the wizard still works exactly as before.
+    DRAFT SAVING VIA APPS SCRIPT — ONE-TIME SETUP
+    ------------------------------------------------
+    This wizard saves drafts through a small Apps Script Web App — the same
+    pattern used for every other integrated app in this project. Apps Script
+    always runs as whoever deployed it, so drafts always save into YOUR
+    Drive, under your account. Nobody else has to sign in or be shared on
+    anything.
  
-    NOTE ON SCOPE: folderId below points at an existing folder (not one the
-    wizard created itself), so this uses the broader "drive" scope instead of
-    "drive.file". That means once connected, this app can technically read/write
-    anywhere in the authorizing account's Drive — not just this folder. If that
-    ever feels like too much access, switch scope back to drive.file, remove
-    folderId, and the wizard will auto-create its own dedicated folder instead.
+    1. Go to script.google.com > New project.
+    2. Paste in the code from the "wizard-drafts-backend" file.
+    3. Deploy > New deployment > type: Web app.
+       - Execute as: Me
+       - Who has access: Anyone
+    4. Copy the Web app URL and paste it below.
+ 
+    Until this is filled in, draft saving is simply skipped — everything
+    else in the wizard still works exactly as before.
+ 
+    Note: like your other apps' Apps Script endpoints, "Anyone" access means
+    anyone who has this URL can call it. Treat the URL itself as the access
+    control, same as your other apps.
   */
-  const DRIVE_CONFIG = {
-    clientId: "216471496476-mffj973duptu548eo4f16j3figt3jscn.apps.googleusercontent.com",
-    scope: "https://www.googleapis.com/auth/drive",
-    folderId: "1zt4A8oaaUuH-MeVCEY62IGFZM3HdANRL",
-    folderName: "HermanHomeApps Drafts"
-  };
- 
-  const STORAGE_KEY_TOKEN = "hha_wizard_drive_token";
-  const STORAGE_KEY_FOLDER = "hha_wizard_drive_folder_id";
+  const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
  
   const ICONS = ["✨","🧺","🍽️","📅","🛒","💧","🧹","🌱","💰","🚗","📚","🐾"];
  
@@ -253,152 +233,53 @@
  
   function totalSteps() { return 6; }
  
-  // ---------- DRIVE ----------
-  let tokenClient = null;
-  let accessToken = null;
-  let tokenExpiresAt = 0;
-  let driveFolderId = null;
-  let driveConnected = false;
+  // ---------- APPS SCRIPT DRAFT BACKEND ----------
   let autosaveTimer = null;
  
-  function driveConfigured() {
-    return DRIVE_CONFIG.clientId && !DRIVE_CONFIG.clientId.startsWith("PASTE_");
+  function backendConfigured() {
+    return APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith("PASTE_");
   }
  
-  window.addEventListener('load', () => {
-    if (!driveConfigured()) { renderDriveBar(); return; }
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: DRIVE_CONFIG.clientId,
-      scope: DRIVE_CONFIG.scope,
-      callback: onTokenResponse
-    });
-    const cached = sessionStorage.getItem(STORAGE_KEY_TOKEN);
-    if (cached) {
+  window.addEventListener('load', async () => {
+    renderStatusBar();
+    if (backendConfigured() && !state._driveFileId) {
       try {
-        const parsed = JSON.parse(cached);
-        if (parsed.expiresAt > Date.now()) {
-          accessToken = parsed.accessToken;
-          tokenExpiresAt = parsed.expiresAt;
-          driveConnected = true;
-          afterConnected();
-        }
-      } catch (e) {}
+        const drafts = await listDrafts();
+        if (drafts.length) renderResumeBanner(drafts);
+      } catch (e) { /* backend not reachable yet — fail quietly */ }
     }
-    renderDriveBar();
   });
  
-  function connectDrive() {
-    if (!tokenClient) return;
-    tokenClient.requestAccessToken({ prompt: driveConnected ? '' : 'consent' });
-  }
- 
-  function onTokenResponse(resp) {
-    if (resp.error) { renderDriveBar(); return; }
-    accessToken = resp.access_token;
-    tokenExpiresAt = Date.now() + (resp.expires_in * 1000) - 60000;
-    driveConnected = true;
-    sessionStorage.setItem(STORAGE_KEY_TOKEN, JSON.stringify({ accessToken, expiresAt: tokenExpiresAt }));
-    renderDriveBar();
-    afterConnected();
-  }
- 
-  async function ensureFreshToken() {
-    if (accessToken && Date.now() < tokenExpiresAt) return true;
-    return new Promise(resolve => {
-      tokenClient.callback = (resp) => { onTokenResponse(resp); resolve(!resp.error); };
-      tokenClient.requestAccessToken({ prompt: '' });
-    });
-  }
- 
-  async function afterConnected() {
-    await ensureFolder();
-    if (!state._driveFileId) {
-      const drafts = await listDrafts();
-      if (drafts.length) renderResumeBanner(drafts);
-    }
-  }
- 
-  async function ensureFolder() {
-    if (driveFolderId) return driveFolderId;
-    if (DRIVE_CONFIG.folderId) {
-      driveFolderId = DRIVE_CONFIG.folderId;
-      return driveFolderId;
-    }
-    await ensureFreshToken();
-    const q = encodeURIComponent(`name='${DRIVE_CONFIG.folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-      headers: { Authorization: 'Bearer ' + accessToken }
-    });
-    const data = await res.json();
-    if (data.files && data.files.length) {
-      driveFolderId = data.files[0].id;
-    } else {
-      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: DRIVE_CONFIG.folderName, mimeType: 'application/vnd.google-apps.folder' })
-      });
-      const created = await createRes.json();
-      driveFolderId = created.id;
-    }
-    localStorage.setItem(STORAGE_KEY_FOLDER, driveFolderId);
-    return driveFolderId;
-  }
- 
   async function listDrafts() {
-    await ensureFreshToken();
-    const q = encodeURIComponent(`'${driveFolderId}' in parents and mimeType='application/json' and trashed=false`);
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`, {
-      headers: { Authorization: 'Bearer ' + accessToken }
-    });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
     const data = await res.json();
     return data.files || [];
   }
  
   function scheduleAutosave() {
-    if (!driveConnected) return;
+    if (!backendConfigured()) return;
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(saveDraft, 1200);
   }
  
   async function saveDraft() {
-    if (!driveConnected) return;
-    await ensureFolder();
-    await ensureFreshToken();
-    const displayName = (state.name.trim() ? slugify(state.name) : 'untitled') + '__' + state._draftId + '.json';
-    const content = JSON.stringify(state);
- 
-    if (!state._driveFileId) {
-      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+    if (!backendConfigured()) return;
+    const displayName = 'draft__' + state._draftId + '__' + (state.name.trim() ? slugify(state.name) : 'untitled') + '.json';
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: displayName, parents: [driveFolderId], mimeType: 'application/json' })
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'save', id: state._driveFileId, name: displayName, content: state })
       });
-      const created = await createRes.json();
-      state._driveFileId = created.id;
-    } else {
-      fetch(`https://www.googleapis.com/drive/v3/files/${state._driveFileId}`, {
-        method: 'PATCH',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: displayName })
-      });
-    }
- 
-    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state._driveFileId}?uploadType=media`, {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-      body: content
-    });
- 
-    state._lastSaved = new Date().toISOString();
-    renderDriveBar();
+      const data = await res.json();
+      if (!state._driveFileId) state._driveFileId = data.id;
+      state._lastSaved = new Date().toISOString();
+      renderStatusBar();
+    } catch (e) { /* fail quietly, will retry on next change */ }
   }
  
   async function loadDraftFile(fileId) {
-    await ensureFreshToken();
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: { Authorization: 'Bearer ' + accessToken }
-    });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=load&id=${fileId}`);
     const parsed = await res.json();
     state = Object.assign(freshState(), parsed, { _driveFileId: fileId });
     document.getElementById('resume-container').innerHTML = '';
@@ -406,11 +287,23 @@
   }
  
   async function discardDraftFile(fileId) {
-    await ensureFreshToken();
-    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
-      method: 'DELETE',
-      headers: { Authorization: 'Bearer ' + accessToken }
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'discard', id: fileId })
     });
+  }
+ 
+  async function sendToDeveloper() {
+    const isExternal = state.type === 'external';
+    const content = isExternal ? buildExternalSummary() : buildPrompt();
+    const name = (state.name.trim() ? slugify(state.name) : 'untitled') + ' - Confirmed - ' + new Date().toISOString().slice(0, 10) + '.txt';
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'confirm', name, content })
+    });
+    return res.json();
   }
  
   function timeAgo(iso) {
@@ -424,20 +317,14 @@
     return days + ' day' + (days === 1 ? '' : 's') + ' ago';
   }
  
-  function renderDriveBar() {
-    const bar = document.getElementById('drive-bar');
-    if (!driveConfigured()) {
-      bar.innerHTML = `<span>Draft auto-save is only set up for accounts approved. Please message me to add your email.</span>`;
+  function renderStatusBar() {
+    const bar = document.getElementById('status-bar');
+    if (!backendConfigured()) {
+      bar.innerHTML = `<span>Draft auto-save isn't set up yet — see the APPS_SCRIPT_URL comment in this file.</span>`;
       return;
     }
-    if (!driveConnected) {
-      bar.innerHTML = `<span class="drive-dot"></span><span>Not saving drafts</span><button class="drive-connect-btn" id="btn-connect-drive">Connect Google Drive</button>`;
-      const btn = document.getElementById('btn-connect-drive');
-      if (btn) btn.addEventListener('click', connectDrive);
-    } else {
-      const savedText = state._lastSaved ? `Saved ${timeAgo(state._lastSaved)}` : 'Connected';
-      bar.innerHTML = `<span class="drive-dot on"></span><span>${savedText} to Drive</span>`;
-    }
+    const savedText = state._lastSaved ? `Saved ${timeAgo(state._lastSaved)}` : 'Auto-saving to Drive';
+    bar.innerHTML = `<span class="status-dot on"></span><span>${savedText}</span>`;
   }
  
   function renderResumeBanner(drafts) {
@@ -449,7 +336,7 @@
         ${drafts.map(d => `
           <div class="draft-row" data-id="${d.id}">
             <div class="info">
-              <span class="draft-name">${escapeHtml(d.name.split('__')[0].replace(/-/g, ' '))}</span>
+              <span class="draft-name">${escapeHtml(d.name.split('__').pop().replace('.json', '').replace(/-/g, ' '))}</span>
               <span class="draft-time">Edited ${timeAgo(d.modifiedTime)}</span>
             </div>
             <div class="row-actions">
@@ -500,11 +387,11 @@
   function renderStep0() {
     return `
       <p class="step-title">What are we building?</p>
-      <p class="step-sub">Give it a name and a one-line sense of what it should do.</p>
+      <p class="step-sub">Give it a name — everything else here is optional.</p>
       <label for="f-name">App name</label>
       <input type="text" id="f-name" value="${escapeAttr(state.name)}" placeholder="e.g. Laundry Rotation">
       <label for="f-desc">What should it accomplish?</label>
-      <p class="hint">A sentence or two is plenty — you'll get to add detail later.</p>
+      <p class="hint">Optional, but a sentence or two helps later.</p>
       <textarea id="f-desc" placeholder="e.g. Tracks whose turn it is to do laundry among the adults in the house, and lets whoever's turn it is mark it done.">${escapeHtml(state.description)}</textarea>
     `;
   }
@@ -532,13 +419,14 @@
     if (state.type === 'external') {
       return `
         <p class="step-title">Where does it live?</p>
-        <p class="step-sub">If it's not built or deployed yet, leave this blank — you can fill it in later.</p>
+        <p class="step-sub">Optional — if it's not built or deployed yet, leave this blank and fill it in later.</p>
         <label for="f-url">App URL</label>
         <input type="url" id="f-url" value="${escapeAttr(state.externalUrl)}" placeholder="https://...">
       `;
     }
     return `
       <p class="step-title">What does it need to track?</p>
+      <p class="step-sub">All optional — skip anything you're not sure about yet.</p>
       <label for="f-fields">Data fields</label>
       <p class="hint">Plain language is fine — e.g. "current turn, rotation order, last updated date"</p>
       <textarea id="f-fields" placeholder="e.g. current_turn (who's up), rotation_order (list of names), last_updated (timestamp)">${escapeHtml(state.dataFields)}</textarea>
@@ -559,7 +447,7 @@
   function renderStep3() {
     return `
       <p class="step-title">Pick an icon</p>
-      <p class="step-sub">This shows up on the hub tile.</p>
+      <p class="step-sub">This shows up on the hub tile. A default's already picked if you want to skip this.</p>
       <div class="icon-picker">
         ${ICONS.map(i => `<button type="button" class="icon-option ${state.icon === i ? 'selected' : ''}" data-icon="${i}">${i}</button>`).join('')}
       </div>
@@ -594,8 +482,26 @@
   }
  
   function renderStep5() {
-    const prompt = buildPrompt();
     const config = buildConfigSnippet();
+ 
+    if (state.type === 'external') {
+      return `
+        <div class="celebrate"><span class="emoji">🔗</span></div>
+        <p class="step-title" style="text-align:center;">Ready to link</p>
+        <p class="step-sub" style="text-align:center;">External apps don't need an AI-coder brief — just add this to the hub.</p>
+        <div class="output-block">
+          <div class="output-label"><span>Hub config snippet — paste into the APPS array in index.html</span></div>
+          <pre class="output" id="config-output">${escapeHtml(config)}</pre>
+          <div class="output-actions">
+            <button class="btn-small" id="copy-config">Copy to clipboard</button>
+            <button class="btn-small" id="send-developer">Send to developer</button>
+          </div>
+        </div>
+        ${state._driveFileId ? `<div class="output-block"><button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button></div>` : ''}
+      `;
+    }
+ 
+    const prompt = buildPrompt();
     return `
       <div class="celebrate"><span class="emoji">🎉</span></div>
       <p class="step-title" style="text-align:center;">Your brief is ready</p>
@@ -607,6 +513,7 @@
         <div class="output-actions">
           <button class="btn-small" id="copy-prompt">Copy to clipboard</button>
           <button class="btn-small" id="download-prompt">Download .txt</button>
+          <button class="btn-small" id="send-developer">Send to developer</button>
         </div>
       </div>
  
@@ -618,10 +525,7 @@
         </div>
       </div>
  
-      ${state._driveFileId ? `
-      <div class="output-block">
-        <button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button>
-      </div>` : ''}
+      ${state._driveFileId ? `<div class="output-block"><button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button></div>` : ''}
     `;
   }
  
@@ -633,52 +537,42 @@
     lines.push('WHAT THIS APP SHOULD DO');
     lines.push(state.description || '(not specified — please ask me before assuming)');
     lines.push('');
- 
-    if (state.type === 'integrated') {
-      lines.push(`TYPE: Integrated app — will live at /${slug}/index.html within the HermanHomeApps hub.`);
+    lines.push(`TYPE: Integrated app — will live at /${slug}/index.html within the HermanHomeApps hub.`);
+    lines.push('');
+    lines.push('This is an INTEGRATED app, so it needs to follow these house conventions exactly:');
+    lines.push('');
+    lines.push('ARCHITECTURE');
+    lines.push('- Google Sheets as the data store (this is the primary store, not just a backup — it should also stay readable/editable directly in Sheets)');
+    lines.push('- Google Apps Script deployed as a Web App, acting ONLY as a thin "dumb" pipe:');
+    lines.push('  - doGet: returns raw data from the Sheet as JSON, and also supports a lightweight status-only response for the hub tile (e.g. {"status": "..."})');
+    lines.push('  - doPost: accepts and saves raw data to the Sheet');
+    lines.push('  - No business logic, calculations, or decision-making belongs in Apps Script — all of that lives in the frontend JavaScript');
+    lines.push('- Frontend: a single self-contained HTML file (inline <style> and <script> tags, no separate CSS/JS files, no build tools, no frameworks like React)');
+    lines.push('- All calculations, UI state, decision logic, and validation happen in this frontend JS');
+    lines.push('');
+    lines.push('SHEET CONVENTIONS');
+    lines.push('- snake_case column headers');
+    lines.push('- Row 1 is reserved for back-end notes/totals');
+    lines.push('- Row 2 is the header row');
+    lines.push('- Row 3+ is data');
+    lines.push('- Any manual trigger cell uses a checkbox pattern: tick it to run an action, and it should auto-reset to false afterward');
+    lines.push('');
+    lines.push('DATA THIS APP NEEDS TO TRACK');
+    lines.push(state.dataFields || '(not specified yet — help me figure out a sensible schema based on what the app needs to do)');
+    lines.push('');
+    lines.push('SPECIAL BEHAVIOR');
+    lines.push(state.behaviorNotes || '(none specified)');
+    const patterns = [
+      state.hasTrigger && '- Needs a manual "tick to run" trigger using the checkbox pattern above',
+      state.hasTimestamps && '- Needs to track timestamps',
+      state.hasMultiUser && '- Multiple people will interact with this app',
+      state.hasSchedule && '- Has scheduled/recurring logic (daily, weekly, etc.)',
+      state.hasStatusSnippet && '- Should expose a short status string via the doGet status endpoint, for display on its hub tile'
+    ].filter(Boolean);
+    if (patterns.length) {
       lines.push('');
-      lines.push('This is an INTEGRATED app, so it needs to follow these house conventions exactly:');
-      lines.push('');
-      lines.push('ARCHITECTURE');
-      lines.push('- Google Sheets as the data store (this is the primary store, not just a backup — it should also stay readable/editable directly in Sheets)');
-      lines.push('- Google Apps Script deployed as a Web App, acting ONLY as a thin "dumb" pipe:');
-      lines.push('  - doGet: returns raw data from the Sheet as JSON, and also supports a lightweight status-only response for the hub tile (e.g. {"status": "..."})');
-      lines.push('  - doPost: accepts and saves raw data to the Sheet');
-      lines.push('  - No business logic, calculations, or decision-making belongs in Apps Script — all of that lives in the frontend JavaScript');
-      lines.push('- Frontend: a single self-contained HTML file (inline <style> and <script> tags, no separate CSS/JS files, no build tools, no frameworks like React)');
-      lines.push('- All calculations, UI state, decision logic, and validation happen in this frontend JS');
-      lines.push('');
-      lines.push('SHEET CONVENTIONS');
-      lines.push('- snake_case column headers');
-      lines.push('- Row 1 is reserved for back-end notes/totals');
-      lines.push('- Row 2 is the header row');
-      lines.push('- Row 3+ is data');
-      lines.push('- Any manual trigger cell uses a checkbox pattern: tick it to run an action, and it should auto-reset to false afterward');
-      lines.push('');
-      lines.push('DATA THIS APP NEEDS TO TRACK');
-      lines.push(state.dataFields || '(not specified yet — help me figure out a sensible schema based on what the app needs to do)');
-      lines.push('');
-      lines.push('SPECIAL BEHAVIOR');
-      lines.push(state.behaviorNotes || '(none specified)');
-      const patterns = [
-        state.hasTrigger && '- Needs a manual "tick to run" trigger using the checkbox pattern above',
-        state.hasTimestamps && '- Needs to track timestamps',
-        state.hasMultiUser && '- Multiple people will interact with this app',
-        state.hasSchedule && '- Has scheduled/recurring logic (daily, weekly, etc.)',
-        state.hasStatusSnippet && '- Should expose a short status string via the doGet status endpoint, for display on its hub tile'
-      ].filter(Boolean);
-      if (patterns.length) {
-        lines.push('');
-        lines.push(patterns.join('\n'));
-      }
-    } else {
-      lines.push('TYPE: External/standalone app — built independently of the hub\'s shared backend.');
-      lines.push('');
-      lines.push('This app does NOT need to follow the Sheets/Apps Script pattern. It just needs to end up somewhere the hub can link to — no shared backend, no status endpoint required.');
-      lines.push('');
-      lines.push('URL: ' + (state.externalUrl || 'not live yet — leave as a placeholder for now'));
+      lines.push(patterns.join('\n'));
     }
- 
     lines.push('');
     lines.push('HOW I\'D LIKE YOU TO WORK WITH ME');
     lines.push('Please don\'t just generate a finished file and hand it to me. Walk me through building this step by step:');
@@ -690,6 +584,10 @@
     lines.push('ICON: ' + state.icon);
  
     return lines.join('\n');
+  }
+ 
+  function buildExternalSummary() {
+    return `External app: ${state.name || 'Untitled App'}\nURL: ${state.externalUrl || 'not live yet'}\nIcon: ${state.icon}\n\nHub config snippet:\n${buildConfigSnippet()}`;
   }
  
   function buildConfigSnippet() {
@@ -717,14 +615,20 @@
   function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
  
   function canAdvance() {
-    if (state.step === 0) return state.name.trim().length > 0 && state.description.trim().length > 0;
+    if (state.step === 0) return state.name.trim().length > 0;
     if (state.step === 1) return state.type === 'integrated' || state.type === 'external';
     return true;
   }
  
+  function step2IsEmpty() {
+    if (state.type === 'external') return !state.externalUrl.trim();
+    return !state.dataFields.trim() && !state.behaviorNotes.trim() &&
+      !state.hasTrigger && !state.hasTimestamps && !state.hasMultiUser && !state.hasSchedule && !state.hasStatusSnippet;
+  }
+ 
   function render() {
     renderProgress();
-    renderDriveBar();
+    renderStatusBar();
     const panel = document.getElementById('panel');
     let content = '';
     if (state.step === 0) content = renderStep0();
@@ -736,13 +640,16 @@
  
     const isLast = state.step === totalSteps() - 1;
     const isFirst = state.step === 0;
+    let nextLabel = 'Next';
+    if (state.step === 4) nextLabel = 'Generate my brief';
+    else if (state.step === 2 && step2IsEmpty()) nextLabel = 'Skip for now';
  
     let actions = '';
     if (!isLast) {
       actions = `
         <div class="actions">
           <button class="btn btn-secondary" id="btn-back" ${isFirst ? 'disabled' : ''}>Back</button>
-          <button class="btn btn-primary" id="btn-next">${state.step === 4 ? 'Generate my brief' : 'Next'}</button>
+          <button class="btn btn-primary" id="btn-next">${nextLabel}</button>
         </div>`;
     } else {
       actions = `
@@ -767,7 +674,7 @@
     });
  
     const urlEl = document.getElementById('f-url');
-    if (urlEl) urlEl.addEventListener('input', e => { state.externalUrl = e.target.value; scheduleAutosave(); });
+    if (urlEl) urlEl.addEventListener('input', e => { state.externalUrl = e.target.value; scheduleAutosave(); render(); });
     const fieldsEl = document.getElementById('f-fields');
     if (fieldsEl) fieldsEl.addEventListener('input', e => { state.dataFields = e.target.value; scheduleAutosave(); });
     const behaviorEl = document.getElementById('f-behavior');
@@ -802,7 +709,7 @@
  
     const restartBtn = document.getElementById('btn-restart');
     if (restartBtn) restartBtn.addEventListener('click', async () => {
-      if (state._driveFileId && driveConnected) { await discardDraftFile(state._driveFileId); }
+      if (state._driveFileId && backendConfigured()) { await discardDraftFile(state._driveFileId); }
       state = freshState();
       render();
     });
@@ -823,6 +730,19 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    });
+ 
+    const sendBtn = document.getElementById('send-developer');
+    if (sendBtn) sendBtn.addEventListener('click', async () => {
+      if (!backendConfigured()) { sendBtn.textContent = 'Backend not set up'; return; }
+      sendBtn.textContent = 'Sending…';
+      try {
+        await sendToDeveloper();
+        sendBtn.textContent = 'Sent ✓';
+        sendBtn.classList.add('copied');
+      } catch (e) {
+        sendBtn.textContent = 'Failed — try again';
+      }
     });
  
     const discardBtn = document.getElementById('discard-draft');
@@ -864,3 +784,4 @@
 </script>
 </body>
 </html>
+ 
