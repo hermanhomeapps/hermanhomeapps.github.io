@@ -72,7 +72,7 @@
 
   .overlay { position: fixed; inset: 0; background: rgba(20, 16, 34, 0.75); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
   .overlay.open { display: flex; }
-  .modal { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.3); border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; text-align: center; }
+  .modal { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.3); border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; text-align: center; position: relative; }
   .modal-wide { max-width: 420px; text-align: left; }
   .modal h2 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 16px; text-align: center; }
   .modal-wide h2 { text-align: left; }
@@ -89,7 +89,6 @@
   .btn-cancel { background: transparent; color: var(--cream); border: 1px solid rgba(245,239,224,0.2) !important; }
   .pin-error { color: var(--error); font-size: 0.85rem; min-height: 1.2em; margin-bottom: 8px; text-align: center; }
   .close-x { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--gold-soft); font-size: 1.2rem; cursor: pointer; }
-  .modal { position: relative; }
 
   .field-wrap { position: relative; margin-bottom: 12px; }
   .field-wrap input, .field-wrap textarea { margin-bottom: 0; }
@@ -127,13 +126,26 @@
 
   .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--gold-soft); margin: 26px 0 12px; }
 
-  .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
   .kid-block { background: var(--bg-card); border: 1px solid rgba(217,165,72,0.18); border-radius: 16px; padding: 18px; }
   .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0 0 2px; }
-  .kid-block-points { color: var(--gold-soft); font-size: 0.85rem; margin-bottom: 12px; }
-  .kid-block-chores { font-size: 0.78rem; color: rgba(245,239,224,0.55); margin-bottom: 12px; line-height: 1.5; }
-  .btn-small { width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; }
+  .kid-block-points { color: var(--gold-soft); font-size: 0.85rem; margin-bottom: 14px; }
+  .btn-small { width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(217,165,72,0.1); }
+
+  .mini-chore-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    background: var(--bg-soft); border-radius: 9px; padding: 9px 10px; margin-bottom: 6px; font-size: 0.8rem;
+  }
+  .mini-chore-row.done { opacity: 0.6; }
+  .mini-chore-name { font-weight: 600; }
+  .mini-chore-pts { color: var(--gold); font-size: 0.72rem; margin-left: 5px; font-weight: 500; }
+  .mini-btn {
+    background: none; border: 1px solid var(--green); color: var(--green);
+    font-size: 0.68rem; padding: 5px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600;
+  }
+  .mini-btn.undo-btn { border-color: var(--error); color: var(--error); }
+  .empty-note-mini { font-size: 0.75rem; color: rgba(245,239,224,0.4); padding: 4px 0 10px; }
 
   .unassigned-panel { background: var(--bg-card); border: 1px dashed rgba(217,165,72,0.3); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -146,7 +158,10 @@
   .empty-note { font-size: 0.85rem; color: rgba(245,239,224,0.45); text-align: center; padding: 10px 0; }
 
   .my-chore-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .my-chore-card.done { opacity: 0.55; }
   .btn-complete { background: var(--green); color: var(--bg); border: none; padding: 9px 14px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .done-tag { color: var(--green); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+  .completed-section-label { font-size: 0.72rem; color: rgba(245,239,224,0.4); margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.06em; }
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; max-width: 85vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -201,6 +216,8 @@
     <div id="kidView" style="display:none;">
       <div class="section-label">Your Chores</div>
       <div id="myChoreList"></div>
+      <div id="myCompletedLabel" class="completed-section-label" style="display:none;">Completed</div>
+      <div id="myCompletedList"></div>
     </div>
   </div>
 
@@ -276,7 +293,7 @@
   let appData = { kids: [], config: {}, chores: [] };
   let currentUser = null;
   let selectedExistingChoreName = null;
-  let pendingDupResolution = null; // { typed: {name,points,description}, matched: {name,points,description} }
+  let pendingDupResolution = null;
 
   const kidGrid = document.getElementById('kidGrid');
   const statusLine = document.getElementById('statusLine');
@@ -316,17 +333,18 @@
   async function postData(payload) {
     await fetch(BACKEND_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // avoids CORS preflight on Apps Script
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
   }
 
   async function refreshAndRerender() {
     await loadData();
+    renderProgressBar();
     if (currentUser.isAdmin) {
-      renderProgressBar(); renderKidBlocks(); renderUnassignedChores();
+      renderKidBlocks(); renderUnassignedChores();
     } else {
-      renderProgressBar(); renderMyChores();
+      renderMyChores();
     }
   }
 
@@ -384,20 +402,50 @@
     document.getElementById('progressNumber').textContent = `${total} / ${SEASON_GOAL} pts`;
   }
 
+  // ===== MOMMY: kid blocks now list every assigned/completed chore by name =====
   function renderKidBlocks() {
     const wrap = document.getElementById('kidBlocks');
     wrap.innerHTML = '';
     appData.kids.forEach(kid => {
-      const assignedChores = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'assigned');
+      const assigned = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'assigned');
+      const completed = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'completed');
+
       const block = document.createElement('div');
       block.className = 'kid-block';
+
+      let rowsHtml = '';
+      if (assigned.length === 0 && completed.length === 0) {
+        rowsHtml = '<div class="empty-note-mini">No chores assigned yet</div>';
+      } else {
+        assigned.forEach(c => {
+          rowsHtml += `
+            <div class="mini-chore-row">
+              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
+              <button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Mark Complete</button>
+            </div>`;
+        });
+        completed.forEach(c => {
+          rowsHtml += `
+            <div class="mini-chore-row done">
+              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
+              <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="incomplete">Mark Incomplete</button>
+            </div>`;
+        });
+      }
+
       block.innerHTML = `
         <div class="kid-block-name">${kid.name}</div>
         <div class="kid-block-points">${kid.current_points || 0} pts this season</div>
-        <div class="kid-block-chores">${assignedChores.length ? assignedChores.length + ' chore(s) assigned' : 'No chores assigned yet'}</div>
-        <button class="btn-small">Assign Chore</button>
+        ${rowsHtml}
+        <button class="btn-small" data-action="assign">Assign Chore</button>
       `;
-      block.querySelector('.btn-small').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
+      block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
+      block.querySelectorAll('[data-action="complete"]').forEach(btn => {
+        btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true);
+      });
+      block.querySelectorAll('[data-action="incomplete"]').forEach(btn => {
+        btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false);
+      });
       wrap.appendChild(block);
     });
   }
@@ -429,30 +477,92 @@
     });
   }
 
+  // ===== KID: can only mark Complete, never Incomplete =====
   function renderMyChores() {
-    const list = document.getElementById('myChoreList');
+    const activeList = document.getElementById('myChoreList');
+    const completedLabel = document.getElementById('myCompletedLabel');
+    const completedList = document.getElementById('myCompletedList');
+
     const mine = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'assigned');
-    list.innerHTML = '';
+    const mineDone = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'completed');
+
+    activeList.innerHTML = '';
     if (mine.length === 0) {
-      list.innerHTML = '<div class="empty-note">No chores assigned to you right now.</div>';
-      return;
+      activeList.innerHTML = '<div class="empty-note">No chores assigned to you right now.</div>';
+    } else {
+      mine.forEach(chore => {
+        const card = document.createElement('div');
+        card.className = 'my-chore-card';
+        card.innerHTML = `
+          <div>
+            <div class="chore-name">${chore.name}</div>
+            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
+          </div>
+          <button class="btn-complete">Complete</button>
+        `;
+        card.querySelector('.btn-complete').onclick = () => toggleChoreComplete(chore.chore_id, currentUser.id, true);
+        activeList.appendChild(card);
+      });
     }
-    mine.forEach(chore => {
-      const card = document.createElement('div');
-      card.className = 'my-chore-card';
-      card.innerHTML = `
-        <div>
-          <div class="chore-name">${chore.name}</div>
-          <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
-        </div>
-        <button class="btn-complete">Complete</button>
-      `;
-      card.querySelector('.btn-complete').onclick = () => showToast('Marking chores complete comes in the next piece!');
-      list.appendChild(card);
-    });
+
+    completedList.innerHTML = '';
+    if (mineDone.length > 0) {
+      completedLabel.style.display = 'block';
+      mineDone.forEach(chore => {
+        const card = document.createElement('div');
+        card.className = 'my-chore-card done';
+        card.innerHTML = `
+          <div>
+            <div class="chore-name">${chore.name}</div>
+            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
+          </div>
+          <span class="done-tag">&#10003; Done</span>
+        `;
+        completedList.appendChild(card);
+      });
+    } else {
+      completedLabel.style.display = 'none';
+    }
   }
 
-  // ===== ASSIGN: pick a kid for a given chore =====
+  // ===== COMPLETE / INCOMPLETE TOGGLE (shared by both roles) =====
+  async function toggleChoreComplete(choreId, kidId, markComplete) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!chore || !kid) return;
+
+    const pts = Number(chore.points) || 0;
+    let updatedChore, updatedKid;
+
+    if (markComplete) {
+      updatedChore = Object.assign({}, chore, {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        completed_by: currentUser.id
+      });
+      updatedKid = Object.assign({}, kid, {
+        current_points: (Number(kid.current_points) || 0) + pts
+      });
+      showToast('Marking complete...');
+    } else {
+      updatedChore = Object.assign({}, chore, {
+        status: 'assigned',
+        completed_at: '',
+        completed_by: ''
+      });
+      updatedKid = Object.assign({}, kid, {
+        current_points: Math.max(0, (Number(kid.current_points) || 0) - pts)
+      });
+      showToast('Marking incomplete...');
+    }
+
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updatedChore] });
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
+    await refreshAndRerender();
+    showToast(markComplete ? `+${pts} pts for ${kid.name}!` : `Points removed from ${kid.name}.`);
+  }
+
+  // ===== ASSIGN =====
   const pickOverlay = document.getElementById('pickOverlay');
   const pickTitle = document.getElementById('pickTitle');
   const pickList = document.getElementById('pickList');
@@ -529,7 +639,6 @@
   function closeAddChoreModal() { addChoreOverlay.classList.remove('open'); }
 
   function getDistinctChores() {
-    // latest instance of each chore name wins (most recent created_at)
     const map = {};
     appData.chores.forEach(c => {
       const key = (c.name || '').trim().toLowerCase();
@@ -609,7 +718,6 @@
     const typed = { name, points, description };
 
     if (selectedExistingChoreName === name.toLowerCase()) {
-      // explicitly picked from dropdown — no need to flag
       finalizeSaveChore(typed);
       return;
     }
