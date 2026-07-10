@@ -23,7 +23,15 @@
   .hub-link:hover { opacity: 1; }
 
   .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; flex-direction: column; }
-  .card { width: 100%; max-width: 480px; text-align: center; }
+  .card { width: 100%; max-width: 480px; text-align: center; position: relative; }
+  .reload-btn {
+    position: absolute; top: -8px; right: -6px; background: transparent; border: 1px solid rgba(217,165,72,0.3);
+    color: var(--gold-soft); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center; transition: transform 0.4s ease, border-color 0.15s ease;
+  }
+  .reload-btn:hover { border-color: var(--gold); }
+  .reload-btn.spinning { animation: spin 0.7s linear; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .flames { display: flex; justify-content: center; gap: 18px; margin-bottom: 8px; }
   .flame { width: 10px; height: 22px; background: linear-gradient(180deg, var(--gold-soft), var(--gold) 60%, var(--rose)); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; filter: blur(0.3px); animation: flicker 2.6s ease-in-out infinite; transform-origin: bottom center; }
   .flame:nth-child(2) { animation-delay: 0.4s; }
@@ -107,7 +115,7 @@
   .mini-btn.delete-btn { border-color: var(--error); color: var(--error); }
   .empty-note-mini { font-size: 0.75rem; color: rgba(245,239,224,0.4); padding: 4px 0 10px; }
 
-  .unassigned-panel { background: var(--bg-card); border: 1px dashed rgba(217,165,72,0.3); border-radius: 16px; padding: 18px; }
+  .unassigned-panel, .lists-panel { background: var(--bg-card); border: 1px dashed rgba(217,165,72,0.3); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .btn-primary { background: var(--gold); color: var(--bg); border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
   .chore-card { background: var(--bg-soft); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -116,6 +124,13 @@
   .chore-desc { font-size: 0.78rem; color: rgba(245,239,224,0.6); margin-top: 2px; }
   .chore-points { color: var(--gold); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
   .empty-note { font-size: 0.85rem; color: rgba(245,239,224,0.45); text-align: center; padding: 10px 0; }
+
+  .list-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .list-card { background: var(--bg-soft); border-radius: 12px; padding: 14px; }
+  .list-card-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+  .list-card-count { font-size: 0.75rem; color: rgba(245,239,224,0.55); margin-bottom: 10px; }
+  .list-card-actions { display: flex; gap: 6px; }
+  .list-card-actions button { flex: 1; font-size: 0.72rem; padding: 7px; }
 
   .my-chore-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   .my-chore-card.done { opacity: 0.55; }
@@ -134,6 +149,7 @@
   <div id="loginView" class="login-wrap">
     <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="card">
+      <button class="reload-btn" id="loginReloadBtn" title="Refresh kid list">&#8635;</button>
       <div class="flames"><div class="flame"></div><div class="flame"></div></div>
       <h1>Shabbos Chores</h1>
       <p class="subtitle">Who's checking in?</p>
@@ -166,6 +182,14 @@
         <button class="btn-primary" id="addKidBtn">+ Add Kid</button>
       </div>
       <div class="kid-blocks" id="kidBlocks"></div>
+
+      <div class="section-header-row">
+        <div class="section-label">Chore Lists</div>
+        <button class="btn-primary" id="newListBtn">+ New List</button>
+      </div>
+      <div class="lists-panel">
+        <div id="listGrid" class="list-grid"></div>
+      </div>
 
       <div class="section-header-row">
         <div class="section-label">Unassigned Chores</div>
@@ -204,7 +228,7 @@
 <div class="overlay" id="addChoreOverlay">
   <div class="modal modal-wide">
     <button class="close-x" id="addChoreClose">&times;</button>
-    <h2>Add New Chore</h2>
+    <h2 id="addChoreTitle">Add New Chore</h2>
     <div class="field-wrap">
       <label class="field-label">Chore name</label>
       <input type="text" id="choreNameInput" autocomplete="off" placeholder="e.g. Set the table">
@@ -256,6 +280,28 @@
   </div>
 </div>
 
+<div class="overlay" id="newListOverlay">
+  <div class="modal">
+    <button class="close-x" id="newListClose">&times;</button>
+    <h2>New Chore List</h2>
+    <input type="text" id="listNameInput" placeholder="e.g. Kitchen Chores" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="newListCancel">Cancel</button>
+      <button class="btn-confirm" id="newListSave">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="manageListOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="manageListClose">&times;</button>
+    <h2 id="manageListTitle"></h2>
+    <button class="btn-primary" style="width:100%; margin-bottom:14px;" id="manageListAddChoreBtn">+ Add Chore to This List</button>
+    <div class="pick-list" id="manageListChores"></div>
+    <button class="btn-cancel" style="width:100%; margin-top:14px; border:1px solid var(--error) !important; color: var(--error);" id="manageListDeleteBtn">Delete This List</button>
+  </div>
+</div>
+
 <div class="overlay" id="raffleOverlay">
   <div class="modal modal-wide" style="max-width:460px;">
     <button class="close-x" id="raffleClose">&times;</button>
@@ -301,11 +347,13 @@
   const DUP_THRESHOLD = 0.78;
   const WHEEL_COLORS = ['#D9A548','#C97064','#7FA37A','#8C7FC9','#5DA3A3','#C98CC9','#E0B15C','#B0776B'];
 
-  let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [] };
+  let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [] };
   let currentUser = null;
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
   let raffleState = null;
+  let currentChoreTarget = { type: 'unassigned' }; // or { type: 'list', listId }
+  let activeManageListId = null;
 
   const kidGrid = document.getElementById('kidGrid');
   const statusLine = document.getElementById('statusLine');
@@ -339,6 +387,7 @@
       appData.seasons = data.seasons || [];
       appData.season_totals = data.season_totals || [];
       appData.raffle_log = data.raffle_log || [];
+      appData.chore_lists = data.chore_lists || [];
     } catch (err) {
       statusLine.textContent = "Couldn't reach the chore list. Check your connection.";
       console.error(err);
@@ -352,7 +401,7 @@
   async function refreshAndRerender() {
     await loadData();
     renderProgressBar();
-    if (currentUser.isAdmin) { renderKidBlocks(); renderUnassignedChores(); }
+    if (currentUser.isAdmin) { renderKidBlocks(); renderUnassignedChores(); renderChoreLists(); }
     else { renderMyChores(); }
   }
 
@@ -371,6 +420,16 @@
       kidGrid.appendChild(btn);
     });
   }
+
+  // ===== LOGIN RELOAD =====
+  document.getElementById('loginReloadBtn').onclick = async () => {
+    const btn = document.getElementById('loginReloadBtn');
+    btn.classList.add('spinning');
+    statusLine.textContent = 'Refreshing...';
+    await loadData();
+    renderKids();
+    setTimeout(() => btn.classList.remove('spinning'), 700);
+  };
 
   function logIn(id, name, isAdmin) {
     currentUser = { id, name, isAdmin };
@@ -393,6 +452,7 @@
       kidView.style.display = 'none';
       renderKidBlocks();
       renderUnassignedChores();
+      renderChoreLists();
       if (String(appData.config.new_season_trigger).toUpperCase() === 'TRUE') {
         showToast("New Season trigger ticked in the Sheet — tap 'Begin New Season' to run it.");
       }
@@ -491,6 +551,121 @@
       card.querySelector('[data-action="delete"]').onclick = () => deleteChore(chore.chore_id, chore.name);
       list.appendChild(card);
     });
+  }
+
+  // ===== CHORE LISTS =====
+  function renderChoreLists() {
+    const grid = document.getElementById('listGrid');
+    grid.innerHTML = '';
+    if (appData.chore_lists.length === 0) {
+      grid.innerHTML = '<div class="empty-note">No lists yet — create one to group chores together.</div>';
+      return;
+    }
+    appData.chore_lists.forEach(list => {
+      const items = appData.chores.filter(c => c.list_id === list.list_id && c.status === 'template');
+      const card = document.createElement('div');
+      card.className = 'list-card';
+      card.innerHTML = `
+        <div class="list-card-name">${list.list_name}</div>
+        <div class="list-card-count">${items.length} chore${items.length === 1 ? '' : 's'}</div>
+        <div class="list-card-actions">
+          <button class="btn-small" data-action="manage">Manage</button>
+          <button class="btn-small" data-action="addall">Add All</button>
+        </div>
+      `;
+      card.querySelector('[data-action="manage"]').onclick = () => openManageList(list.list_id);
+      card.querySelector('[data-action="addall"]').onclick = () => addListToUnassigned(list.list_id, list.list_name);
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('newListBtn').onclick = () => {
+    document.getElementById('listNameInput').value = '';
+    document.getElementById('newListOverlay').classList.add('open');
+    document.getElementById('listNameInput').focus();
+  };
+  document.getElementById('newListCancel').onclick = () => document.getElementById('newListOverlay').classList.remove('open');
+  document.getElementById('newListClose').onclick = () => document.getElementById('newListOverlay').classList.remove('open');
+  document.getElementById('newListSave').onclick = async () => {
+    const name = document.getElementById('listNameInput').value.trim();
+    if (!name) { showToast('Name the list first.'); return; }
+    document.getElementById('newListOverlay').classList.remove('open');
+    showToast('Creating list...');
+    await postData({ sheet: 'chore_lists', action: 'upsert', id_field: 'list_id', rows: [{
+      list_id: 'l_' + Date.now(), list_name: name, created_at: new Date().toISOString()
+    }] });
+    await refreshAndRerender();
+    showToast(`"${name}" list created!`);
+  };
+
+  function openManageList(listId) {
+    activeManageListId = listId;
+    const list = appData.chore_lists.find(l => l.list_id === listId);
+    document.getElementById('manageListTitle').textContent = list.list_name;
+    renderManageListChores();
+    document.getElementById('manageListOverlay').classList.add('open');
+  }
+  document.getElementById('manageListClose').onclick = () => document.getElementById('manageListOverlay').classList.remove('open');
+
+  function renderManageListChores() {
+    const wrap = document.getElementById('manageListChores');
+    const items = appData.chores.filter(c => c.list_id === activeManageListId && c.status === 'template');
+    wrap.innerHTML = '';
+    if (items.length === 0) {
+      wrap.innerHTML = '<div class="empty-note">No chores in this list yet.</div>';
+      return;
+    }
+    items.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'pick-item';
+      row.style.cursor = 'default';
+      row.innerHTML = `<span class="pick-item-name">${c.name}</span><span class="pick-item-sub">${c.points} pts</span>
+        <button class="mini-btn delete-btn" style="margin-left:8px;">Remove</button>`;
+      row.querySelector('.delete-btn').onclick = async () => {
+        if (!confirm(`Remove "${c.name}" from this list?`)) return;
+        await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: [c.chore_id] });
+        await loadData();
+        renderManageListChores();
+        renderChoreLists();
+      };
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('manageListAddChoreBtn').onclick = () => {
+    currentChoreTarget = { type: 'list', listId: activeManageListId };
+    document.getElementById('manageListOverlay').classList.remove('open');
+    openAddChoreModal();
+  };
+
+  document.getElementById('manageListDeleteBtn').onclick = async () => {
+    const list = appData.chore_lists.find(l => l.list_id === activeManageListId);
+    if (!confirm(`Delete the list "${list.list_name}"? Chores inside it will also be deleted. This can't be undone.`)) return;
+    showToast('Deleting list...');
+    const items = appData.chores.filter(c => c.list_id === activeManageListId && c.status === 'template');
+    if (items.length) {
+      await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: items.map(c => c.chore_id) });
+    }
+    await postData({ sheet: 'chore_lists', action: 'delete', id_field: 'list_id', ids: [activeManageListId] });
+    document.getElementById('manageListOverlay').classList.remove('open');
+    await refreshAndRerender();
+    showToast('List deleted.');
+  };
+
+  async function addListToUnassigned(listId, listName) {
+    const items = appData.chores.filter(c => c.list_id === listId && c.status === 'template');
+    if (items.length === 0) { showToast('This list is empty — add some chores to it first.'); return; }
+    showToast('Adding to Unassigned...');
+    const copies = items.map((c, i) => ({
+      chore_id: 'c_' + Date.now() + '_' + i,
+      name: c.name, points: c.points, description: c.description || '',
+      status: 'unassigned', assigned_kid_id: '', created_by: currentUser.id,
+      created_at: new Date().toISOString(), assigned_at: '', completed_at: '', completed_by: '',
+      list_id: listId
+    }));
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: copies });
+    await refreshAndRerender();
+    showToast(`${items.length} chore(s) from "${listName}" added to Unassigned!`);
   }
 
   function renderMyChores() {
@@ -652,18 +827,19 @@
     showToast('Chore assigned!');
   }
 
-  // ===== ADD CHORE + TYPEAHEAD =====
+  // ===== ADD CHORE + TYPEAHEAD (now target-aware: unassigned vs. a list) =====
   const addChoreOverlay = document.getElementById('addChoreOverlay');
   const choreNameInput = document.getElementById('choreNameInput');
   const chorePointsInput = document.getElementById('chorePointsInput');
   const choreDescInput = document.getElementById('choreDescInput');
   const typeaheadList = document.getElementById('typeaheadList');
 
-  document.getElementById('addChoreBtn').onclick = openAddChoreModal;
+  document.getElementById('addChoreBtn').onclick = () => { currentChoreTarget = { type: 'unassigned' }; openAddChoreModal(); };
   document.getElementById('addChoreCancel').onclick = closeAddChoreModal;
   document.getElementById('addChoreClose').onclick = closeAddChoreModal;
 
   function openAddChoreModal() {
+    document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
     choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.value = '';
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
@@ -758,14 +934,23 @@
   async function finalizeSaveChore(data) {
     closeAddChoreModal();
     showToast('Saving chore...');
+    const isList = currentChoreTarget.type === 'list';
     const newChore = {
       chore_id: 'c_' + Date.now(), name: data.name, points: data.points, description: data.description || '',
-      status: 'unassigned', assigned_kid_id: '', created_by: currentUser.id, created_at: new Date().toISOString(),
-      assigned_at: '', completed_at: '', completed_by: ''
+      status: isList ? 'template' : 'unassigned',
+      assigned_kid_id: '', created_by: currentUser.id, created_at: new Date().toISOString(),
+      assigned_at: '', completed_at: '', completed_by: '',
+      list_id: isList ? currentChoreTarget.listId : ''
     };
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newChore] });
     await refreshAndRerender();
-    showToast('Chore added to Unassigned!');
+    if (isList) {
+      renderManageListChores();
+      document.getElementById('manageListOverlay').classList.add('open');
+      showToast('Chore added to list!');
+    } else {
+      showToast('Chore added to Unassigned!');
+    }
   }
 
   // ===== NEW SEASON =====
