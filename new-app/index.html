@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New App Wizard — HermanHomeApps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #EAF0FB;
+    --bg-deep: #DCE6FA;
+    --ink: #262A3F;
+    --ink-soft: #565C77;
+    --sunflower: #FFC857;
+    --coral: #FF6B5B;
+    --mint: #2FB6A3;
+    --sky: #5D9CEC;
+    --grape: #9B72CF;
+    --card-shadow: rgba(38, 40, 63, 0.18);
+    --paper: #FFFFFF;
+  }
+ 
+  * { box-sizing: border-box; }
+ 
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg-deep) 0%, transparent 40%),
+      radial-gradient(circle at 88% 92%, var(--bg-deep) 0%, transparent 45%),
+      var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    padding: 40px 20px 80px;
+  }
+ 
+  .wrap { max-width: 720px; margin: 0 auto; }
+ 
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-soft); text-decoration: none; font-weight: 600; font-size: 0.92rem;
+    margin-bottom: 20px;
+  }
+  .back-link:hover { color: var(--ink); }
+ 
+  header { text-align: center; margin-bottom: 20px; }
+ 
+  .wordmark {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: clamp(1.8rem, 5vw, 2.5rem); margin: 0; color: var(--coral);
+  }
+  .tagline { color: var(--ink-soft); margin-top: 8px; font-size: 1rem; }
+ 
+  /* Drive status bar */
+  .drive-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+  }
+  .drive-dot { width: 8px; height: 8px; border-radius: 50%; background: #C7CFE8; display: inline-block; }
+  .drive-dot.on { background: var(--mint); }
+  .drive-connect-btn {
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem;
+    padding: 7px 16px; border-radius: 999px; border: none; cursor: pointer;
+    background: var(--sky); color: #fff;
+  }
+  .drive-connect-btn:hover { filter: brightness(1.05); }
+ 
+  /* Progress pegs */
+  .progress { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 30px; }
+  .peg {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--paper);
+    border: 2px solid var(--bg-deep); display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); transition: all 0.2s ease;
+  }
+  .peg.active { background: var(--sky); border-color: var(--sky); color: #fff; transform: scale(1.15); }
+  .peg.done { background: var(--mint); border-color: var(--mint); color: #fff; }
+  .peg-line { width: 24px; height: 2px; background: var(--bg-deep); }
+ 
+  .panel {
+    background: var(--paper); border-radius: 20px; padding: 36px 32px;
+    box-shadow: 0 10px 24px var(--card-shadow); border-top: 6px solid var(--sky);
+  }
+ 
+  .step-title { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 1.4rem; margin: 0 0 6px; }
+  .step-sub { color: var(--ink-soft); font-size: 0.95rem; margin: 0 0 24px; }
+ 
+  label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; margin-top: 20px; }
+  label:first-of-type { margin-top: 0; }
+  .hint { font-size: 0.82rem; color: var(--ink-soft); margin: -2px 0 8px; }
+ 
+  input[type="text"], input[type="url"], textarea {
+    width: 100%; font-family: 'Inter', sans-serif; font-size: 0.98rem; padding: 12px 14px;
+    border: 2px solid var(--bg-deep); border-radius: 12px; background: var(--bg); color: var(--ink); resize: vertical;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--sky); }
+  textarea { min-height: 90px; }
+ 
+  .type-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+  .type-card {
+    border: 2px solid var(--bg-deep); border-radius: 14px; padding: 18px; cursor: pointer; text-align: center;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .type-card .emoji { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+  .type-card .label { font-family: 'Baloo 2', sans-serif; font-weight: 700; }
+  .type-card .desc { font-size: 0.8rem; color: var(--ink-soft); margin-top: 4px; }
+  .type-card:hover { border-color: var(--sky); }
+  .type-card.selected { border-color: var(--sky); background: var(--bg-deep); }
+ 
+  .checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0; font-size: 0.92rem; }
+  .checkbox-row input { width: auto; margin-top: 3px; }
+ 
+  .icon-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .icon-option {
+    width: 42px; height: 42px; border-radius: 10px; border: 2px solid var(--bg-deep);
+    background: var(--bg); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .icon-option.selected { border-color: var(--sky); background: var(--bg-deep); }
+ 
+  .review-block { background: var(--bg); border-radius: 14px; padding: 16px 18px; margin-top: 8px; font-size: 0.9rem; line-height: 1.6; }
+  .review-block dt { font-weight: 700; margin-top: 10px; }
+  .review-block dt:first-child { margin-top: 0; }
+  .review-block dd { margin: 2px 0 0; color: var(--ink-soft); white-space: pre-wrap; }
+ 
+  .actions { display: flex; justify-content: space-between; margin-top: 30px; gap: 12px; }
+  button.btn {
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 12px 22px;
+    border-radius: 999px; border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button.btn:hover { transform: translateY(-2px); }
+  button.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .btn-primary { background: var(--coral); color: #fff; box-shadow: 0 6px 14px rgba(255,107,91,0.35); margin-left: auto; }
+  .btn-secondary { background: var(--bg-deep); color: var(--ink); }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+ 
+  .output-block { margin-top: 18px; }
+  .output-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  pre.output {
+    background: var(--ink); color: #EAF0FB; border-radius: 14px; padding: 18px; font-size: 0.82rem;
+    line-height: 1.55; overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 340px; overflow-y: auto;
+  }
+  .output-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .btn-small {
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem; padding: 8px 16px;
+    border-radius: 999px; border: none; cursor: pointer; background: var(--bg-deep); color: var(--ink);
+  }
+  .btn-small.copied { background: var(--mint); color: #fff; }
+  .btn-small.danger { background: #FBDCD8; color: #B0392E; }
+ 
+  .celebrate { text-align: center; margin-bottom: 8px; }
+  .celebrate .emoji { font-size: 2rem; }
+ 
+  /* Resume banner */
+  .resume-panel {
+    background: var(--paper); border-radius: 20px; padding: 28px; margin-bottom: 20px;
+    box-shadow: 0 10px 24px var(--card-shadow); border-top: 6px solid var(--grape);
+  }
+  .resume-panel .step-title { margin-bottom: 4px; }
+  .draft-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--bg); border-radius: 12px; padding: 12px 16px; margin-top: 12px;
+  }
+  .draft-row .info { display: flex; flex-direction: column; }
+  .draft-row .draft-name { font-weight: 700; }
+  .draft-row .draft-time { font-size: 0.8rem; color: var(--ink-soft); }
+  .draft-row .row-actions { display: flex; gap: 8px; }
+ 
+  @media (max-width: 480px) {
+    .panel, .resume-panel { padding: 26px 18px; }
+    .type-choice { grid-template-columns: 1fr; }
+    .draft-row { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="../index.html">&larr; Back to hub</a>
+ 
+  <header>
+    <h1 class="wordmark">+ New App</h1>
+    <p class="tagline">Answer a few questions, get a ready-to-paste brief for your AI coder</p>
+  </header>
+ 
+  <div class="drive-bar" id="drive-bar"></div>
+  <div id="resume-container"></div>
+ 
+  <div class="progress" id="progress"></div>
+  <div class="panel" id="panel"></div>
+</div>
+ 
+<script>
+  /*
+    GOOGLE DRIVE DRAFT SAVING — ONE-TIME SETUP
+    -------------------------------------------
+    1. In Google Cloud Console, create or reuse a project.
+    2. APIs & Services > Library > enable "Google Drive API".
+    3. APIs & Services > OAuth consent screen > configure it (External is fine for
+       a small family app — add each family member's Google account as a test
+       user, or publish the app if you don't want that limit).
+    4. APIs & Services > Credentials > Create Credentials > OAuth client ID >
+       Application type: Web application.
+    5. Under "Authorized JavaScript origins", add https://hermanhomeapps.github.io
+       (and http://localhost:PORT too if you test locally).
+    6. Copy the Client ID and paste it below.
+    Until this is filled in, draft saving is simply skipped — everything else
+    in the wizard still works exactly as before.
+ 
+    NOTE ON SCOPE: folderId below points at an existing folder (not one the
+    wizard created itself), so this uses the broader "drive" scope instead of
+    "drive.file". That means once connected, this app can technically read/write
+    anywhere in the authorizing account's Drive — not just this folder. If that
+    ever feels like too much access, switch scope back to drive.file, remove
+    folderId, and the wizard will auto-create its own dedicated folder instead.
+  */
+  const DRIVE_CONFIG = {
+    clientId: "PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE",
+    scope: "https://www.googleapis.com/auth/drive",
+    folderId: "1zt4A8oaaUuH-MeVCEY62IGFZM3HdANRL",
+    folderName: "HermanHomeApps Drafts"
+  };
+ 
+  const STORAGE_KEY_TOKEN = "hha_wizard_drive_token";
+  const STORAGE_KEY_FOLDER = "hha_wizard_drive_folder_id";
+ 
+  const ICONS = ["✨","🧺","🍽️","📅","🛒","💧","🧹","🌱","💰","🚗","📚","🐾"];
+ 
+  let state = freshState();
+  function freshState() {
+    return {
+      step: 0,
+      name: "", description: "", type: "",
+      dataFields: "", behaviorNotes: "",
+      hasTrigger: false, hasTimestamps: false, hasMultiUser: false,
+      hasSchedule: false, hasStatusSnippet: false,
+      externalUrl: "", icon: "✨",
+      _draftId: Math.random().toString(36).slice(2, 10),
+      _driveFileId: null,
+      _lastSaved: null
+    };
+  }
+ 
+  function slugify(str) {
+    return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "untitled";
+  }
+ 
+  function totalSteps() { return 6; }
+ 
+  // ---------- DRIVE ----------
+  let tokenClient = null;
+  let accessToken = null;
+  let tokenExpiresAt = 0;
+  let driveFolderId = null;
+  let driveConnected = false;
+  let autosaveTimer = null;
+ 
+  function driveConfigured() {
+    return DRIVE_CONFIG.clientId && !DRIVE_CONFIG.clientId.startsWith("PASTE_");
+  }
+ 
+  window.addEventListener('load', () => {
+    if (!driveConfigured()) { renderDriveBar(); return; }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: DRIVE_CONFIG.clientId,
+      scope: DRIVE_CONFIG.scope,
+      callback: onTokenResponse
+    });
+    const cached = sessionStorage.getItem(STORAGE_KEY_TOKEN);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.expiresAt > Date.now()) {
+          accessToken = parsed.accessToken;
+          tokenExpiresAt = parsed.expiresAt;
+          driveConnected = true;
+          afterConnected();
+        }
+      } catch (e) {}
+    }
+    renderDriveBar();
+  });
+ 
+  function connectDrive() {
+    if (!tokenClient) return;
+    tokenClient.requestAccessToken({ prompt: driveConnected ? '' : 'consent' });
+  }
+ 
+  function onTokenResponse(resp) {
+    if (resp.error) { renderDriveBar(); return; }
+    accessToken = resp.access_token;
+    tokenExpiresAt = Date.now() + (resp.expires_in * 1000) - 60000;
+    driveConnected = true;
+    sessionStorage.setItem(STORAGE_KEY_TOKEN, JSON.stringify({ accessToken, expiresAt: tokenExpiresAt }));
+    renderDriveBar();
+    afterConnected();
+  }
+ 
+  async function ensureFreshToken() {
+    if (accessToken && Date.now() < tokenExpiresAt) return true;
+    return new Promise(resolve => {
+      tokenClient.callback = (resp) => { onTokenResponse(resp); resolve(!resp.error); };
+      tokenClient.requestAccessToken({ prompt: '' });
+    });
+  }
+ 
+  async function afterConnected() {
+    await ensureFolder();
+    if (!state._driveFileId) {
+      const drafts = await listDrafts();
+      if (drafts.length) renderResumeBanner(drafts);
+    }
+  }
+ 
+  async function ensureFolder() {
+    if (driveFolderId) return driveFolderId;
+    if (DRIVE_CONFIG.folderId) {
+      driveFolderId = DRIVE_CONFIG.folderId;
+      return driveFolderId;
+    }
+    await ensureFreshToken();
+    const q = encodeURIComponent(`name='${DRIVE_CONFIG.folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    const data = await res.json();
+    if (data.files && data.files.length) {
+      driveFolderId = data.files[0].id;
+    } else {
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: DRIVE_CONFIG.folderName, mimeType: 'application/vnd.google-apps.folder' })
+      });
+      const created = await createRes.json();
+      driveFolderId = created.id;
+    }
+    localStorage.setItem(STORAGE_KEY_FOLDER, driveFolderId);
+    return driveFolderId;
+  }
+ 
+  async function listDrafts() {
+    await ensureFreshToken();
+    const q = encodeURIComponent(`'${driveFolderId}' in parents and mimeType='application/json' and trashed=false`);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`, {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    const data = await res.json();
+    return data.files || [];
+  }
+ 
+  function scheduleAutosave() {
+    if (!driveConnected) return;
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(saveDraft, 1200);
+  }
+ 
+  async function saveDraft() {
+    if (!driveConnected) return;
+    await ensureFolder();
+    await ensureFreshToken();
+    const displayName = (state.name.trim() ? slugify(state.name) : 'untitled') + '__' + state._draftId + '.json';
+    const content = JSON.stringify(state);
+ 
+    if (!state._driveFileId) {
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: displayName, parents: [driveFolderId], mimeType: 'application/json' })
+      });
+      const created = await createRes.json();
+      state._driveFileId = created.id;
+    } else {
+      fetch(`https://www.googleapis.com/drive/v3/files/${state._driveFileId}`, {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: displayName })
+      });
+    }
+ 
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${state._driveFileId}?uploadType=media`, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+      body: content
+    });
+ 
+    state._lastSaved = new Date().toISOString();
+    renderDriveBar();
+  }
+ 
+  async function loadDraftFile(fileId) {
+    await ensureFreshToken();
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    const parsed = await res.json();
+    state = Object.assign(freshState(), parsed, { _driveFileId: fileId });
+    document.getElementById('resume-container').innerHTML = '';
+    render();
+  }
+ 
+  async function discardDraftFile(fileId) {
+    await ensureFreshToken();
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+  }
+ 
+  function timeAgo(iso) {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + ' min ago';
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + ' hr ago';
+    const days = Math.round(hrs / 24);
+    return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  }
+ 
+  function renderDriveBar() {
+    const bar = document.getElementById('drive-bar');
+    if (!driveConfigured()) {
+      bar.innerHTML = `<span>Draft auto-save isn't set up yet — see the DRIVE_CONFIG comment in this file.</span>`;
+      return;
+    }
+    if (!driveConnected) {
+      bar.innerHTML = `<span class="drive-dot"></span><span>Not saving drafts</span><button class="drive-connect-btn" id="btn-connect-drive">Connect Google Drive</button>`;
+      const btn = document.getElementById('btn-connect-drive');
+      if (btn) btn.addEventListener('click', connectDrive);
+    } else {
+      const savedText = state._lastSaved ? `Saved ${timeAgo(state._lastSaved)}` : 'Connected';
+      bar.innerHTML = `<span class="drive-dot on"></span><span>${savedText} to Drive</span>`;
+    }
+  }
+ 
+  function renderResumeBanner(drafts) {
+    const container = document.getElementById('resume-container');
+    container.innerHTML = `
+      <div class="resume-panel">
+        <p class="step-title">Pick up a draft?</p>
+        <p class="step-sub" style="margin-bottom:0;">Found ${drafts.length} saved draft${drafts.length === 1 ? '' : 's'} in Drive.</p>
+        ${drafts.map(d => `
+          <div class="draft-row" data-id="${d.id}">
+            <div class="info">
+              <span class="draft-name">${escapeHtml(d.name.split('__')[0].replace(/-/g, ' '))}</span>
+              <span class="draft-time">Edited ${timeAgo(d.modifiedTime)}</span>
+            </div>
+            <div class="row-actions">
+              <button class="btn-small resume-btn" data-id="${d.id}">Resume</button>
+              <button class="btn-small danger discard-btn" data-id="${d.id}">Discard</button>
+            </div>
+          </div>
+        `).join('')}
+        <div class="actions" style="margin-top:16px;">
+          <button class="btn btn-secondary" id="btn-dismiss-resume">Start fresh instead</button>
+        </div>
+      </div>
+    `;
+    container.querySelectorAll('.resume-btn').forEach(b => b.addEventListener('click', () => loadDraftFile(b.dataset.id)));
+    container.querySelectorAll('.discard-btn').forEach(b => b.addEventListener('click', async () => {
+      await discardDraftFile(b.dataset.id);
+      b.closest('.draft-row').remove();
+      if (!container.querySelectorAll('.draft-row').length) container.innerHTML = '';
+    }));
+    const dismiss = document.getElementById('btn-dismiss-resume');
+    if (dismiss) dismiss.addEventListener('click', () => { container.innerHTML = ''; });
+  }
+ 
+  // ---------- WIZARD STEPS ----------
+  function renderProgress() {
+    const el = document.getElementById('progress');
+    el.innerHTML = '';
+    for (let i = 0; i < totalSteps(); i++) {
+      if (i > 0) {
+        const line = document.createElement('div');
+        line.className = 'peg-line';
+        el.appendChild(line);
+      }
+      const peg = document.createElement('div');
+      peg.className = 'peg' + (i === state.step ? ' active' : i < state.step ? ' done' : '');
+      peg.textContent = i < state.step ? '✓' : (i + 1);
+      el.appendChild(peg);
+    }
+  }
+ 
+  function goTo(step) {
+    state.step = step;
+    render();
+    scheduleAutosave();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+ 
+  function renderStep0() {
+    return `
+      <p class="step-title">What are we building?</p>
+      <p class="step-sub">Give it a name and a one-line sense of what it should do.</p>
+      <label for="f-name">App name</label>
+      <input type="text" id="f-name" value="${escapeAttr(state.name)}" placeholder="e.g. Laundry Rotation">
+      <label for="f-desc">What should it accomplish?</label>
+      <p class="hint">A sentence or two is plenty — you'll get to add detail later.</p>
+      <textarea id="f-desc" placeholder="e.g. Tracks whose turn it is to do laundry among the adults in the house, and lets whoever's turn it is mark it done.">${escapeHtml(state.description)}</textarea>
+    `;
+  }
+ 
+  function renderStep1() {
+    return `
+      <p class="step-title">What kind of app is this?</p>
+      <p class="step-sub">Integrated apps plug into the hub's shared backend and show live status on their tile. External apps are just a link out.</p>
+      <div class="type-choice">
+        <div class="type-card ${state.type === 'integrated' ? 'selected' : ''}" data-type="integrated">
+          <span class="emoji">🔗</span>
+          <div class="label">Integrated</div>
+          <div class="desc">Lives inside the hub, uses the Sheets + Apps Script pattern, can show live status</div>
+        </div>
+        <div class="type-card ${state.type === 'external' ? 'selected' : ''}" data-type="external">
+          <span class="emoji">🌐</span>
+          <div class="label">External</div>
+          <div class="desc">Built independently, hub just links out to it</div>
+        </div>
+      </div>
+    `;
+  }
+ 
+  function renderStep2() {
+    if (state.type === 'external') {
+      return `
+        <p class="step-title">Where does it live?</p>
+        <p class="step-sub">If it's not built or deployed yet, leave this blank — you can fill it in later.</p>
+        <label for="f-url">App URL</label>
+        <input type="url" id="f-url" value="${escapeAttr(state.externalUrl)}" placeholder="https://...">
+      `;
+    }
+    return `
+      <p class="step-title">What does it need to track?</p>
+      <label for="f-fields">Data fields</label>
+      <p class="hint">Plain language is fine — e.g. "current turn, rotation order, last updated date"</p>
+      <textarea id="f-fields" placeholder="e.g. current_turn (who's up), rotation_order (list of names), last_updated (timestamp)">${escapeHtml(state.dataFields)}</textarea>
+ 
+      <label for="f-behavior">Any special behavior?</label>
+      <p class="hint">Rotation logic, timers, validation rules, reminders — whatever's relevant</p>
+      <textarea id="f-behavior" placeholder="e.g. Rotates automatically after someone marks their turn done. Should flag if no one's marked a turn done in 3 days.">${escapeHtml(state.behaviorNotes)}</textarea>
+ 
+      <label>Common patterns (check any that apply)</label>
+      <div class="checkbox-row"><input type="checkbox" id="f-trigger" ${state.hasTrigger ? 'checked' : ''}><label for="f-trigger" style="margin:0;font-weight:500;">Needs a manual "tick to run" trigger (checkbox pattern)</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="f-timestamps" ${state.hasTimestamps ? 'checked' : ''}><label for="f-timestamps" style="margin:0;font-weight:500;">Needs to track timestamps</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="f-multiuser" ${state.hasMultiUser ? 'checked' : ''}><label for="f-multiuser" style="margin:0;font-weight:500;">Multiple people will interact with it</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="f-schedule" ${state.hasSchedule ? 'checked' : ''}><label for="f-schedule" style="margin:0;font-weight:500;">Has scheduled/recurring logic (daily, weekly, etc.)</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="f-status" ${state.hasStatusSnippet ? 'checked' : ''}><label for="f-status" style="margin:0;font-weight:500;">Should show a live status snippet on its hub tile</label></div>
+    `;
+  }
+ 
+  function renderStep3() {
+    return `
+      <p class="step-title">Pick an icon</p>
+      <p class="step-sub">This shows up on the hub tile.</p>
+      <div class="icon-picker">
+        ${ICONS.map(i => `<button type="button" class="icon-option ${state.icon === i ? 'selected' : ''}" data-icon="${i}">${i}</button>`).join('')}
+      </div>
+    `;
+  }
+ 
+  function renderStep4() {
+    const slug = slugify(state.name);
+    return `
+      <p class="step-title">Review</p>
+      <p class="step-sub">Quick check before we generate your brief.</p>
+      <dl class="review-block">
+        <dt>Name</dt><dd>${escapeHtml(state.name) || '—'}</dd>
+        <dt>Description</dt><dd>${escapeHtml(state.description) || '—'}</dd>
+        <dt>Type</dt><dd>${state.type === 'integrated' ? 'Integrated (path: /' + slug + '/)' : 'External'}</dd>
+        ${state.type === 'integrated' ? `
+        <dt>Data fields</dt><dd>${escapeHtml(state.dataFields) || '—'}</dd>
+        <dt>Special behavior</dt><dd>${escapeHtml(state.behaviorNotes) || '—'}</dd>
+        <dt>Patterns</dt><dd>${[
+          state.hasTrigger && 'Manual trigger checkbox',
+          state.hasTimestamps && 'Timestamps',
+          state.hasMultiUser && 'Multi-user',
+          state.hasSchedule && 'Scheduled logic',
+          state.hasStatusSnippet && 'Live status on tile'
+        ].filter(Boolean).join(', ') || 'None checked'}</dd>
+        ` : `
+        <dt>URL</dt><dd>${escapeHtml(state.externalUrl) || 'Not live yet'}</dd>
+        `}
+        <dt>Icon</dt><dd>${state.icon}</dd>
+      </dl>
+    `;
+  }
+ 
+  function renderStep5() {
+    const prompt = buildPrompt();
+    const config = buildConfigSnippet();
+    return `
+      <div class="celebrate"><span class="emoji">🎉</span></div>
+      <p class="step-title" style="text-align:center;">Your brief is ready</p>
+      <p class="step-sub" style="text-align:center;">Paste the first block into Claude, Claude Code, or any AI coding tool to start building.</p>
+ 
+      <div class="output-block">
+        <div class="output-label"><span>Brief for your AI coder</span></div>
+        <pre class="output" id="prompt-output">${escapeHtml(prompt)}</pre>
+        <div class="output-actions">
+          <button class="btn-small" id="copy-prompt">Copy to clipboard</button>
+          <button class="btn-small" id="download-prompt">Download .txt</button>
+        </div>
+      </div>
+ 
+      <div class="output-block">
+        <div class="output-label"><span>Hub config snippet — paste into the APPS array in index.html once it's built</span></div>
+        <pre class="output" id="config-output">${escapeHtml(config)}</pre>
+        <div class="output-actions">
+          <button class="btn-small" id="copy-config">Copy to clipboard</button>
+        </div>
+      </div>
+ 
+      ${state._driveFileId ? `
+      <div class="output-block">
+        <button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button>
+      </div>` : ''}
+    `;
+  }
+ 
+  function buildPrompt() {
+    const slug = slugify(state.name);
+    let lines = [];
+    lines.push(`I'm building a new app called "${state.name || 'Untitled App'}" for a personal project called HermanHomeApps — a family app hub hosted on GitHub Pages.`);
+    lines.push('');
+    lines.push('WHAT THIS APP SHOULD DO');
+    lines.push(state.description || '(not specified — please ask me before assuming)');
+    lines.push('');
+ 
+    if (state.type === 'integrated') {
+      lines.push(`TYPE: Integrated app — will live at /${slug}/index.html within the HermanHomeApps hub.`);
+      lines.push('');
+      lines.push('This is an INTEGRATED app, so it needs to follow these house conventions exactly:');
+      lines.push('');
+      lines.push('ARCHITECTURE');
+      lines.push('- Google Sheets as the data store (this is the primary store, not just a backup — it should also stay readable/editable directly in Sheets)');
+      lines.push('- Google Apps Script deployed as a Web App, acting ONLY as a thin "dumb" pipe:');
+      lines.push('  - doGet: returns raw data from the Sheet as JSON, and also supports a lightweight status-only response for the hub tile (e.g. {"status": "..."})');
+      lines.push('  - doPost: accepts and saves raw data to the Sheet');
+      lines.push('  - No business logic, calculations, or decision-making belongs in Apps Script — all of that lives in the frontend JavaScript');
+      lines.push('- Frontend: a single self-contained HTML file (inline <style> and <script> tags, no separate CSS/JS files, no build tools, no frameworks like React)');
+      lines.push('- All calculations, UI state, decision logic, and validation happen in this frontend JS');
+      lines.push('');
+      lines.push('SHEET CONVENTIONS');
+      lines.push('- snake_case column headers');
+      lines.push('- Row 1 is reserved for back-end notes/totals');
+      lines.push('- Row 2 is the header row');
+      lines.push('- Row 3+ is data');
+      lines.push('- Any manual trigger cell uses a checkbox pattern: tick it to run an action, and it should auto-reset to false afterward');
+      lines.push('');
+      lines.push('DATA THIS APP NEEDS TO TRACK');
+      lines.push(state.dataFields || '(not specified yet — help me figure out a sensible schema based on what the app needs to do)');
+      lines.push('');
+      lines.push('SPECIAL BEHAVIOR');
+      lines.push(state.behaviorNotes || '(none specified)');
+      const patterns = [
+        state.hasTrigger && '- Needs a manual "tick to run" trigger using the checkbox pattern above',
+        state.hasTimestamps && '- Needs to track timestamps',
+        state.hasMultiUser && '- Multiple people will interact with this app',
+        state.hasSchedule && '- Has scheduled/recurring logic (daily, weekly, etc.)',
+        state.hasStatusSnippet && '- Should expose a short status string via the doGet status endpoint, for display on its hub tile'
+      ].filter(Boolean);
+      if (patterns.length) {
+        lines.push('');
+        lines.push(patterns.join('\n'));
+      }
+    } else {
+      lines.push('TYPE: External/standalone app — built independently of the hub\'s shared backend.');
+      lines.push('');
+      lines.push('This app does NOT need to follow the Sheets/Apps Script pattern. It just needs to end up somewhere the hub can link to — no shared backend, no status endpoint required.');
+      lines.push('');
+      lines.push('URL: ' + (state.externalUrl || 'not live yet — leave as a placeholder for now'));
+    }
+ 
+    lines.push('');
+    lines.push('HOW I\'D LIKE YOU TO WORK WITH ME');
+    lines.push('Please don\'t just generate a finished file and hand it to me. Walk me through building this step by step:');
+    lines.push('1. Start with a short plan (e.g. Sheet schema first, then the Apps Script pipe, then the frontend) and confirm it with me before writing anything.');
+    lines.push('2. Build one piece at a time, explain what each part does in plain language as you go, and pause for me to confirm or test before moving to the next piece.');
+    lines.push('3. If anything in this brief is ambiguous or you need a decision from me, ask me directly instead of guessing.');
+    lines.push('4. Keep all code shareable as plain text.');
+    lines.push('');
+    lines.push('ICON: ' + state.icon);
+ 
+    return lines.join('\n');
+  }
+ 
+  function buildConfigSnippet() {
+    const slug = slugify(state.name);
+    if (state.type === 'integrated') {
+      return `{
+  name: "${state.name || 'Untitled App'}",
+  type: "integrated",
+  path: "/${slug}/",
+  icon: "${state.icon}",
+  statusUrl: "PASTE_YOUR_APPS_SCRIPT_STATUS_URL_HERE" // fill in once deployed
+},`;
+    }
+    return `{
+  name: "${state.name || 'Untitled App'}",
+  type: "external",
+  url: "${state.externalUrl || 'PASTE_URL_HERE'}",
+  icon: "${state.icon}"
+},`;
+  }
+ 
+  function escapeHtml(str) {
+    return (str || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
+ 
+  function canAdvance() {
+    if (state.step === 0) return state.name.trim().length > 0 && state.description.trim().length > 0;
+    if (state.step === 1) return state.type === 'integrated' || state.type === 'external';
+    return true;
+  }
+ 
+  function render() {
+    renderProgress();
+    renderDriveBar();
+    const panel = document.getElementById('panel');
+    let content = '';
+    if (state.step === 0) content = renderStep0();
+    else if (state.step === 1) content = renderStep1();
+    else if (state.step === 2) content = renderStep2();
+    else if (state.step === 3) content = renderStep3();
+    else if (state.step === 4) content = renderStep4();
+    else if (state.step === 5) content = renderStep5();
+ 
+    const isLast = state.step === totalSteps() - 1;
+    const isFirst = state.step === 0;
+ 
+    let actions = '';
+    if (!isLast) {
+      actions = `
+        <div class="actions">
+          <button class="btn btn-secondary" id="btn-back" ${isFirst ? 'disabled' : ''}>Back</button>
+          <button class="btn btn-primary" id="btn-next">${state.step === 4 ? 'Generate my brief' : 'Next'}</button>
+        </div>`;
+    } else {
+      actions = `
+        <div class="actions">
+          <button class="btn btn-secondary" id="btn-restart">Start over</button>
+          <a class="btn btn-primary" href="../index.html" style="text-decoration:none;display:inline-flex;align-items:center;">Back to hub</a>
+        </div>`;
+    }
+ 
+    panel.innerHTML = content + actions;
+    bindStepEvents();
+  }
+ 
+  function bindStepEvents() {
+    const nameEl = document.getElementById('f-name');
+    if (nameEl) nameEl.addEventListener('input', e => { state.name = e.target.value; scheduleAutosave(); });
+    const descEl = document.getElementById('f-desc');
+    if (descEl) descEl.addEventListener('input', e => { state.description = e.target.value; scheduleAutosave(); });
+ 
+    document.querySelectorAll('.type-card').forEach(card => {
+      card.addEventListener('click', () => { state.type = card.dataset.type; render(); scheduleAutosave(); });
+    });
+ 
+    const urlEl = document.getElementById('f-url');
+    if (urlEl) urlEl.addEventListener('input', e => { state.externalUrl = e.target.value; scheduleAutosave(); });
+    const fieldsEl = document.getElementById('f-fields');
+    if (fieldsEl) fieldsEl.addEventListener('input', e => { state.dataFields = e.target.value; scheduleAutosave(); });
+    const behaviorEl = document.getElementById('f-behavior');
+    if (behaviorEl) behaviorEl.addEventListener('input', e => { state.behaviorNotes = e.target.value; scheduleAutosave(); });
+ 
+    const bindCheckbox = (id, key) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', e => { state[key] = e.target.checked; scheduleAutosave(); });
+    };
+    bindCheckbox('f-trigger', 'hasTrigger');
+    bindCheckbox('f-timestamps', 'hasTimestamps');
+    bindCheckbox('f-multiuser', 'hasMultiUser');
+    bindCheckbox('f-schedule', 'hasSchedule');
+    bindCheckbox('f-status', 'hasStatusSnippet');
+ 
+    document.querySelectorAll('.icon-option').forEach(btn => {
+      btn.addEventListener('click', () => { state.icon = btn.dataset.icon; render(); scheduleAutosave(); });
+    });
+ 
+    const backBtn = document.getElementById('btn-back');
+    if (backBtn) backBtn.addEventListener('click', () => goTo(Math.max(0, state.step - 1)));
+ 
+    const nextBtn = document.getElementById('btn-next');
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+      if (!canAdvance()) {
+        nextBtn.style.background = '#ccc';
+        setTimeout(() => { nextBtn.style.background = ''; }, 250);
+        return;
+      }
+      goTo(state.step + 1);
+    });
+ 
+    const restartBtn = document.getElementById('btn-restart');
+    if (restartBtn) restartBtn.addEventListener('click', async () => {
+      if (state._driveFileId && driveConnected) { await discardDraftFile(state._driveFileId); }
+      state = freshState();
+      render();
+    });
+ 
+    const copyPromptBtn = document.getElementById('copy-prompt');
+    if (copyPromptBtn) copyPromptBtn.addEventListener('click', () => copyText(buildPrompt(), copyPromptBtn));
+    const copyConfigBtn = document.getElementById('copy-config');
+    if (copyConfigBtn) copyConfigBtn.addEventListener('click', () => copyText(buildConfigSnippet(), copyConfigBtn));
+ 
+    const downloadBtn = document.getElementById('download-prompt');
+    if (downloadBtn) downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([buildPrompt()], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = slugify(state.name) + '-brief.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+ 
+    const discardBtn = document.getElementById('discard-draft');
+    if (discardBtn) discardBtn.addEventListener('click', async () => {
+      await discardDraftFile(state._driveFileId);
+      state._driveFileId = null;
+      discardBtn.textContent = 'Discarded';
+      discardBtn.disabled = true;
+    });
+  }
+ 
+  function copyText(text, btn) {
+    const done = () => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+ 
+  function fallbackCopy(text, cb) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    cb();
+  }
+ 
+  render();
+</script>
+</body>
+</html>
