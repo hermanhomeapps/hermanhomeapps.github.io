@@ -301,7 +301,7 @@
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'confirm', name, content })
+      body: JSON.stringify({ action: 'confirm', name, content, appName: state.name, type: state.type, url: state.externalUrl, icon: state.icon })
     });
     return res.json();
   }
@@ -488,7 +488,7 @@
       return `
         <div class="celebrate"><span class="emoji">🔗</span></div>
         <p class="step-title" style="text-align:center;">Ready to link</p>
-        <p class="step-sub" style="text-align:center;">External apps don't need an AI-coder brief — just add this to the hub.</p>
+        <p class="step-sub" style="text-align:center;">Click "Send to developer" to add this to the hub automatically — no manual editing needed. The config snippet below is just a manual fallback.</p>
         <div class="output-block">
           <div class="output-label"><span>Hub config snippet — paste into the APPS array in index.html</span></div>
           <pre class="output" id="config-output">${escapeHtml(config)}</pre>
@@ -738,7 +738,7 @@
       sendBtn.textContent = 'Sending…';
       try {
         await sendToDeveloper();
-        sendBtn.textContent = 'Sent ✓';
+        sendBtn.textContent = 'Sent — check your email';
         sendBtn.classList.add('copied');
       } catch (e) {
         sendBtn.textContent = 'Failed — try again';
@@ -784,4 +784,3 @@
 </script>
 </body>
 </html>
- 
