@@ -427,7 +427,7 @@
   function renderDriveBar() {
     const bar = document.getElementById('drive-bar');
     if (!driveConfigured()) {
-      bar.innerHTML = `<span>Draft auto-save isn't set up yet — see the DRIVE_CONFIG comment in this file.</span>`;
+      bar.innerHTML = `<span>Draft auto-save is only set up for accounts approved. Please message me to add your email.</span>`;
       return;
     }
     if (!driveConnected) {
