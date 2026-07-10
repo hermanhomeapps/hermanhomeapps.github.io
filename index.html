@@ -230,9 +230,14 @@
   /*
     APP CONFIG
     ----------
-    Add one object per app once it's actually ready to link to.
-    Leave an app out of this array entirely until it's built — the hub
-    will render a friendly empty state until then.
+    This array is only for apps you're adding by hand — typically INTEGRATED
+    apps, since those need real backend work before they're ready to link.
+ 
+    External apps no longer need to be added here manually: once someone
+    finishes the New App wizard for an external app and clicks "Send to
+    developer," it's automatically registered in the External Apps Registry
+    Sheet and will show up on this hub on the next page load — nothing to
+    paste in.
  
     Shape for an INTEGRATED app (lives at a sub-path of this same site,
     has a lightweight status endpoint from its Apps Script doGet):
@@ -245,7 +250,8 @@
         color: "var(--mint)"
       }
  
-    Shape for an EXTERNAL app (built independently, just a link out):
+    Shape for a manually-added EXTERNAL app (rarely needed now — the wizard
+    handles this automatically, but this is here as a fallback):
       {
         name: "Health Tracker",
         type: "external",
@@ -256,8 +262,20 @@
   */
   const APPS = [];
  
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23/exec";
+ 
   const PALETTE = ['var(--coral)', 'var(--sunflower)', 'var(--mint)', 'var(--sky)', 'var(--grape)'];
   const ROTATIONS = [-3, 2, -2, 3, -1.5, 1.5];
+ 
+  async function fetchRegisteredExternalApps() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=listApps`);
+      const data = await res.json();
+      return (data.apps || []).map(a => ({ name: a.name, type: 'external', url: a.url, icon: a.icon || '🔗' }));
+    } catch (err) {
+      return [];
+    }
+  }
  
   async function fetchStatus(url) {
     try {
@@ -325,17 +343,20 @@
     return card;
   }
  
-  function render() {
+  async function render() {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
  
-    if (APPS.length === 0) {
+    const dynamicExternalApps = await fetchRegisteredExternalApps();
+    const allApps = [...APPS, ...dynamicExternalApps];
+ 
+    if (allApps.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty-state';
       empty.innerHTML = '<span class="emoji" aria-hidden="true">🧺</span><p>This corner\'s still empty — the Laundry app is next up on the workbench. Once it\'s live, it\'ll show up right here.</p>';
       grid.appendChild(empty);
     } else {
-      APPS.forEach((app, i) => grid.appendChild(makeCard(app, i)));
+      allApps.forEach((app, i) => grid.appendChild(makeCard(app, i)));
     }
  
     grid.appendChild(makeAddNewCard());
@@ -344,4 +365,4 @@
   render();
 </script>
 </body>
-</
+</html>
