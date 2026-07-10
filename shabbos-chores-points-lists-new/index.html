@@ -29,8 +29,15 @@
   }
   .page { max-width: 720px; margin: 0 auto; }
 
+  .hub-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--gold-soft); text-decoration: none; font-size: 0.8rem;
+    opacity: 0.7; margin-bottom: 18px;
+  }
+  .hub-link:hover { opacity: 1; }
+
   /* ===== LOGIN VIEW ===== */
-  .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; }
+  .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; flex-direction: column; }
   .card { width: 100%; max-width: 480px; text-align: center; }
   .flames { display: flex; justify-content: center; gap: 18px; margin-bottom: 8px; }
   .flame {
@@ -66,14 +73,45 @@
   .overlay { position: fixed; inset: 0; background: rgba(20, 16, 34, 0.75); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
   .overlay.open { display: flex; }
   .modal { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.3); border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; text-align: center; }
-  .modal h2 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 16px; }
-  .modal input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245, 239, 224, 0.25); background: var(--bg); color: var(--cream); font-size: 1.1rem; text-align: center; letter-spacing: 0.3em; margin-bottom: 12px; }
-  .modal input:focus { outline: none; border-color: var(--gold); }
+  .modal-wide { max-width: 420px; text-align: left; }
+  .modal h2 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 16px; text-align: center; }
+  .modal-wide h2 { text-align: left; }
+  .modal input, .modal textarea {
+    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245, 239, 224, 0.25);
+    background: var(--bg); color: var(--cream); font-size: 1rem; margin-bottom: 12px; font-family: 'Inter', sans-serif;
+  }
+  .modal input:focus, .modal textarea:focus { outline: none; border-color: var(--gold); }
+  #pinInput { text-align: center; letter-spacing: 0.3em; font-size: 1.1rem; }
+  .field-label { font-size: 0.78rem; color: var(--gold-soft); margin-bottom: 6px; display: block; }
   .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
   .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; border: none; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; }
   .btn-confirm { background: var(--gold); color: var(--bg); }
   .btn-cancel { background: transparent; color: var(--cream); border: 1px solid rgba(245,239,224,0.2) !important; }
-  .pin-error { color: var(--error); font-size: 0.85rem; min-height: 1.2em; margin-bottom: 8px; }
+  .pin-error { color: var(--error); font-size: 0.85rem; min-height: 1.2em; margin-bottom: 8px; text-align: center; }
+  .close-x { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--gold-soft); font-size: 1.2rem; cursor: pointer; }
+  .modal { position: relative; }
+
+  .field-wrap { position: relative; margin-bottom: 12px; }
+  .field-wrap input, .field-wrap textarea { margin-bottom: 0; }
+  .typeahead-list {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--bg); border: 1px solid rgba(217,165,72,0.3); border-radius: 10px;
+    max-height: 180px; overflow-y: auto; z-index: 70; display: none;
+  }
+  .typeahead-list.open { display: block; }
+  .typeahead-item { padding: 10px 12px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .typeahead-item:last-child { border-bottom: none; }
+  .typeahead-item:hover { background: var(--bg-soft); }
+  .typeahead-item small { display: block; color: rgba(245,239,224,0.5); font-size: 0.72rem; margin-top: 2px; }
+
+  .pick-list { max-height: 320px; overflow-y: auto; }
+  .pick-item {
+    background: var(--bg-card); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  }
+  .pick-item:hover { background: var(--bg); border: 1px solid var(--gold); }
+  .pick-item-name { font-weight: 600; font-size: 0.9rem; }
+  .pick-item-sub { font-size: 0.75rem; color: rgba(245,239,224,0.55); }
 
   /* ===== DASHBOARD ===== */
   .dashboard { display: none; }
@@ -82,7 +120,6 @@
   .welcome-bar h1 { font-size: 1.5rem; margin: 0; }
   .logout-link { color: var(--gold-soft); font-size: 0.85rem; cursor: pointer; background: none; border: none; }
 
-  /* progress bar */
   .progress-wrap { margin-bottom: 28px; }
   .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--gold-soft); margin-bottom: 6px; }
   .progress-track { background: var(--bg-soft); border-radius: 999px; height: 14px; overflow: hidden; border: 1px solid rgba(217,165,72,0.2); }
@@ -90,7 +127,6 @@
 
   .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--gold-soft); margin: 26px 0 12px; }
 
-  /* kid blocks (mommy view) */
   .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
   .kid-block { background: var(--bg-card); border: 1px solid rgba(217,165,72,0.18); border-radius: 16px; padding: 18px; }
   .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0 0 2px; }
@@ -99,7 +135,6 @@
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; }
   .btn-small:hover { background: rgba(217,165,72,0.1); }
 
-  /* unassigned chores block */
   .unassigned-panel { background: var(--bg-card); border: 1px dashed rgba(217,165,72,0.3); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .btn-primary { background: var(--gold); color: var(--bg); border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
@@ -110,12 +145,10 @@
   .chore-points { color: var(--gold); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
   .empty-note { font-size: 0.85rem; color: rgba(245,239,224,0.45); text-align: center; padding: 10px 0; }
 
-  /* kid's own chore list */
   .my-chore-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   .btn-complete { background: var(--green); color: var(--bg); border: none; padding: 9px 14px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
-  /* toast */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--gold); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; max-width: 85vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -125,6 +158,7 @@
 
   <!-- LOGIN VIEW -->
   <div id="loginView" class="login-wrap">
+    <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="card">
       <div class="flames"><div class="flame"></div><div class="flame"></div></div>
       <h1>Shabbos Chores</h1>
@@ -137,6 +171,7 @@
 
   <!-- DASHBOARD VIEW -->
   <div id="dashboardView" class="dashboard">
+    <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="welcome-bar">
       <h1 id="welcomeText"></h1>
       <button class="logout-link" id="logoutBtn">Log out</button>
@@ -184,15 +219,64 @@
   </div>
 </div>
 
+<!-- ADD CHORE MODAL -->
+<div class="overlay" id="addChoreOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="addChoreClose">&times;</button>
+    <h2>Add New Chore</h2>
+    <div class="field-wrap">
+      <label class="field-label">Chore name</label>
+      <input type="text" id="choreNameInput" autocomplete="off" placeholder="e.g. Set the table">
+      <div class="typeahead-list" id="typeaheadList"></div>
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Points</label>
+      <input type="number" id="chorePointsInput" min="1" placeholder="10">
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Description</label>
+      <textarea id="choreDescInput" rows="2" placeholder="Optional details"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="addChoreCancel">Cancel</button>
+      <button class="btn-confirm" id="addChoreComplete">Complete</button>
+    </div>
+  </div>
+</div>
+
+<!-- DUPLICATE CONFIRM MODAL -->
+<div class="overlay" id="dupOverlay">
+  <div class="modal">
+    <h2>Looks familiar</h2>
+    <p style="font-size:0.88rem; color:rgba(245,239,224,0.75); margin-top:-6px;" id="dupMessage"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="dupUseExisting">Use Existing</button>
+      <button class="btn-confirm" id="dupAddNew">Add as New</button>
+    </div>
+  </div>
+</div>
+
+<!-- PICK LIST MODAL (assign to kid / assign chore) -->
+<div class="overlay" id="pickOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="pickClose">&times;</button>
+    <h2 id="pickTitle"></h2>
+    <div class="pick-list" id="pickList"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
   // ===== CONFIG =====
   const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec";
   const SEASON_GOAL = 500;
+  const DUP_THRESHOLD = 0.78;
 
   let appData = { kids: [], config: {}, chores: [] };
   let currentUser = null;
+  let selectedExistingChoreName = null;
+  let pendingDupResolution = null; // { typed: {name,points,description}, matched: {name,points,description} }
 
   const kidGrid = document.getElementById('kidGrid');
   const statusLine = document.getElementById('statusLine');
@@ -223,11 +307,26 @@
       appData.kids = data.kids || [];
       appData.config = (data.config && data.config[0]) || {};
       appData.chores = data.chores || [];
-      renderKids();
-      checkExistingSession();
     } catch (err) {
       statusLine.textContent = "Couldn't reach the chore list. Check your connection.";
       console.error(err);
+    }
+  }
+
+  async function postData(payload) {
+    await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async function refreshAndRerender() {
+    await loadData();
+    if (currentUser.isAdmin) {
+      renderProgressBar(); renderKidBlocks(); renderUnassignedChores();
+    } else {
+      renderProgressBar(); renderMyChores();
     }
   }
 
@@ -265,9 +364,7 @@
     loginView.style.display = 'none';
     dashboardView.classList.add('open');
     welcomeText.textContent = currentUser.isAdmin ? 'Hi Mommy' : `Hi ${currentUser.name}`;
-
     renderProgressBar();
-
     if (currentUser.isAdmin) {
       mommyView.style.display = 'block';
       kidView.style.display = 'none';
@@ -300,7 +397,7 @@
         <div class="kid-block-chores">${assignedChores.length ? assignedChores.length + ' chore(s) assigned' : 'No chores assigned yet'}</div>
         <button class="btn-small">Assign Chore</button>
       `;
-      block.querySelector('.btn-small').onclick = () => showToast('Assign flow coming in the next piece!');
+      block.querySelector('.btn-small').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
       wrap.appendChild(block);
     });
   }
@@ -327,7 +424,7 @@
           <button class="btn-small" style="width:auto;">Assign</button>
         </div>
       `;
-      card.querySelector('.btn-small').onclick = () => showToast('Assign flow coming in the next piece!');
+      card.querySelector('.btn-small').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
       list.appendChild(card);
     });
   }
@@ -355,8 +452,221 @@
     });
   }
 
-  document.getElementById('addChoreBtn').onclick = () => showToast('Add Chore flow coming in the next piece!');
+  // ===== ASSIGN: pick a kid for a given chore =====
+  const pickOverlay = document.getElementById('pickOverlay');
+  const pickTitle = document.getElementById('pickTitle');
+  const pickList = document.getElementById('pickList');
+  document.getElementById('pickClose').onclick = () => pickOverlay.classList.remove('open');
 
+  function openPickKidForChore(choreId, choreName) {
+    pickTitle.textContent = `Assign "${choreName}" to:`;
+    pickList.innerHTML = '';
+    if (appData.kids.length === 0) {
+      pickList.innerHTML = '<div class="empty-note">No kids added yet.</div>';
+    }
+    appData.kids.forEach(kid => {
+      const item = document.createElement('div');
+      item.className = 'pick-item';
+      item.innerHTML = `<span class="pick-item-name">${kid.name}</span><span class="pick-item-sub">${kid.current_points || 0} pts</span>`;
+      item.onclick = () => assignChore(choreId, kid.kid_id);
+      pickList.appendChild(item);
+    });
+    pickOverlay.classList.add('open');
+  }
+
+  function openPickChoreForKid(kidId, kidName) {
+    pickTitle.textContent = `Assign a chore to ${kidName}:`;
+    pickList.innerHTML = '';
+    const unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    if (unassigned.length === 0) {
+      pickList.innerHTML = '<div class="empty-note">No unassigned chores right now — add one first.</div>';
+    }
+    unassigned.forEach(chore => {
+      const item = document.createElement('div');
+      item.className = 'pick-item';
+      item.innerHTML = `<span class="pick-item-name">${chore.name}</span><span class="pick-item-sub">${chore.points} pts</span>`;
+      item.onclick = () => assignChore(chore.chore_id, kidId);
+      pickList.appendChild(item);
+    });
+    pickOverlay.classList.add('open');
+  }
+
+  async function assignChore(choreId, kidId) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    if (!chore) return;
+    const updated = Object.assign({}, chore, {
+      status: 'assigned',
+      assigned_kid_id: kidId,
+      assigned_at: new Date().toISOString()
+    });
+    pickOverlay.classList.remove('open');
+    showToast('Assigning...');
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
+    await refreshAndRerender();
+    showToast('Chore assigned!');
+  }
+
+  // ===== ADD CHORE + TYPEAHEAD =====
+  const addChoreOverlay = document.getElementById('addChoreOverlay');
+  const choreNameInput = document.getElementById('choreNameInput');
+  const chorePointsInput = document.getElementById('chorePointsInput');
+  const choreDescInput = document.getElementById('choreDescInput');
+  const typeaheadList = document.getElementById('typeaheadList');
+
+  document.getElementById('addChoreBtn').onclick = openAddChoreModal;
+  document.getElementById('addChoreCancel').onclick = closeAddChoreModal;
+  document.getElementById('addChoreClose').onclick = closeAddChoreModal;
+
+  function openAddChoreModal() {
+    choreNameInput.value = '';
+    chorePointsInput.value = '';
+    choreDescInput.value = '';
+    selectedExistingChoreName = null;
+    typeaheadList.classList.remove('open');
+    addChoreOverlay.classList.add('open');
+    choreNameInput.focus();
+  }
+  function closeAddChoreModal() { addChoreOverlay.classList.remove('open'); }
+
+  function getDistinctChores() {
+    // latest instance of each chore name wins (most recent created_at)
+    const map = {};
+    appData.chores.forEach(c => {
+      const key = (c.name || '').trim().toLowerCase();
+      if (!key) return;
+      if (!map[key] || (c.created_at || '') > (map[key].created_at || '')) {
+        map[key] = c;
+      }
+    });
+    return Object.values(map);
+  }
+
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i-1] === b[j-1]
+          ? dp[i-1][j-1]
+          : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      }
+    }
+    return dp[m][n];
+  }
+  function similarity(a, b) {
+    const maxLen = Math.max(a.length, b.length);
+    if (maxLen === 0) return 1;
+    return 1 - levenshtein(a, b) / maxLen;
+  }
+
+  choreNameInput.addEventListener('input', () => {
+    selectedExistingChoreName = null;
+    const val = choreNameInput.value.trim().toLowerCase();
+    if (val.length < 2) { typeaheadList.classList.remove('open'); return; }
+    const distinct = getDistinctChores();
+    const scored = distinct.map(c => {
+      const name = c.name.toLowerCase();
+      const starts = name.startsWith(val) ? 1 : 0;
+      const includes = name.includes(val) ? 1 : 0;
+      const sim = similarity(name, val);
+      return { chore: c, score: starts * 2 + includes + sim };
+    }).filter(s => s.score > 0.55)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    typeaheadList.innerHTML = '';
+    if (scored.length === 0) { typeaheadList.classList.remove('open'); return; }
+    scored.forEach(s => {
+      const item = document.createElement('div');
+      item.className = 'typeahead-item';
+      item.innerHTML = `${s.chore.name}<small>Last used: ${s.chore.points} pts${s.chore.description ? ' · ' + s.chore.description : ''}</small>`;
+      item.onclick = () => {
+        choreNameInput.value = s.chore.name;
+        chorePointsInput.value = s.chore.points;
+        choreDescInput.value = s.chore.description || '';
+        selectedExistingChoreName = s.chore.name.toLowerCase();
+        typeaheadList.classList.remove('open');
+      };
+      typeaheadList.appendChild(item);
+    });
+    typeaheadList.classList.add('open');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.field-wrap')) typeaheadList.classList.remove('open');
+  });
+
+  document.getElementById('addChoreComplete').onclick = () => {
+    const name = choreNameInput.value.trim();
+    const points = Number(chorePointsInput.value);
+    const description = choreDescInput.value.trim();
+
+    if (!name) { showToast('Give the chore a name first.'); return; }
+    if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
+
+    const typed = { name, points, description };
+
+    if (selectedExistingChoreName === name.toLowerCase()) {
+      // explicitly picked from dropdown — no need to flag
+      finalizeSaveChore(typed);
+      return;
+    }
+
+    const distinct = getDistinctChores();
+    let best = null, bestScore = 0;
+    distinct.forEach(c => {
+      const s = similarity(c.name.toLowerCase(), name.toLowerCase());
+      if (s > bestScore) { bestScore = s; best = c; }
+    });
+
+    if (best && bestScore >= DUP_THRESHOLD && best.name.toLowerCase() !== name.toLowerCase()) {
+      pendingDupResolution = {
+        typed,
+        matched: { name: best.name, points: best.points, description: best.description || '' }
+      };
+      document.getElementById('dupMessage').textContent = `This looks similar to "${best.name}" — add it as a new chore anyway, or use the existing one?`;
+      addChoreOverlay.classList.remove('open');
+      document.getElementById('dupOverlay').classList.add('open');
+    } else {
+      finalizeSaveChore(typed);
+    }
+  };
+
+  document.getElementById('dupUseExisting').onclick = () => {
+    document.getElementById('dupOverlay').classList.remove('open');
+    finalizeSaveChore(pendingDupResolution.matched);
+    pendingDupResolution = null;
+  };
+  document.getElementById('dupAddNew').onclick = () => {
+    document.getElementById('dupOverlay').classList.remove('open');
+    finalizeSaveChore(pendingDupResolution.typed);
+    pendingDupResolution = null;
+  };
+
+  async function finalizeSaveChore(data) {
+    closeAddChoreModal();
+    showToast('Saving chore...');
+    const newChore = {
+      chore_id: 'c_' + Date.now(),
+      name: data.name,
+      points: data.points,
+      description: data.description || '',
+      status: 'unassigned',
+      assigned_kid_id: '',
+      created_by: currentUser.id,
+      created_at: new Date().toISOString(),
+      assigned_at: '',
+      completed_at: '',
+      completed_by: ''
+    };
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newChore] });
+    await refreshAndRerender();
+    showToast('Chore added to Unassigned!');
+  }
+
+  // ===== LOGIN / SESSION =====
   logoutBtn.onclick = () => {
     sessionStorage.removeItem('shabbos_user');
     currentUser = null;
@@ -388,7 +698,12 @@
   pinConfirm.onclick = tryPin;
   pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
 
-  loadData();
+  async function init() {
+    await loadData();
+    renderKids();
+    checkExistingSession();
+  }
+  init();
 </script>
 </body>
 </html>
