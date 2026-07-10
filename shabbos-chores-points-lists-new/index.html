@@ -53,7 +53,7 @@
   .modal-wide h2 { text-align: left; }
   .modal input, .modal textarea, .modal select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245, 239, 224, 0.25); background: var(--bg); color: var(--cream); font-size: 1rem; margin-bottom: 12px; font-family: 'Inter', sans-serif; }
   .modal input:focus, .modal textarea:focus, .modal select:focus { outline: none; border-color: var(--gold); }
-  #pinInput { text-align: center; letter-spacing: 0.3em; font-size: 1.1rem; }
+  .pin-modal-input { text-align: center; letter-spacing: 0.3em; font-size: 1.1rem; }
   .field-label { font-size: 0.78rem; color: var(--gold-soft); margin-bottom: 6px; display: block; }
   .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
   .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; border: none; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; }
@@ -89,7 +89,7 @@
   .progress-fill { background: linear-gradient(90deg, var(--rose), var(--gold)); height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
-  .toolbar button { flex: 1; min-width: 150px; }
+  .toolbar button { flex: 1; min-width: 140px; }
   .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 11px 14px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
   .btn-outline:hover { background: rgba(217,165,72,0.1); }
 
@@ -175,6 +175,7 @@
       <div class="toolbar">
         <button class="btn-outline" id="newSeasonBtn">Begin New Season</button>
         <button class="btn-outline" id="runRaffleBtn">Run Raffle</button>
+        <button class="btn-outline" id="changePinBtn">Change PIN</button>
       </div>
 
       <div class="section-header-row">
@@ -217,10 +218,28 @@
   <div class="modal">
     <h2>Enter Mommy's PIN</h2>
     <div class="pin-error" id="pinError"></div>
-    <input type="password" inputmode="numeric" id="pinInput" maxlength="8" autocomplete="off">
+    <input type="password" inputmode="numeric" id="pinInput" maxlength="8" autocomplete="off" class="pin-modal-input">
     <div class="modal-actions">
       <button class="btn-cancel" id="pinCancel">Cancel</button>
       <button class="btn-confirm" id="pinConfirm">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="changePinOverlay">
+  <div class="modal">
+    <button class="close-x" id="changePinClose">&times;</button>
+    <h2>Change Mommy's PIN</h2>
+    <div class="pin-error" id="changePinError"></div>
+    <label class="field-label">Current PIN</label>
+    <input type="password" inputmode="numeric" id="currentPinInput" maxlength="8" autocomplete="off" class="pin-modal-input">
+    <label class="field-label">New PIN (up to 8 digits)</label>
+    <input type="password" inputmode="numeric" id="newPinInput" maxlength="8" autocomplete="off" class="pin-modal-input">
+    <label class="field-label">Confirm New PIN</label>
+    <input type="password" inputmode="numeric" id="confirmPinInput" maxlength="8" autocomplete="off" class="pin-modal-input">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="changePinCancel">Cancel</button>
+      <button class="btn-confirm" id="changePinSave">Save</button>
     </div>
   </div>
 </div>
@@ -352,7 +371,7 @@
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
   let raffleState = null;
-  let currentChoreTarget = { type: 'unassigned' }; // or { type: 'list', listId }
+  let currentChoreTarget = { type: 'unassigned' };
   let activeManageListId = null;
 
   const kidGrid = document.getElementById('kidGrid');
@@ -421,7 +440,6 @@
     });
   }
 
-  // ===== LOGIN RELOAD =====
   document.getElementById('loginReloadBtn').onclick = async () => {
     const btn = document.getElementById('loginReloadBtn');
     btn.classList.add('spinning');
@@ -553,7 +571,6 @@
     });
   }
 
-  // ===== CHORE LISTS =====
   function renderChoreLists() {
     const grid = document.getElementById('listGrid');
     grid.innerHTML = '';
@@ -764,7 +781,6 @@
     showToast(`${kidName} removed.`);
   }
 
-  // ===== ADD KID =====
   const addKidOverlay = document.getElementById('addKidOverlay');
   const kidNameInput = document.getElementById('kidNameInput');
   document.getElementById('addKidBtn').onclick = () => { kidNameInput.value = ''; addKidOverlay.classList.add('open'); kidNameInput.focus(); };
@@ -781,7 +797,6 @@
     showToast(`${name} added!`);
   };
 
-  // ===== ASSIGN =====
   const pickOverlay = document.getElementById('pickOverlay');
   const pickTitle = document.getElementById('pickTitle');
   const pickList = document.getElementById('pickList');
@@ -827,7 +842,6 @@
     showToast('Chore assigned!');
   }
 
-  // ===== ADD CHORE + TYPEAHEAD (now target-aware: unassigned vs. a list) =====
   const addChoreOverlay = document.getElementById('addChoreOverlay');
   const choreNameInput = document.getElementById('choreNameInput');
   const chorePointsInput = document.getElementById('chorePointsInput');
@@ -953,7 +967,6 @@
     }
   }
 
-  // ===== NEW SEASON =====
   function suggestNextSeasonName() { return `Season ${appData.seasons.length + 1}`; }
 
   document.getElementById('newSeasonBtn').onclick = async () => {
@@ -988,7 +1001,6 @@
     showToast(`${seasonName} has begun!`);
   };
 
-  // ===== RUN RAFFLE =====
   const raffleOverlay = document.getElementById('raffleOverlay');
   document.getElementById('runRaffleBtn').onclick = openRaffleModal;
   document.getElementById('raffleClose').onclick = () => raffleOverlay.classList.remove('open');
@@ -1148,7 +1160,40 @@
     await refreshAndRerender();
   }
 
-  // ===== LOGIN / SESSION =====
+  // ===== CHANGE PIN =====
+  const changePinOverlay = document.getElementById('changePinOverlay');
+  const currentPinInput = document.getElementById('currentPinInput');
+  const newPinInput = document.getElementById('newPinInput');
+  const confirmPinInput = document.getElementById('confirmPinInput');
+  const changePinError = document.getElementById('changePinError');
+
+  document.getElementById('changePinBtn').onclick = () => {
+    currentPinInput.value = ''; newPinInput.value = ''; confirmPinInput.value = '';
+    changePinError.textContent = '';
+    changePinOverlay.classList.add('open');
+    currentPinInput.focus();
+  };
+  document.getElementById('changePinCancel').onclick = () => changePinOverlay.classList.remove('open');
+  document.getElementById('changePinClose').onclick = () => changePinOverlay.classList.remove('open');
+
+  document.getElementById('changePinSave').onclick = async () => {
+    const current = currentPinInput.value.trim();
+    const next = newPinInput.value.trim();
+    const confirmVal = confirmPinInput.value.trim();
+    const correct = String(appData.config.admin_pin || '');
+
+    if (current !== correct) { changePinError.textContent = 'Current PIN is incorrect.'; return; }
+    if (!next || !/^\d+$/.test(next)) { changePinError.textContent = 'New PIN must be numbers only.'; return; }
+    if (next.length > 8) { changePinError.textContent = 'New PIN must be 8 digits or fewer.'; return; }
+    if (next !== confirmVal) { changePinError.textContent = "New PIN and confirmation don't match."; return; }
+
+    changePinOverlay.classList.remove('open');
+    showToast('Updating PIN...');
+    await postData({ sheet: 'config', action: 'upsert', rows: { admin_pin: next } });
+    await loadData();
+    showToast('PIN updated!');
+  };
+
   logoutBtn.onclick = () => {
     sessionStorage.removeItem('shabbos_user');
     currentUser = null;
