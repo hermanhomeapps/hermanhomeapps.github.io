@@ -8,79 +8,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #241F38;
-    --bg-soft: #2E2850;
-    --bg-card: #352E5C;
-    --gold: #D9A548;
-    --gold-soft: #F0D9A0;
-    --cream: #F5EFE0;
-    --rose: #C97064;
-    --error: #E37B6B;
-    --green: #7FA37A;
+    --bg: #241F38; --bg-soft: #2E2850; --bg-card: #352E5C;
+    --gold: #D9A548; --gold-soft: #F0D9A0; --cream: #F5EFE0;
+    --rose: #C97064; --error: #E37B6B; --green: #7FA37A;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    min-height: 100vh;
+    margin: 0; min-height: 100vh;
     background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 60%);
-    font-family: 'Inter', sans-serif;
-    color: var(--cream);
-    padding: 24px;
+    font-family: 'Inter', sans-serif; color: var(--cream); padding: 24px;
   }
   .page { max-width: 720px; margin: 0 auto; }
-
-  .hub-link {
-    display: inline-flex; align-items: center; gap: 6px;
-    color: var(--gold-soft); text-decoration: none; font-size: 0.8rem;
-    opacity: 0.7; margin-bottom: 18px;
-  }
+  .hub-link { display: inline-flex; align-items: center; gap: 6px; color: var(--gold-soft); text-decoration: none; font-size: 0.8rem; opacity: 0.7; margin-bottom: 18px; }
   .hub-link:hover { opacity: 1; }
 
-  /* ===== LOGIN VIEW ===== */
   .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; flex-direction: column; }
   .card { width: 100%; max-width: 480px; text-align: center; }
   .flames { display: flex; justify-content: center; gap: 18px; margin-bottom: 8px; }
-  .flame {
-    width: 10px; height: 22px;
-    background: linear-gradient(180deg, var(--gold-soft), var(--gold) 60%, var(--rose));
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    filter: blur(0.3px);
-    animation: flicker 2.6s ease-in-out infinite;
-    transform-origin: bottom center;
-  }
+  .flame { width: 10px; height: 22px; background: linear-gradient(180deg, var(--gold-soft), var(--gold) 60%, var(--rose)); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; filter: blur(0.3px); animation: flicker 2.6s ease-in-out infinite; transform-origin: bottom center; }
   .flame:nth-child(2) { animation-delay: 0.4s; }
-  @keyframes flicker {
-    0%, 100% { transform: scaleY(1) rotate(-1deg); opacity: 1; }
-    50% { transform: scaleY(1.08) rotate(1deg); opacity: 0.9; }
-  }
+  @keyframes flicker { 0%, 100% { transform: scaleY(1) rotate(-1deg); opacity: 1; } 50% { transform: scaleY(1.08) rotate(1deg); opacity: 0.9; } }
   h1 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 2rem; margin: 0 0 4px; }
   .subtitle { color: var(--gold-soft); font-size: 0.95rem; margin: 0 0 36px; opacity: 0.85; }
   .kid-grid-login { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; margin-bottom: 18px; }
-  .kid-btn {
-    background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.25); color: var(--cream);
-    font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 500; padding: 22px 12px;
-    border-radius: 14px; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
-  }
+  .kid-btn { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.25); color: var(--cream); font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 500; padding: 22px 12px; border-radius: 14px; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease; }
   .kid-btn:hover, .kid-btn:focus-visible { border-color: var(--gold); transform: translateY(-2px); outline: none; }
-  .mommy-btn {
-    width: 100%; background: transparent; border: 1px solid rgba(245, 239, 224, 0.2); color: var(--gold-soft);
-    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 14px; border-radius: 12px; cursor: pointer;
-    margin-top: 6px; letter-spacing: 0.02em;
-  }
+  .mommy-btn { width: 100%; background: transparent; border: 1px solid rgba(245, 239, 224, 0.2); color: var(--gold-soft); font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 14px; border-radius: 12px; cursor: pointer; margin-top: 6px; letter-spacing: 0.02em; }
   .mommy-btn:hover, .mommy-btn:focus-visible { border-color: var(--gold); outline: none; }
   .status-line { margin-top: 28px; font-size: 0.8rem; color: rgba(245, 239, 224, 0.5); min-height: 1.2em; }
 
-  .overlay { position: fixed; inset: 0; background: rgba(20, 16, 34, 0.75); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .overlay { position: fixed; inset: 0; background: rgba(20, 16, 34, 0.75); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; overflow-y: auto; }
   .overlay.open { display: flex; }
-  .modal { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.3); border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; text-align: center; position: relative; }
+  .modal { background: var(--bg-soft); border: 1px solid rgba(217, 165, 72, 0.3); border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; text-align: center; position: relative; margin: auto; }
   .modal-wide { max-width: 420px; text-align: left; }
   .modal h2 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 16px; text-align: center; }
   .modal-wide h2 { text-align: left; }
-  .modal input, .modal textarea {
-    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245, 239, 224, 0.25);
-    background: var(--bg); color: var(--cream); font-size: 1rem; margin-bottom: 12px; font-family: 'Inter', sans-serif;
-  }
-  .modal input:focus, .modal textarea:focus { outline: none; border-color: var(--gold); }
+  .modal input, .modal textarea, .modal select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245, 239, 224, 0.25); background: var(--bg); color: var(--cream); font-size: 1rem; margin-bottom: 12px; font-family: 'Inter', sans-serif; }
+  .modal input:focus, .modal textarea:focus, .modal select:focus { outline: none; border-color: var(--gold); }
   #pinInput { text-align: center; letter-spacing: 0.3em; font-size: 1.1rem; }
   .field-label { font-size: 0.78rem; color: var(--gold-soft); margin-bottom: 6px; display: block; }
   .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
@@ -91,12 +55,8 @@
   .close-x { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--gold-soft); font-size: 1.2rem; cursor: pointer; }
 
   .field-wrap { position: relative; margin-bottom: 12px; }
-  .field-wrap input, .field-wrap textarea { margin-bottom: 0; }
-  .typeahead-list {
-    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-    background: var(--bg); border: 1px solid rgba(217,165,72,0.3); border-radius: 10px;
-    max-height: 180px; overflow-y: auto; z-index: 70; display: none;
-  }
+  .field-wrap input, .field-wrap textarea, .field-wrap select { margin-bottom: 0; }
+  .typeahead-list { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg); border: 1px solid rgba(217,165,72,0.3); border-radius: 10px; max-height: 180px; overflow-y: auto; z-index: 70; display: none; }
   .typeahead-list.open { display: block; }
   .typeahead-item { padding: 10px 12px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .typeahead-item:last-child { border-bottom: none; }
@@ -104,53 +64,53 @@
   .typeahead-item small { display: block; color: rgba(245,239,224,0.5); font-size: 0.72rem; margin-top: 2px; }
 
   .pick-list { max-height: 320px; overflow-y: auto; }
-  .pick-item {
-    background: var(--bg-card); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-  }
+  .pick-item { background: var(--bg-card); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .pick-item:hover { background: var(--bg); border: 1px solid var(--gold); }
   .pick-item-name { font-weight: 600; font-size: 0.9rem; }
   .pick-item-sub { font-size: 0.75rem; color: rgba(245,239,224,0.55); }
 
-  /* ===== DASHBOARD ===== */
   .dashboard { display: none; }
   .dashboard.open { display: block; }
   .welcome-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .welcome-bar h1 { font-size: 1.5rem; margin: 0; }
   .logout-link { color: var(--gold-soft); font-size: 0.85rem; cursor: pointer; background: none; border: none; }
 
-  .progress-wrap { margin-bottom: 28px; }
+  .progress-wrap { margin-bottom: 22px; }
   .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--gold-soft); margin-bottom: 6px; }
   .progress-track { background: var(--bg-soft); border-radius: 999px; height: 14px; overflow: hidden; border: 1px solid rgba(217,165,72,0.2); }
   .progress-fill { background: linear-gradient(90deg, var(--rose), var(--gold)); height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 
-  .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--gold-soft); margin: 26px 0 12px; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+  .toolbar button { flex: 1; min-width: 150px; }
+  .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 11px 14px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+  .btn-outline:hover { background: rgba(217,165,72,0.1); }
 
-  .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-  .kid-block { background: var(--bg-card); border: 1px solid rgba(217,165,72,0.18); border-radius: 16px; padding: 18px; }
-  .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0 0 2px; }
+  .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--gold-soft); margin: 0; }
+  .section-header-row { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; }
+
+  .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kid-block { background: var(--bg-card); border: 1px solid rgba(217,165,72,0.18); border-radius: 16px; padding: 18px; position: relative; }
+  .kid-delete-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--error); font-size: 1.1rem; cursor: pointer; opacity: 0.55; line-height: 1; }
+  .kid-delete-btn:hover { opacity: 1; }
+  .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0 0 2px; padding-right: 20px; }
   .kid-block-points { color: var(--gold-soft); font-size: 0.85rem; margin-bottom: 14px; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(217,165,72,0.1); }
 
-  .mini-chore-row {
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    background: var(--bg-soft); border-radius: 9px; padding: 9px 10px; margin-bottom: 6px; font-size: 0.8rem;
-  }
-  .mini-chore-row.done { opacity: 0.6; }
+  .mini-chore-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--bg-soft); border-radius: 9px; padding: 9px 10px; margin-bottom: 6px; font-size: 0.8rem; flex-wrap: wrap; }
+  .mini-chore-row.done { opacity: 0.65; }
   .mini-chore-name { font-weight: 600; }
   .mini-chore-pts { color: var(--gold); font-size: 0.72rem; margin-left: 5px; font-weight: 500; }
-  .mini-btn {
-    background: none; border: 1px solid var(--green); color: var(--green);
-    font-size: 0.68rem; padding: 5px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600;
-  }
-  .mini-btn.undo-btn { border-color: var(--error); color: var(--error); }
+  .mini-btn-group { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+  .mini-btn { background: none; border: 1px solid var(--green); color: var(--green); font-size: 0.66rem; padding: 5px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600; }
+  .mini-btn.undo-btn { border-color: var(--gold); color: var(--gold-soft); }
+  .mini-btn.delete-btn { border-color: var(--error); color: var(--error); }
   .empty-note-mini { font-size: 0.75rem; color: rgba(245,239,224,0.4); padding: 4px 0 10px; }
 
   .unassigned-panel { background: var(--bg-card); border: 1px dashed rgba(217,165,72,0.3); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .btn-primary { background: var(--gold); color: var(--bg); border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-  .chore-card { background: var(--bg-soft); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .chore-card { background: var(--bg-soft); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   .chore-card:last-child { margin-bottom: 0; }
   .chore-name { font-weight: 600; font-size: 0.95rem; }
   .chore-desc { font-size: 0.78rem; color: rgba(245,239,224,0.6); margin-top: 2px; }
@@ -171,7 +131,6 @@
 
 <div class="page">
 
-  <!-- LOGIN VIEW -->
   <div id="loginView" class="login-wrap">
     <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="card">
@@ -184,7 +143,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD VIEW -->
   <div id="dashboardView" class="dashboard">
     <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="welcome-bar">
@@ -197,24 +155,32 @@
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     </div>
 
-    <!-- MOMMY VIEW -->
     <div id="mommyView">
-      <div class="section-label">The Kids</div>
+      <div class="toolbar">
+        <button class="btn-outline" id="newSeasonBtn">Begin New Season</button>
+        <button class="btn-outline" id="runRaffleBtn">Run Raffle</button>
+      </div>
+
+      <div class="section-header-row">
+        <div class="section-label">The Kids</div>
+        <button class="btn-primary" id="addKidBtn">+ Add Kid</button>
+      </div>
       <div class="kid-blocks" id="kidBlocks"></div>
 
-      <div class="section-label">Unassigned Chores</div>
+      <div class="section-header-row">
+        <div class="section-label">Unassigned Chores</div>
+        <button class="btn-primary" id="addChoreBtn">+ Add New Chore</button>
+      </div>
       <div class="unassigned-panel">
         <div class="unassigned-header">
           <span style="font-size:0.85rem; color:rgba(245,239,224,0.6);" id="unassignedCount"></span>
-          <button class="btn-primary" id="addChoreBtn">+ Add New Chore</button>
         </div>
         <div id="unassignedList"></div>
       </div>
     </div>
 
-    <!-- KID VIEW -->
     <div id="kidView" style="display:none;">
-      <div class="section-label">Your Chores</div>
+      <div class="section-label" style="margin-bottom:12px;">Your Chores</div>
       <div id="myChoreList"></div>
       <div id="myCompletedLabel" class="completed-section-label" style="display:none;">Completed</div>
       <div id="myCompletedList"></div>
@@ -223,7 +189,6 @@
 
 </div>
 
-<!-- PIN MODAL -->
 <div class="overlay" id="pinOverlay">
   <div class="modal">
     <h2>Enter Mommy's PIN</h2>
@@ -236,7 +201,6 @@
   </div>
 </div>
 
-<!-- ADD CHORE MODAL -->
 <div class="overlay" id="addChoreOverlay">
   <div class="modal modal-wide">
     <button class="close-x" id="addChoreClose">&times;</button>
@@ -261,7 +225,6 @@
   </div>
 </div>
 
-<!-- DUPLICATE CONFIRM MODAL -->
 <div class="overlay" id="dupOverlay">
   <div class="modal">
     <h2>Looks familiar</h2>
@@ -273,7 +236,6 @@
   </div>
 </div>
 
-<!-- PICK LIST MODAL (assign to kid / assign chore) -->
 <div class="overlay" id="pickOverlay">
   <div class="modal modal-wide">
     <button class="close-x" id="pickClose">&times;</button>
@@ -282,18 +244,68 @@
   </div>
 </div>
 
+<div class="overlay" id="addKidOverlay">
+  <div class="modal">
+    <button class="close-x" id="addKidClose">&times;</button>
+    <h2>Add New Kid</h2>
+    <input type="text" id="kidNameInput" placeholder="Kid's name" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="addKidCancel">Cancel</button>
+      <button class="btn-confirm" id="addKidSave">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="raffleOverlay">
+  <div class="modal modal-wide" style="max-width:460px;">
+    <button class="close-x" id="raffleClose">&times;</button>
+    <h2>Run Raffle</h2>
+    <div id="raffleSetup">
+      <div class="field-wrap">
+        <label class="field-label">Season</label>
+        <select id="raffleSeasonSelect"></select>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="field-wrap" style="flex:1;">
+          <label class="field-label">Points per ticket</label>
+          <input type="number" id="raffleRatioPoints" min="1">
+        </div>
+        <div class="field-wrap" style="flex:1;">
+          <label class="field-label">Tickets earned</label>
+          <input type="number" id="raffleRatioTickets" min="1">
+        </div>
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin: 10px 0 16px;">
+        <input type="checkbox" id="raffleCarryOver" style="width:auto; margin:0;">
+        Carry over leftover points (This Season only)
+      </label>
+      <button class="btn-primary" style="width:100%;" id="raffleBuildBtn">Build Ticket Pool</button>
+    </div>
+
+    <div id="raffleResult" style="display:none;">
+      <canvas id="wheelCanvas" width="260" height="260" style="display:block; margin: 6px auto;"></canvas>
+      <div style="text-align:center; font-size:1.3rem; margin-top:-14px; color: var(--gold);">&#9660;</div>
+      <div id="ticketList" class="pick-list" style="margin-top:10px;"></div>
+      <button class="btn-primary" style="width:100%; margin-top:10px;" id="raffleSpinBtn">Spin the Wheel</button>
+      <div id="raffleWinner" style="text-align:center; font-family:'Fraunces',serif; font-size:1.3rem; margin-top:14px; color: var(--gold); min-height:1.6rem;"></div>
+      <button class="btn-outline" style="width:100%; margin-top:12px;" id="raffleBackBtn">&larr; Change Settings</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-  // ===== CONFIG =====
   const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec";
   const SEASON_GOAL = 500;
   const DUP_THRESHOLD = 0.78;
+  const WHEEL_COLORS = ['#D9A548','#C97064','#7FA37A','#8C7FC9','#5DA3A3','#C98CC9','#E0B15C','#B0776B'];
 
-  let appData = { kids: [], config: {}, chores: [] };
+  let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [] };
   let currentUser = null;
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
+  let raffleState = null;
 
   const kidGrid = document.getElementById('kidGrid');
   const statusLine = document.getElementById('statusLine');
@@ -314,7 +326,7 @@
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 1800);
+    setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
   async function loadData() {
@@ -324,6 +336,9 @@
       appData.kids = data.kids || [];
       appData.config = (data.config && data.config[0]) || {};
       appData.chores = data.chores || [];
+      appData.seasons = data.seasons || [];
+      appData.season_totals = data.season_totals || [];
+      appData.raffle_log = data.raffle_log || [];
     } catch (err) {
       statusLine.textContent = "Couldn't reach the chore list. Check your connection.";
       console.error(err);
@@ -331,21 +346,14 @@
   }
 
   async function postData(payload) {
-    await fetch(BACKEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
+    await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
   }
 
   async function refreshAndRerender() {
     await loadData();
     renderProgressBar();
-    if (currentUser.isAdmin) {
-      renderKidBlocks(); renderUnassignedChores();
-    } else {
-      renderMyChores();
-    }
+    if (currentUser.isAdmin) { renderKidBlocks(); renderUnassignedChores(); }
+    else { renderMyChores(); }
   }
 
   function renderKids() {
@@ -372,10 +380,7 @@
 
   function checkExistingSession() {
     const saved = sessionStorage.getItem('shabbos_user');
-    if (saved) {
-      currentUser = JSON.parse(saved);
-      showDashboard();
-    }
+    if (saved) { currentUser = JSON.parse(saved); showDashboard(); }
   }
 
   function showDashboard() {
@@ -388,6 +393,9 @@
       kidView.style.display = 'none';
       renderKidBlocks();
       renderUnassignedChores();
+      if (String(appData.config.new_season_trigger).toUpperCase() === 'TRUE') {
+        showToast("New Season trigger ticked in the Sheet — tap 'Begin New Season' to run it.");
+      }
     } else {
       mommyView.style.display = 'none';
       kidView.style.display = 'block';
@@ -402,7 +410,6 @@
     document.getElementById('progressNumber').textContent = `${total} / ${SEASON_GOAL} pts`;
   }
 
-  // ===== MOMMY: kid blocks now list every assigned/completed chore by name =====
   function renderKidBlocks() {
     const wrap = document.getElementById('kidBlocks');
     wrap.innerHTML = '';
@@ -421,31 +428,38 @@
           rowsHtml += `
             <div class="mini-chore-row">
               <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
-              <button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Mark Complete</button>
+              <div class="mini-btn-group">
+                <button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>
+                <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-action="unassign" data-name="${c.name}">Unassign</button>
+                <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
+              </div>
             </div>`;
         });
         completed.forEach(c => {
           rowsHtml += `
             <div class="mini-chore-row done">
               <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
-              <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="incomplete">Mark Incomplete</button>
+              <div class="mini-btn-group">
+                <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="incomplete">Incomplete</button>
+                <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
+              </div>
             </div>`;
         });
       }
 
       block.innerHTML = `
+        <button class="kid-delete-btn" data-kid="${kid.kid_id}" data-name="${kid.name}">&times;</button>
         <div class="kid-block-name">${kid.name}</div>
         <div class="kid-block-points">${kid.current_points || 0} pts this season</div>
         ${rowsHtml}
         <button class="btn-small" data-action="assign">Assign Chore</button>
       `;
       block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
-      block.querySelectorAll('[data-action="complete"]').forEach(btn => {
-        btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true);
-      });
-      block.querySelectorAll('[data-action="incomplete"]').forEach(btn => {
-        btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false);
-      });
+      block.querySelector('.kid-delete-btn').onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
+      block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
+      block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
+      block.querySelectorAll('[data-action="unassign"]').forEach(btn => btn.onclick = () => unassignChore(btn.dataset.chore, btn.dataset.name));
+      block.querySelectorAll('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteChore(btn.dataset.chore, btn.dataset.name));
       wrap.appendChild(block);
     });
   }
@@ -467,22 +481,22 @@
           <div class="chore-name">${chore.name}</div>
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
           <div class="chore-points">${chore.points} pts</div>
-          <button class="btn-small" style="width:auto;">Assign</button>
+          <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
+          <button class="mini-btn delete-btn" style="width:auto;" data-action="delete">Delete</button>
         </div>
       `;
-      card.querySelector('.btn-small').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      card.querySelector('[data-action="assign"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      card.querySelector('[data-action="delete"]').onclick = () => deleteChore(chore.chore_id, chore.name);
       list.appendChild(card);
     });
   }
 
-  // ===== KID: can only mark Complete, never Incomplete =====
   function renderMyChores() {
     const activeList = document.getElementById('myChoreList');
     const completedLabel = document.getElementById('myCompletedLabel');
     const completedList = document.getElementById('myCompletedList');
-
     const mine = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'assigned');
     const mineDone = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'completed');
 
@@ -520,47 +534,77 @@
         `;
         completedList.appendChild(card);
       });
-    } else {
-      completedLabel.style.display = 'none';
-    }
+    } else { completedLabel.style.display = 'none'; }
   }
 
-  // ===== COMPLETE / INCOMPLETE TOGGLE (shared by both roles) =====
   async function toggleChoreComplete(choreId, kidId, markComplete) {
     const chore = appData.chores.find(c => c.chore_id === choreId);
     const kid = appData.kids.find(k => k.kid_id === kidId);
     if (!chore || !kid) return;
-
     const pts = Number(chore.points) || 0;
     let updatedChore, updatedKid;
-
     if (markComplete) {
-      updatedChore = Object.assign({}, chore, {
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        completed_by: currentUser.id
-      });
-      updatedKid = Object.assign({}, kid, {
-        current_points: (Number(kid.current_points) || 0) + pts
-      });
+      updatedChore = Object.assign({}, chore, { status: 'completed', completed_at: new Date().toISOString(), completed_by: currentUser.id });
+      updatedKid = Object.assign({}, kid, { current_points: (Number(kid.current_points) || 0) + pts });
       showToast('Marking complete...');
     } else {
-      updatedChore = Object.assign({}, chore, {
-        status: 'assigned',
-        completed_at: '',
-        completed_by: ''
-      });
-      updatedKid = Object.assign({}, kid, {
-        current_points: Math.max(0, (Number(kid.current_points) || 0) - pts)
-      });
+      updatedChore = Object.assign({}, chore, { status: 'assigned', completed_at: '', completed_by: '' });
+      updatedKid = Object.assign({}, kid, { current_points: Math.max(0, (Number(kid.current_points) || 0) - pts) });
       showToast('Marking incomplete...');
     }
-
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updatedChore] });
     await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
     await refreshAndRerender();
     showToast(markComplete ? `+${pts} pts for ${kid.name}!` : `Points removed from ${kid.name}.`);
   }
+
+  async function unassignChore(choreId, choreName) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    if (!chore) return;
+    showToast('Unassigning...');
+    const updated = Object.assign({}, chore, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' });
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
+    await refreshAndRerender();
+    showToast(`"${choreName}" moved back to Unassigned.`);
+  }
+
+  async function deleteChore(choreId, choreName) {
+    if (!confirm(`Delete "${choreName}"? This removes it completely, including from history. This can't be undone.`)) return;
+    showToast('Deleting chore...');
+    await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: [choreId] });
+    await refreshAndRerender();
+    showToast('Chore deleted.');
+  }
+
+  async function deleteKid(kidId, kidName) {
+    if (!confirm(`Delete ${kidName}? Their assigned (not-yet-completed) chores will move back to Unassigned. Completed chore history stays in the Sheet. This can't be undone.`)) return;
+    showToast('Deleting kid...');
+    const theirChores = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
+    if (theirChores.length) {
+      const updated = theirChores.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' }));
+      await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: updated });
+    }
+    await postData({ sheet: 'kids', action: 'delete', id_field: 'kid_id', ids: [kidId] });
+    await refreshAndRerender();
+    showToast(`${kidName} removed.`);
+  }
+
+  // ===== ADD KID =====
+  const addKidOverlay = document.getElementById('addKidOverlay');
+  const kidNameInput = document.getElementById('kidNameInput');
+  document.getElementById('addKidBtn').onclick = () => { kidNameInput.value = ''; addKidOverlay.classList.add('open'); kidNameInput.focus(); };
+  document.getElementById('addKidCancel').onclick = () => addKidOverlay.classList.remove('open');
+  document.getElementById('addKidClose').onclick = () => addKidOverlay.classList.remove('open');
+  document.getElementById('addKidSave').onclick = async () => {
+    const name = kidNameInput.value.trim();
+    if (!name) { showToast('Enter a name first.'); return; }
+    addKidOverlay.classList.remove('open');
+    showToast('Adding kid...');
+    const newKid = { kid_id: 'k_' + Date.now(), name, current_points: 0, created_at: new Date().toISOString() };
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [newKid] });
+    await refreshAndRerender();
+    showToast(`${name} added!`);
+  };
 
   // ===== ASSIGN =====
   const pickOverlay = document.getElementById('pickOverlay');
@@ -571,9 +615,7 @@
   function openPickKidForChore(choreId, choreName) {
     pickTitle.textContent = `Assign "${choreName}" to:`;
     pickList.innerHTML = '';
-    if (appData.kids.length === 0) {
-      pickList.innerHTML = '<div class="empty-note">No kids added yet.</div>';
-    }
+    if (appData.kids.length === 0) pickList.innerHTML = '<div class="empty-note">No kids added yet.</div>';
     appData.kids.forEach(kid => {
       const item = document.createElement('div');
       item.className = 'pick-item';
@@ -588,9 +630,7 @@
     pickTitle.textContent = `Assign a chore to ${kidName}:`;
     pickList.innerHTML = '';
     const unassigned = appData.chores.filter(c => c.status === 'unassigned');
-    if (unassigned.length === 0) {
-      pickList.innerHTML = '<div class="empty-note">No unassigned chores right now — add one first.</div>';
-    }
+    if (unassigned.length === 0) pickList.innerHTML = '<div class="empty-note">No unassigned chores right now — add one first.</div>';
     unassigned.forEach(chore => {
       const item = document.createElement('div');
       item.className = 'pick-item';
@@ -604,11 +644,7 @@
   async function assignChore(choreId, kidId) {
     const chore = appData.chores.find(c => c.chore_id === choreId);
     if (!chore) return;
-    const updated = Object.assign({}, chore, {
-      status: 'assigned',
-      assigned_kid_id: kidId,
-      assigned_at: new Date().toISOString()
-    });
+    const updated = Object.assign({}, chore, { status: 'assigned', assigned_kid_id: kidId, assigned_at: new Date().toISOString() });
     pickOverlay.classList.remove('open');
     showToast('Assigning...');
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
@@ -628,9 +664,7 @@
   document.getElementById('addChoreClose').onclick = closeAddChoreModal;
 
   function openAddChoreModal() {
-    choreNameInput.value = '';
-    chorePointsInput.value = '';
-    choreDescInput.value = '';
+    choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.value = '';
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     addChoreOverlay.classList.add('open');
@@ -643,9 +677,7 @@
     appData.chores.forEach(c => {
       const key = (c.name || '').trim().toLowerCase();
       if (!key) return;
-      if (!map[key] || (c.created_at || '') > (map[key].created_at || '')) {
-        map[key] = c;
-      }
+      if (!map[key] || (c.created_at || '') > (map[key].created_at || '')) map[key] = c;
     });
     return Object.values(map);
   }
@@ -655,13 +687,8 @@
     const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
     for (let i = 0; i <= m; i++) dp[i][0] = i;
     for (let j = 0; j <= n; j++) dp[0][j] = j;
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        dp[i][j] = a[i-1] === b[j-1]
-          ? dp[i-1][j-1]
-          : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-      }
-    }
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
     return dp[m][n];
   }
   function similarity(a, b) {
@@ -681,9 +708,7 @@
       const includes = name.includes(val) ? 1 : 0;
       const sim = similarity(name, val);
       return { chore: c, score: starts * 2 + includes + sim };
-    }).filter(s => s.score > 0.55)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+    }).filter(s => s.score > 0.55).sort((a, b) => b.score - a.score).slice(0, 5);
 
     typeaheadList.innerHTML = '';
     if (scored.length === 0) { typeaheadList.classList.remove('open'); return; }
@@ -703,75 +728,239 @@
     typeaheadList.classList.add('open');
   });
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.field-wrap')) typeaheadList.classList.remove('open');
-  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.field-wrap')) typeaheadList.classList.remove('open'); });
 
   document.getElementById('addChoreComplete').onclick = () => {
     const name = choreNameInput.value.trim();
     const points = Number(chorePointsInput.value);
     const description = choreDescInput.value.trim();
-
     if (!name) { showToast('Give the chore a name first.'); return; }
     if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
-
     const typed = { name, points, description };
 
-    if (selectedExistingChoreName === name.toLowerCase()) {
-      finalizeSaveChore(typed);
-      return;
-    }
+    if (selectedExistingChoreName === name.toLowerCase()) { finalizeSaveChore(typed); return; }
 
     const distinct = getDistinctChores();
     let best = null, bestScore = 0;
-    distinct.forEach(c => {
-      const s = similarity(c.name.toLowerCase(), name.toLowerCase());
-      if (s > bestScore) { bestScore = s; best = c; }
-    });
+    distinct.forEach(c => { const s = similarity(c.name.toLowerCase(), name.toLowerCase()); if (s > bestScore) { bestScore = s; best = c; } });
 
     if (best && bestScore >= DUP_THRESHOLD && best.name.toLowerCase() !== name.toLowerCase()) {
-      pendingDupResolution = {
-        typed,
-        matched: { name: best.name, points: best.points, description: best.description || '' }
-      };
+      pendingDupResolution = { typed, matched: { name: best.name, points: best.points, description: best.description || '' } };
       document.getElementById('dupMessage').textContent = `This looks similar to "${best.name}" — add it as a new chore anyway, or use the existing one?`;
       addChoreOverlay.classList.remove('open');
       document.getElementById('dupOverlay').classList.add('open');
-    } else {
-      finalizeSaveChore(typed);
-    }
+    } else { finalizeSaveChore(typed); }
   };
 
-  document.getElementById('dupUseExisting').onclick = () => {
-    document.getElementById('dupOverlay').classList.remove('open');
-    finalizeSaveChore(pendingDupResolution.matched);
-    pendingDupResolution = null;
-  };
-  document.getElementById('dupAddNew').onclick = () => {
-    document.getElementById('dupOverlay').classList.remove('open');
-    finalizeSaveChore(pendingDupResolution.typed);
-    pendingDupResolution = null;
-  };
+  document.getElementById('dupUseExisting').onclick = () => { document.getElementById('dupOverlay').classList.remove('open'); finalizeSaveChore(pendingDupResolution.matched); pendingDupResolution = null; };
+  document.getElementById('dupAddNew').onclick = () => { document.getElementById('dupOverlay').classList.remove('open'); finalizeSaveChore(pendingDupResolution.typed); pendingDupResolution = null; };
 
   async function finalizeSaveChore(data) {
     closeAddChoreModal();
     showToast('Saving chore...');
     const newChore = {
-      chore_id: 'c_' + Date.now(),
-      name: data.name,
-      points: data.points,
-      description: data.description || '',
-      status: 'unassigned',
-      assigned_kid_id: '',
-      created_by: currentUser.id,
-      created_at: new Date().toISOString(),
-      assigned_at: '',
-      completed_at: '',
-      completed_by: ''
+      chore_id: 'c_' + Date.now(), name: data.name, points: data.points, description: data.description || '',
+      status: 'unassigned', assigned_kid_id: '', created_by: currentUser.id, created_at: new Date().toISOString(),
+      assigned_at: '', completed_at: '', completed_by: ''
     };
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newChore] });
     await refreshAndRerender();
     showToast('Chore added to Unassigned!');
+  }
+
+  // ===== NEW SEASON =====
+  function suggestNextSeasonName() { return `Season ${appData.seasons.length + 1}`; }
+
+  document.getElementById('newSeasonBtn').onclick = async () => {
+    if (appData.kids.length === 0) { showToast('Add some kids first!'); return; }
+    if (!confirm("This will archive everyone's current points as season history and reset totals to start a new season. Continue?")) return;
+    const seasonName = prompt('Name this new season:', suggestNextSeasonName());
+    if (!seasonName) return;
+
+    const oldSeasonId = appData.config.current_season_id;
+    const now = new Date().toISOString();
+    showToast('Archiving season...');
+
+    const totalsRows = appData.kids.map(k => ({
+      season_id: oldSeasonId, kid_id: k.kid_id, kid_name: k.name,
+      total_points: Number(k.current_points) || 0, carried_over_points: 0
+    }));
+    if (totalsRows.length) await postData({ sheet: 'season_totals', action: 'append', rows: totalsRows });
+
+    const oldSeasonRow = appData.seasons.find(s => s.season_id === oldSeasonId);
+    const newSeasonId = 's_' + Date.now();
+    const seasonRows = [];
+    if (oldSeasonRow) seasonRows.push(Object.assign({}, oldSeasonRow, { status: 'archived', end_date: now }));
+    seasonRows.push({ season_id: newSeasonId, season_name: seasonName, start_date: now, end_date: '', status: 'active' });
+    await postData({ sheet: 'seasons', action: 'upsert', id_field: 'season_id', rows: seasonRows });
+
+    const resetKids = appData.kids.map(k => Object.assign({}, k, { current_points: 0 }));
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: resetKids });
+
+    await postData({ sheet: 'config', action: 'upsert', rows: [{ current_season_id: newSeasonId, new_season_trigger: false }] });
+
+    await refreshAndRerender();
+    showToast(`${seasonName} has begun!`);
+  };
+
+  // ===== RUN RAFFLE =====
+  const raffleOverlay = document.getElementById('raffleOverlay');
+  document.getElementById('runRaffleBtn').onclick = openRaffleModal;
+  document.getElementById('raffleClose').onclick = () => raffleOverlay.classList.remove('open');
+  document.getElementById('raffleBackBtn').onclick = () => {
+    document.getElementById('raffleResult').style.display = 'none';
+    document.getElementById('raffleSetup').style.display = 'block';
+  };
+
+  function openRaffleModal() {
+    const sel = document.getElementById('raffleSeasonSelect');
+    sel.innerHTML = '<option value="current">This Season</option>';
+    appData.seasons.filter(s => s.status === 'archived').forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.season_id; opt.textContent = s.season_name;
+      sel.appendChild(opt);
+    });
+    document.getElementById('raffleRatioPoints').value = appData.config.ratio_points || 1;
+    document.getElementById('raffleRatioTickets').value = appData.config.ratio_tickets || 1;
+    document.getElementById('raffleCarryOver').checked = false;
+    document.getElementById('raffleResult').style.display = 'none';
+    document.getElementById('raffleSetup').style.display = 'block';
+    document.getElementById('raffleWinner').textContent = '';
+    sel.onchange = updateCarryOverAvailability;
+    updateCarryOverAvailability();
+    raffleOverlay.classList.add('open');
+  }
+  function updateCarryOverAvailability() {
+    const sel = document.getElementById('raffleSeasonSelect');
+    const cb = document.getElementById('raffleCarryOver');
+    if (sel.value !== 'current') { cb.checked = false; cb.disabled = true; } else { cb.disabled = false; }
+  }
+
+  document.getElementById('raffleBuildBtn').onclick = () => {
+    const seasonVal = document.getElementById('raffleSeasonSelect').value;
+    const ratioPoints = Number(document.getElementById('raffleRatioPoints').value) || 1;
+    const ratioTickets = Number(document.getElementById('raffleRatioTickets').value) || 1;
+    const carryOver = document.getElementById('raffleCarryOver').checked;
+
+    let pool;
+    if (seasonVal === 'current') {
+      pool = appData.kids.map(k => ({ kid_id: k.kid_id, name: k.name, points: Number(k.current_points) || 0 }));
+    } else {
+      pool = appData.season_totals.filter(st => st.season_id === seasonVal)
+        .map(st => ({ kid_id: st.kid_id, name: st.kid_name, points: Number(st.total_points) || 0 }));
+    }
+
+    const withTickets = pool.map(p => ({ ...p, tickets: Math.floor(p.points / ratioPoints) * ratioTickets })).filter(p => p.tickets > 0);
+    if (withTickets.length === 0) { showToast('No one has enough points for a ticket at this ratio.'); return; }
+
+    raffleState = {
+      kidsWithTickets: withTickets,
+      totalTickets: withTickets.reduce((s, p) => s + p.tickets, 0),
+      winner: null,
+      seasonId: seasonVal === 'current' ? appData.config.current_season_id : seasonVal,
+      ratioPoints, ratioTickets, carryOver
+    };
+
+    renderTicketList();
+    drawWheel();
+    document.getElementById('raffleSetup').style.display = 'none';
+    document.getElementById('raffleResult').style.display = 'block';
+    document.getElementById('raffleWinner').textContent = '';
+  };
+
+  function renderTicketList() {
+    const list = document.getElementById('ticketList');
+    list.innerHTML = '';
+    raffleState.kidsWithTickets.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'pick-item';
+      row.style.cursor = 'default';
+      row.innerHTML = `<span class="pick-item-name">${p.name}</span><span class="pick-item-sub">${p.tickets} ticket${p.tickets === 1 ? '' : 's'}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  function drawWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2, cy = canvas.height / 2, r = canvas.width / 2 - 6;
+    canvas.style.transition = 'none';
+    canvas.style.transform = 'rotate(0deg)';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let startAngle = -Math.PI / 2;
+    raffleState.kidsWithTickets.forEach((p, i) => {
+      const sliceAngle = (p.tickets / raffleState.totalTickets) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+      ctx.closePath();
+      ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+      ctx.fill();
+      ctx.strokeStyle = '#241F38';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(startAngle + sliceAngle / 2);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#241F38';
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(p.name, r - 10, 4);
+      ctx.restore();
+
+      p._startAngle = startAngle;
+      p._endAngle = startAngle + sliceAngle;
+      startAngle += sliceAngle;
+    });
+  }
+
+  document.getElementById('raffleSpinBtn').onclick = () => {
+    const btn = document.getElementById('raffleSpinBtn');
+    btn.disabled = true;
+
+    let r = Math.random() * raffleState.totalTickets;
+    let winner = raffleState.kidsWithTickets[raffleState.kidsWithTickets.length - 1];
+    for (const p of raffleState.kidsWithTickets) {
+      if (r < p.tickets) { winner = p; break; }
+      r -= p.tickets;
+    }
+    raffleState.winner = winner;
+
+    const midAngle = (winner._startAngle + winner._endAngle) / 2;
+    const midDeg = midAngle * 180 / Math.PI;
+    const finalRotation = 5 * 360 + (360 - midDeg - 90);
+
+    const canvas = document.getElementById('wheelCanvas');
+    canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.2, 1)';
+    canvas.style.transform = `rotate(${finalRotation}deg)`;
+
+    setTimeout(() => finishRaffle(winner), 4200);
+  };
+
+  async function finishRaffle(winner) {
+    document.getElementById('raffleWinner').textContent = `🎉 ${winner.name} wins!`;
+    document.getElementById('raffleSpinBtn').disabled = false;
+
+    await postData({ sheet: 'raffle_log', action: 'upsert', id_field: 'raffle_id', rows: [{
+      raffle_id: 'r_' + Date.now(), season_id: raffleState.seasonId,
+      ratio_points: raffleState.ratioPoints, ratio_tickets: raffleState.ratioTickets,
+      carry_over: raffleState.carryOver, timestamp: new Date().toISOString(), winner_kid_id: winner.kid_id
+    }]});
+
+    if (raffleState.carryOver && raffleState.seasonId === appData.config.current_season_id) {
+      const updates = raffleState.kidsWithTickets.map(p => {
+        const kid = appData.kids.find(k => k.kid_id === p.kid_id);
+        if (!kid) return null;
+        return Object.assign({}, kid, { current_points: p.points % raffleState.ratioPoints });
+      }).filter(Boolean);
+      if (updates.length) {
+        await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: updates });
+        showToast('Points carried over — leftovers kept for next season.');
+      }
+    }
+    await refreshAndRerender();
   }
 
   // ===== LOGIN / SESSION =====
@@ -781,36 +970,20 @@
     dashboardView.classList.remove('open');
     loginView.style.display = 'flex';
   };
-
-  mommyBtn.onclick = () => {
-    pinInput.value = '';
-    pinError.textContent = '';
-    pinOverlay.classList.add('open');
-    pinInput.focus();
-  };
+  mommyBtn.onclick = () => { pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus(); };
   pinCancel.onclick = () => pinOverlay.classList.remove('open');
 
   function tryPin() {
     const entered = pinInput.value.trim();
     const correct = String(appData.config.admin_pin || '');
     if (entered.length === 0) return;
-    if (entered === correct) {
-      pinOverlay.classList.remove('open');
-      logIn('mommy', 'Mommy', true);
-    } else {
-      pinError.textContent = 'Incorrect PIN, try again.';
-      pinInput.value = '';
-      pinInput.focus();
-    }
+    if (entered === correct) { pinOverlay.classList.remove('open'); logIn('mommy', 'Mommy', true); }
+    else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
   }
   pinConfirm.onclick = tryPin;
   pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
 
-  async function init() {
-    await loadData();
-    renderKids();
-    checkExistingSession();
-  }
+  async function init() { await loadData(); renderKids(); checkExistingSession(); }
   init();
 </script>
 </body>
