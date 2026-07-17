@@ -111,6 +111,16 @@
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
 
+  .points-adjust-row { display: flex; gap: 6px; margin-top: 6px; }
+  .points-adjust-input { flex: 1; min-width: 0; padding: 8px 6px; border-radius: 8px; border: 1px solid rgba(38,40,63,0.15); background: var(--bg); color: var(--ink); font-size: 0.85rem; text-align: center; }
+  .points-adjust-input:focus { outline: none; border-color: var(--sky); }
+  .points-adjust-btn { width: 36px; flex-shrink: 0; padding: 8px 0; border-radius: 8px; border: 1px solid var(--sky); color: var(--sky); background: transparent; font-size: 1.1rem; font-weight: 700; cursor: pointer; line-height: 1; }
+  .points-adjust-btn:hover { background: rgba(93,156,236,0.1); }
+  .points-adjust-btn.plus { border-color: var(--mint); color: var(--mint); }
+  .points-adjust-btn.plus:hover { background: rgba(47,182,163,0.1); }
+  .points-adjust-btn.minus { border-color: var(--error); color: var(--error); }
+  .points-adjust-btn.minus:hover { background: rgba(224,87,74,0.1); }
+
   .mini-chore-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--bg); border-radius: 9px; padding: 9px 10px; margin-bottom: 6px; font-size: 0.8rem; flex-wrap: wrap; }
   .mini-chore-row.done { opacity: 0.6; }
   .mini-chore-name { font-weight: 600; }
@@ -577,9 +587,17 @@
         ${rowsHtml}
         <button class="btn-small" data-action="assign">Assign Chore</button>
         <button class="btn-small" data-action="color">Change Color</button>
+        <div class="points-adjust-row">
+          <input type="number" class="points-adjust-input" min="1" placeholder="amt">
+          <button class="points-adjust-btn plus" data-action="addpoints" title="Add points">+</button>
+          <button class="points-adjust-btn minus" data-action="subpoints" title="Deduct points">&minus;</button>
+        </div>
       `;
       block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
       block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
+      const pointsInput = block.querySelector('.points-adjust-input');
+      block.querySelector('[data-action="addpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value);
+      block.querySelector('[data-action="subpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value);
       block.querySelector('.kid-delete-btn').onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
@@ -777,6 +795,19 @@
         completedList.appendChild(card);
       });
     } else { completedLabel.style.display = 'none'; }
+  }
+
+  async function adjustPoints(kidId, kidName, sign, rawAmount) {
+    const amount = Math.max(1, Math.floor(Number(rawAmount)) || 1);
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!kid) return;
+    const delta = sign * amount;
+    const newTotal = Math.max(0, (Number(kid.current_points) || 0) + delta);
+    const updated = Object.assign({}, kid, { current_points: newTotal });
+    showToast(sign > 0 ? `Adding ${amount} pts...` : `Removing ${amount} pts...`);
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+    await refreshAndRerender();
+    showToast(sign > 0 ? `+${amount} pts for ${kidName}!` : `-${amount} pts for ${kidName}.`);
   }
 
   async function toggleChoreComplete(choreId, kidId, markComplete) {
