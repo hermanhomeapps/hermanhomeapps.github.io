@@ -98,6 +98,8 @@
   #newSeasonBtn:hover { background: rgba(47,182,163,0.1); }
   #runRaffleBtn { border-color: var(--grape); color: var(--grape); }
   #runRaffleBtn:hover { background: rgba(155,114,207,0.1); }
+  #newWeekBtn { border-color: var(--coral); color: var(--coral); }
+  #newWeekBtn:hover { background: rgba(255,107,91,0.1); }
 
   .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink-soft); margin: 0; }
   .section-header-row { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; }
@@ -199,6 +201,7 @@
 
     <div id="mommyView">
       <div class="toolbar">
+        <button class="btn-outline" id="newWeekBtn">New Week</button>
         <button class="btn-outline" id="newSeasonBtn">Begin New Season</button>
         <button class="btn-outline" id="runRaffleBtn">Run Raffle</button>
         <button class="btn-outline" id="changePinBtn">Change PIN</button>
@@ -384,6 +387,17 @@
   </div>
 </div>
 
+<div class="overlay" id="newWeekOverlay">
+  <div class="modal">
+    <h2>Start a New Week?</h2>
+    <p style="font-size:0.88rem; color:var(--ink-soft); margin-top:-6px;">This will unassign <strong>every</strong> currently assigned job, sending them back to Unassigned so they can be handed out fresh. Completed chores and points stay untouched.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="newWeekCancel">Cancel</button>
+      <button class="btn-confirm" id="newWeekConfirm">Yes, Reset</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="colorPickerOverlay">
   <div class="modal">
     <button class="close-x" id="colorPickerClose">&times;</button>
@@ -424,6 +438,7 @@
   let raffleState = null;
   let currentChoreTarget = { type: 'unassigned' };
   let activeManageListId = null;
+  let editingChoreId = null;
 
   const kidGrid = document.getElementById('kidGrid');
   const statusLine = document.getElementById('statusLine');
@@ -562,6 +577,7 @@
             <div class="mini-chore-row">
               <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
               <div class="mini-btn-group">
+                <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
                 <button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-action="unassign" data-name="${c.name}">Unassign</button>
                 <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
@@ -573,6 +589,7 @@
             <div class="mini-chore-row done">
               <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
               <div class="mini-btn-group">
+                <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="incomplete">Incomplete</button>
                 <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
               </div>
@@ -603,6 +620,7 @@
       block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
       block.querySelectorAll('[data-action="unassign"]').forEach(btn => btn.onclick = () => unassignChore(btn.dataset.chore, btn.dataset.name));
       block.querySelectorAll('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteChore(btn.dataset.chore, btn.dataset.name));
+      block.querySelectorAll('[data-action="edit"]').forEach(btn => btn.onclick = () => openEditChoreModal(appData.chores.find(c => c.chore_id === btn.dataset.chore)));
       wrap.appendChild(block);
     });
   }
@@ -626,10 +644,12 @@
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="chore-points">${chore.points} pts</div>
+          <button class="btn-small" style="width:auto;" data-action="edit">Edit</button>
           <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
           <button class="mini-btn delete-btn" style="width:auto;" data-action="delete">Delete</button>
         </div>
       `;
+      card.querySelector('[data-action="edit"]').onclick = () => openEditChoreModal(chore);
       card.querySelector('[data-action="assign"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
       card.querySelector('[data-action="delete"]').onclick = () => deleteChore(chore.chore_id, chore.name);
       list.appendChild(card);
@@ -702,7 +722,12 @@
       row.className = 'pick-item';
       row.style.cursor = 'default';
       row.innerHTML = `<span class="pick-item-name">${c.name}</span><span class="pick-item-sub">${c.points} pts</span>
+        <button class="mini-btn" style="margin-left:8px;" data-action="edit">Edit</button>
         <button class="mini-btn delete-btn" style="margin-left:8px;">Remove</button>`;
+      row.querySelector('[data-action="edit"]').onclick = () => {
+        document.getElementById('manageListOverlay').classList.remove('open');
+        openEditChoreModal(c);
+      };
       row.querySelector('.delete-btn').onclick = async () => {
         if (!confirm(`Remove "${c.name}" from this list?`)) return;
         await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: [c.chore_id] });
@@ -934,14 +959,30 @@
   document.getElementById('addChoreClose').onclick = closeAddChoreModal;
 
   function openAddChoreModal() {
+    editingChoreId = null;
     document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
     choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.value = '';
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
+    document.getElementById('addChoreComplete').textContent = 'Complete';
     addChoreOverlay.classList.add('open');
     choreNameInput.focus();
   }
   function closeAddChoreModal() { addChoreOverlay.classList.remove('open'); }
+
+  function openEditChoreModal(chore) {
+    if (!chore) return;
+    editingChoreId = chore.chore_id;
+    document.getElementById('addChoreTitle').textContent = 'Edit Chore';
+    choreNameInput.value = chore.name;
+    chorePointsInput.value = chore.points;
+    choreDescInput.value = chore.description || '';
+    selectedExistingChoreName = null;
+    typeaheadList.classList.remove('open');
+    document.getElementById('addChoreComplete').textContent = 'Save Changes';
+    addChoreOverlay.classList.add('open');
+    choreNameInput.focus();
+  }
 
   function getDistinctChores() {
     const map = {};
@@ -999,7 +1040,10 @@
     typeaheadList.classList.add('open');
   });
 
-  document.addEventListener('click', (e) => { if (!e.target.closest('.field-wrap')) typeaheadList.classList.remove('open'); });
+  document.addEventListener('click', (e) => {
+    const nameFieldWrap = choreNameInput.closest('.field-wrap');
+    if (!nameFieldWrap.contains(e.target)) typeaheadList.classList.remove('open');
+  });
 
   document.getElementById('addChoreComplete').onclick = () => {
     const name = choreNameInput.value.trim();
@@ -1007,6 +1051,12 @@
     const description = choreDescInput.value.trim();
     if (!name) { showToast('Give the chore a name first.'); return; }
     if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
+
+    if (editingChoreId) {
+      finalizeEditChore({ name, points, description });
+      return;
+    }
+
     const typed = { name, points, description };
 
     if (selectedExistingChoreName === name.toLowerCase()) { finalizeSaveChore(typed); return; }
@@ -1048,6 +1098,23 @@
     }
   }
 
+  async function finalizeEditChore(data) {
+    const choreId = editingChoreId;
+    const existing = appData.chores.find(c => c.chore_id === choreId);
+    closeAddChoreModal();
+    if (!existing) { editingChoreId = null; return; }
+    showToast('Saving changes...');
+    const updated = Object.assign({}, existing, { name: data.name, points: data.points, description: data.description || '' });
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
+    editingChoreId = null;
+    await refreshAndRerender();
+    if (activeManageListId && existing.list_id === activeManageListId) {
+      renderManageListChores();
+      document.getElementById('manageListOverlay').classList.add('open');
+    }
+    showToast('Chore updated!');
+  }
+
   function suggestNextSeasonName() { return `Season ${appData.seasons.length + 1}`; }
 
   document.getElementById('newSeasonBtn').onclick = async () => {
@@ -1084,6 +1151,20 @@
 
   const raffleOverlay = document.getElementById('raffleOverlay');
   document.getElementById('runRaffleBtn').onclick = openRaffleModal;
+
+  const newWeekOverlay = document.getElementById('newWeekOverlay');
+  document.getElementById('newWeekBtn').onclick = () => newWeekOverlay.classList.add('open');
+  document.getElementById('newWeekCancel').onclick = () => newWeekOverlay.classList.remove('open');
+  document.getElementById('newWeekConfirm').onclick = async () => {
+    newWeekOverlay.classList.remove('open');
+    const assignedChores = appData.chores.filter(c => c.status === 'assigned');
+    if (assignedChores.length === 0) { showToast('Nothing assigned right now.'); return; }
+    showToast('Starting new week...');
+    const updated = assignedChores.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' }));
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: updated });
+    await refreshAndRerender();
+    showToast(`${assignedChores.length} job${assignedChores.length === 1 ? '' : 's'} unassigned — fresh start!`);
+  };
   document.getElementById('raffleClose').onclick = () => raffleOverlay.classList.remove('open');
   document.getElementById('raffleBackBtn').onclick = () => {
     document.getElementById('raffleResult').style.display = 'none';
