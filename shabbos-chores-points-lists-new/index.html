@@ -146,6 +146,13 @@
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100; max-width: 85vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .color-swatch-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+  .color-swatch { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; padding: 0; transition: transform 0.15s ease, border-color 0.15s ease; }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.selected { border-color: var(--ink); }
+  .color-swatch.auto-swatch { background: var(--bg); border: 2px dashed rgba(38,40,63,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--ink-soft); font-weight: 700; letter-spacing: 0.02em; }
+  .my-color-btn { width: auto; padding: 8px 14px; margin: 0; }
 </style>
 </head>
 <body>
@@ -169,7 +176,10 @@
     <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
     <div class="welcome-bar">
       <h1 id="welcomeText"></h1>
-      <button class="logout-link" id="logoutBtn">Log out</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-small my-color-btn" id="myColorBtn">My Color</button>
+        <button class="logout-link" id="logoutBtn">Log out</button>
+      </div>
     </div>
 
     <div class="progress-wrap">
@@ -364,6 +374,14 @@
   </div>
 </div>
 
+<div class="overlay" id="colorPickerOverlay">
+  <div class="modal">
+    <button class="close-x" id="colorPickerClose">&times;</button>
+    <h2 id="colorPickerTitle">Choose a Color</h2>
+    <div class="color-swatch-grid" id="colorSwatchGrid"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -377,6 +395,16 @@
     let hash = 0;
     for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
     return KID_COLORS[hash % KID_COLORS.length];
+  }
+
+  function getKidColor(kidId) {
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (kid && kid.kid_color) return kid.kid_color;
+    return colorForKid(kidId);
+  }
+
+  function getMommyColor() {
+    return appData.config.mommy_color || '';
   }
 
   let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [] };
@@ -432,6 +460,7 @@
 
   async function refreshAndRerender() {
     await loadData();
+    welcomeText.style.color = currentUser.isAdmin ? getMommyColor() : getKidColor(currentUser.id);
     renderProgressBar();
     if (currentUser.isAdmin) { renderKidBlocks(); renderUnassignedChores(); renderChoreLists(); }
     else { renderMyChores(); }
@@ -447,7 +476,7 @@
     appData.kids.forEach(kid => {
       const btn = document.createElement('button');
       btn.className = 'kid-btn';
-      btn.style.setProperty('--kid-color', colorForKid(kid.kid_id));
+      btn.style.setProperty('--kid-color', getKidColor(kid.kid_id));
       btn.textContent = kid.name;
       btn.onclick = () => logIn(kid.kid_id, kid.name, false);
       kidGrid.appendChild(btn);
@@ -478,7 +507,7 @@
     loginView.style.display = 'none';
     dashboardView.classList.add('open');
     welcomeText.textContent = currentUser.isAdmin ? 'Hi Mommy' : `Hi ${currentUser.name}`;
-    welcomeText.style.color = currentUser.isAdmin ? '' : colorForKid(currentUser.id);
+    welcomeText.style.color = currentUser.isAdmin ? getMommyColor() : getKidColor(currentUser.id);
     renderProgressBar();
     if (currentUser.isAdmin) {
       mommyView.style.display = 'block';
@@ -512,7 +541,7 @@
 
       const block = document.createElement('div');
       block.className = 'kid-block';
-      block.style.setProperty('--kid-color', colorForKid(kid.kid_id));
+      block.style.setProperty('--kid-color', getKidColor(kid.kid_id));
 
       let rowsHtml = '';
       if (assigned.length === 0 && completed.length === 0) {
@@ -547,8 +576,10 @@
         <div class="kid-block-points">${kid.current_points || 0} pts this season</div>
         ${rowsHtml}
         <button class="btn-small" data-action="assign">Assign Chore</button>
+        <button class="btn-small" data-action="color">Change Color</button>
       `;
       block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
+      block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
       block.querySelector('.kid-delete-btn').onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
@@ -707,7 +738,7 @@
     const completedList = document.getElementById('myCompletedList');
     const mine = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'assigned');
     const mineDone = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'completed');
-    const myColor = colorForKid(currentUser.id);
+    const myColor = getKidColor(currentUser.id);
 
     activeList.innerHTML = '';
     if (mine.length === 0) {
@@ -1111,7 +1142,7 @@
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
       ctx.closePath();
-      ctx.fillStyle = colorForKid(p.kid_id);
+      ctx.fillStyle = getKidColor(p.kid_id);
       ctx.fill();
       ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = 3;
@@ -1221,6 +1252,61 @@
   };
   mommyBtn.onclick = () => { pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus(); };
   pinCancel.onclick = () => pinOverlay.classList.remove('open');
+
+  // ===== COLOR PICKER =====
+  let currentColorTarget = null;
+  const colorPickerOverlay = document.getElementById('colorPickerOverlay');
+  document.getElementById('colorPickerClose').onclick = () => colorPickerOverlay.classList.remove('open');
+
+  function openColorPicker(type, kidId, displayName, currentColor) {
+    currentColorTarget = { type, kidId };
+    document.getElementById('colorPickerTitle').textContent = `Choose ${displayName}'s Color`;
+    const grid = document.getElementById('colorSwatchGrid');
+    grid.innerHTML = '';
+    if (type === 'kid') {
+      const auto = document.createElement('button');
+      auto.type = 'button';
+      auto.className = 'color-swatch auto-swatch' + (!currentColor ? ' selected' : '');
+      auto.textContent = 'AUTO';
+      auto.title = 'Automatically assigned';
+      auto.onclick = () => selectColor(null);
+      grid.appendChild(auto);
+    }
+    KID_COLORS.forEach(hex => {
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'color-swatch' + (currentColor === hex ? ' selected' : '');
+      sw.style.background = hex;
+      sw.onclick = () => selectColor(hex);
+      grid.appendChild(sw);
+    });
+    colorPickerOverlay.classList.add('open');
+  }
+
+  async function selectColor(hex) {
+    colorPickerOverlay.classList.remove('open');
+    showToast('Saving color...');
+    if (currentColorTarget.type === 'mommy') {
+      await postData({ sheet: 'config', action: 'upsert', rows: [{ mommy_color: hex || '' }] });
+    } else {
+      const kid = appData.kids.find(k => k.kid_id === currentColorTarget.kidId);
+      if (kid) {
+        const updated = Object.assign({}, kid, { kid_color: hex || '' });
+        await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+      }
+    }
+    await refreshAndRerender();
+    showToast('Color updated!');
+  }
+
+  document.getElementById('myColorBtn').onclick = () => {
+    if (currentUser.isAdmin) {
+      openColorPicker('mommy', null, 'Mommy', appData.config.mommy_color);
+    } else {
+      const kid = appData.kids.find(k => k.kid_id === currentUser.id);
+      openColorPicker('kid', currentUser.id, currentUser.name, kid ? kid.kid_color : null);
+    }
+  };
 
   function tryPin() {
     const entered = pinInput.value.trim();
