@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shabbos Chores & Points</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=Comic+Neue:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #EAF0FB; --bg-soft: #DCE6FA; --bg-card: #FFFFFF;
@@ -123,6 +123,25 @@
   .points-adjust-btn.minus { border-color: var(--error); color: var(--error); }
   .points-adjust-btn.minus:hover { background: rgba(224,87,74,0.1); }
 
+  .rich-toolbar { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  .rich-toolbar button {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(38,40,63,0.15);
+    background: var(--bg-card); cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--ink);
+  }
+  .rich-toolbar button:hover, .rich-toolbar button.active { border-color: var(--sky); color: var(--sky); }
+  .rich-toolbar button:nth-child(2) { font-style: italic; }
+  .rich-toolbar select {
+    padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(38,40,63,0.15);
+    background: var(--bg-card); font-size: 0.78rem; color: var(--ink); cursor: pointer;
+  }
+  .rich-desc-input {
+    min-height: 70px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(38,40,63,0.15);
+    background: var(--bg); font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--ink);
+    margin-bottom: 12px; line-height: 1.4;
+  }
+  .rich-desc-input:focus { outline: none; border-color: var(--sky); }
+  .rich-desc-input:empty:before { content: attr(data-placeholder); color: var(--ink-soft); opacity: 0.6; }
+
   .mini-chore-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--bg); border-radius: 9px; padding: 9px 10px; margin-bottom: 6px; font-size: 0.8rem; flex-wrap: wrap; }
   .mini-chore-row.done { opacity: 0.6; }
   .mini-chore-name { font-weight: 600; }
@@ -136,8 +155,10 @@
   .unassigned-panel, .lists-panel { background: var(--bg-card); border: 1px dashed rgba(38,40,63,0.2); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .btn-primary { background: var(--coral); color: #fff; border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-  .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .chore-card:last-child { margin-bottom: 0; }
+  .chore-card-info { flex: 1; min-width: 0; }
+  .chore-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .chore-name { font-weight: 600; font-size: 0.95rem; }
   .chore-desc { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
   .chore-points { color: var(--coral); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
@@ -150,7 +171,8 @@
   .list-card-actions { display: flex; gap: 6px; }
   .list-card-actions button { flex: 1; font-size: 0.72rem; padding: 7px; }
 
-  .my-chore-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-left: 4px solid var(--kid-color, var(--sky)); box-shadow: 0 4px 10px var(--card-shadow); }
+  .my-chore-card { background: var(--bg-card); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-left: 4px solid var(--kid-color, var(--sky)); box-shadow: 0 4px 10px var(--card-shadow); }
+  .my-chore-card .chore-card-info { flex: 1; min-width: 0; }
   .my-chore-card.done { opacity: 0.55; }
   .btn-complete { background: var(--mint); color: #fff; border: none; padding: 9px 14px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .done-tag { color: var(--mint); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
@@ -288,7 +310,17 @@
     </div>
     <div class="field-wrap">
       <label class="field-label">Description</label>
-      <textarea id="choreDescInput" rows="2" placeholder="Optional details"></textarea>
+      <div class="rich-toolbar">
+        <button type="button" id="descBoldBtn" title="Bold"><b>B</b></button>
+        <button type="button" id="descItalicBtn" title="Italic">I</button>
+        <select id="descFontSelect" title="Font">
+          <option value="Inter">Default</option>
+          <option value="Fraunces">Fraunces</option>
+          <option value="Comic Neue">Comic Neue</option>
+          <option value="Caveat">Caveat</option>
+        </select>
+      </div>
+      <div id="choreDescInput" class="rich-desc-input" contenteditable="true" data-placeholder="Optional details"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" id="addChoreCancel">Cancel</button>
@@ -638,11 +670,11 @@
       const card = document.createElement('div');
       card.className = 'chore-card';
       card.innerHTML = `
-        <div>
+        <div class="chore-card-info">
           <div class="chore-name">${chore.name}</div>
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div class="chore-card-actions">
           <div class="chore-points">${chore.points} pts</div>
           <button class="btn-small" style="width:auto;" data-action="edit">Edit</button>
           <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
@@ -792,7 +824,7 @@
         card.className = 'my-chore-card';
         card.style.setProperty('--kid-color', myColor);
         card.innerHTML = `
-          <div>
+          <div class="chore-card-info">
             <div class="chore-name">${chore.name}</div>
             <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
           </div>
@@ -811,7 +843,7 @@
         card.className = 'my-chore-card done';
         card.style.setProperty('--kid-color', myColor);
         card.innerHTML = `
-          <div>
+          <div class="chore-card-info">
             <div class="chore-name">${chore.name}</div>
             <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
           </div>
@@ -961,7 +993,7 @@
   function openAddChoreModal() {
     editingChoreId = null;
     document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
-    choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.value = '';
+    choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.innerHTML = '';
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Complete';
@@ -976,7 +1008,7 @@
     document.getElementById('addChoreTitle').textContent = 'Edit Chore';
     choreNameInput.value = chore.name;
     chorePointsInput.value = chore.points;
-    choreDescInput.value = chore.description || '';
+    choreDescInput.innerHTML = chore.description || '';
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Save Changes';
@@ -1031,7 +1063,7 @@
       item.onclick = () => {
         choreNameInput.value = s.chore.name;
         chorePointsInput.value = s.chore.points;
-        choreDescInput.value = s.chore.description || '';
+        choreDescInput.innerHTML = s.chore.description || '';
         selectedExistingChoreName = s.chore.name.toLowerCase();
         typeaheadList.classList.remove('open');
       };
@@ -1045,10 +1077,22 @@
     if (!nameFieldWrap.contains(e.target)) typeaheadList.classList.remove('open');
   });
 
+  const descBoldBtn = document.getElementById('descBoldBtn');
+  const descItalicBtn = document.getElementById('descItalicBtn');
+  const descFontSelect = document.getElementById('descFontSelect');
+
+  descBoldBtn.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('bold'); choreDescInput.focus(); });
+  descItalicBtn.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('italic'); choreDescInput.focus(); });
+  descFontSelect.addEventListener('mousedown', (e) => e.stopPropagation());
+  descFontSelect.addEventListener('change', () => {
+    choreDescInput.focus();
+    document.execCommand('fontName', false, descFontSelect.value);
+  });
+
   document.getElementById('addChoreComplete').onclick = () => {
     const name = choreNameInput.value.trim();
     const points = Number(chorePointsInput.value);
-    const description = choreDescInput.value.trim();
+    const description = choreDescInput.textContent.trim() ? choreDescInput.innerHTML : '';
     if (!name) { showToast('Give the chore a name first.'); return; }
     if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
 
