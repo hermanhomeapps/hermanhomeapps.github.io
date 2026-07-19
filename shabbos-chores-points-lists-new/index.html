@@ -308,6 +308,10 @@
       <label class="field-label">Points</label>
       <input type="number" id="chorePointsInput" min="1" placeholder="10">
     </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="choreRepeatableInput">
+      <label for="choreRepeatableInput" style="margin:0; font-weight:500;">Can be completed multiple times (e.g. garbage)</label>
+    </div>
     <div class="field-wrap">
       <label class="field-label">Description</label>
       <div class="rich-toolbar">
@@ -419,6 +423,23 @@
   </div>
 </div>
 
+<div class="overlay" id="multiAssignOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="multiAssignClose">&times;</button>
+    <h2 id="multiAssignTitle">Split Between Kids</h2>
+    <div class="field-wrap">
+      <label class="field-label">How should points work?</label>
+      <select id="multiAssignMode">
+        <option value="full">Each kid gets full points</option>
+        <option value="even">Split points evenly</option>
+        <option value="uneven">Split points unevenly (set each)</option>
+      </select>
+    </div>
+    <div id="multiAssignKidList" class="pick-list"></div>
+    <button class="btn-primary" style="width:100%; margin-top:12px;" id="multiAssignConfirm">Assign</button>
+  </div>
+</div>
+
 <div class="overlay" id="newWeekOverlay">
   <div class="modal">
     <h2>Start a New Week?</h2>
@@ -461,6 +482,10 @@
 
   function getMommyColor() {
     return appData.config.mommy_color || '';
+  }
+
+  function isRepeatable(chore) {
+    return String(chore && chore.repeatable).toUpperCase() === 'TRUE';
   }
 
   let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [] };
@@ -605,12 +630,18 @@
         rowsHtml = '<div class="empty-note-mini">No chores assigned yet</div>';
       } else {
         assigned.forEach(c => {
+          const repeatable = isRepeatable(c);
+          const timesCount = Number(c.times_completed) || 0;
           rowsHtml += `
             <div class="mini-chore-row">
-              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
+              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts${repeatable ? ' · ' + timesCount + '&times;' : ''}</span></span>
               <div class="mini-btn-group">
                 <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
-                <button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>
+                ${repeatable
+                  ? `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="logdone">+1 Done</button>`
+                    + (timesCount > 0 ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo 1&times;</button>` : '')
+                  : `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>`
+                }
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-action="unassign" data-name="${c.name}">Unassign</button>
                 <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
               </div>
@@ -653,6 +684,8 @@
       block.querySelectorAll('[data-action="unassign"]').forEach(btn => btn.onclick = () => unassignChore(btn.dataset.chore, btn.dataset.name));
       block.querySelectorAll('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteChore(btn.dataset.chore, btn.dataset.name));
       block.querySelectorAll('[data-action="edit"]').forEach(btn => btn.onclick = () => openEditChoreModal(appData.chores.find(c => c.chore_id === btn.dataset.chore)));
+      block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
+      block.querySelectorAll('[data-action="undodone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, -1));
       wrap.appendChild(block);
     });
   }
@@ -678,11 +711,13 @@
           <div class="chore-points">${chore.points} pts</div>
           <button class="btn-small" style="width:auto;" data-action="edit">Edit</button>
           <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
+          <button class="btn-small" style="width:auto;" data-action="split">Split</button>
           <button class="mini-btn delete-btn" style="width:auto;" data-action="delete">Delete</button>
         </div>
       `;
       card.querySelector('[data-action="edit"]').onclick = () => openEditChoreModal(chore);
       card.querySelector('[data-action="assign"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      card.querySelector('[data-action="split"]').onclick = () => openMultiAssignModal(chore);
       card.querySelector('[data-action="delete"]').onclick = () => deleteChore(chore.chore_id, chore.name);
       list.appendChild(card);
     });
@@ -800,7 +835,7 @@
       name: c.name, points: c.points, description: c.description || '',
       status: 'unassigned', assigned_kid_id: '', created_by: currentUser.id,
       created_at: new Date().toISOString(), assigned_at: '', completed_at: '', completed_by: '',
-      list_id: listId
+      list_id: listId, repeatable: isRepeatable(c), times_completed: 0, group_id: ''
     }));
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: copies });
     await refreshAndRerender();
@@ -820,17 +855,21 @@
       activeList.innerHTML = '<div class="empty-note">No chores assigned to you right now.</div>';
     } else {
       mine.forEach(chore => {
+        const repeatable = isRepeatable(chore);
+        const timesCount = Number(chore.times_completed) || 0;
         const card = document.createElement('div');
         card.className = 'my-chore-card';
         card.style.setProperty('--kid-color', myColor);
         card.innerHTML = `
           <div class="chore-card-info">
             <div class="chore-name">${chore.name}</div>
-            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
+            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts${repeatable ? ' · done ' + timesCount + '&times;' : ''}</span></div>
           </div>
-          <button class="btn-complete">Complete</button>
+          <button class="btn-complete">${repeatable ? '+1 Done' : 'Complete'}</button>
         `;
-        card.querySelector('.btn-complete').onclick = () => toggleChoreComplete(chore.chore_id, currentUser.id, true);
+        card.querySelector('.btn-complete').onclick = () => repeatable
+          ? logRepeatableCompletion(chore.chore_id, currentUser.id, 1)
+          : toggleChoreComplete(chore.chore_id, currentUser.id, true);
         activeList.appendChild(card);
       });
     }
@@ -865,6 +904,24 @@
     await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
     await refreshAndRerender();
     showToast(sign > 0 ? `+${amount} pts for ${kidName}!` : `-${amount} pts for ${kidName}.`);
+  }
+
+  async function logRepeatableCompletion(choreId, kidId, delta) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!chore || !kid) return;
+    const currentCount = Number(chore.times_completed) || 0;
+    if (delta < 0 && currentCount <= 0) { showToast('Nothing to undo yet.'); return; }
+    const pts = Number(chore.points) || 0;
+    const newCount = Math.max(0, currentCount + delta);
+    const updatedChore = Object.assign({}, chore, { times_completed: newCount });
+    const newKidPoints = Math.max(0, (Number(kid.current_points) || 0) + (delta * pts));
+    const updatedKid = Object.assign({}, kid, { current_points: newKidPoints });
+    showToast(delta > 0 ? 'Logging completion...' : 'Undoing...');
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updatedChore] });
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
+    await refreshAndRerender();
+    showToast(delta > 0 ? `+${pts} pts for ${kid.name}! (${newCount}\u00D7)` : `Undone \u2014 ${kid.name} now at ${newCount}\u00D7`);
   }
 
   async function toggleChoreComplete(choreId, kidId, markComplete) {
@@ -984,6 +1041,7 @@
   const choreNameInput = document.getElementById('choreNameInput');
   const chorePointsInput = document.getElementById('chorePointsInput');
   const choreDescInput = document.getElementById('choreDescInput');
+  const choreRepeatableInput = document.getElementById('choreRepeatableInput');
   const typeaheadList = document.getElementById('typeaheadList');
 
   document.getElementById('addChoreBtn').onclick = () => { currentChoreTarget = { type: 'unassigned' }; openAddChoreModal(); };
@@ -994,6 +1052,7 @@
     editingChoreId = null;
     document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
     choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.innerHTML = '';
+    choreRepeatableInput.checked = false;
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Complete';
@@ -1009,6 +1068,7 @@
     choreNameInput.value = chore.name;
     chorePointsInput.value = chore.points;
     choreDescInput.innerHTML = chore.description || '';
+    choreRepeatableInput.checked = isRepeatable(chore);
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Save Changes';
@@ -1064,6 +1124,7 @@
         choreNameInput.value = s.chore.name;
         chorePointsInput.value = s.chore.points;
         choreDescInput.innerHTML = s.chore.description || '';
+        choreRepeatableInput.checked = isRepeatable(s.chore);
         selectedExistingChoreName = s.chore.name.toLowerCase();
         typeaheadList.classList.remove('open');
       };
@@ -1093,15 +1154,16 @@
     const name = choreNameInput.value.trim();
     const points = Number(chorePointsInput.value);
     const description = choreDescInput.textContent.trim() ? choreDescInput.innerHTML : '';
+    const repeatable = choreRepeatableInput.checked;
     if (!name) { showToast('Give the chore a name first.'); return; }
     if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
 
     if (editingChoreId) {
-      finalizeEditChore({ name, points, description });
+      finalizeEditChore({ name, points, description, repeatable });
       return;
     }
 
-    const typed = { name, points, description };
+    const typed = { name, points, description, repeatable };
 
     if (selectedExistingChoreName === name.toLowerCase()) { finalizeSaveChore(typed); return; }
 
@@ -1110,7 +1172,7 @@
     distinct.forEach(c => { const s = similarity(c.name.toLowerCase(), name.toLowerCase()); if (s > bestScore) { bestScore = s; best = c; } });
 
     if (best && bestScore >= DUP_THRESHOLD && best.name.toLowerCase() !== name.toLowerCase()) {
-      pendingDupResolution = { typed, matched: { name: best.name, points: best.points, description: best.description || '' } };
+      pendingDupResolution = { typed, matched: { name: best.name, points: best.points, description: best.description || '', repeatable: isRepeatable(best) } };
       document.getElementById('dupMessage').textContent = `This looks similar to "${best.name}" — add it as a new chore anyway, or use the existing one?`;
       addChoreOverlay.classList.remove('open');
       document.getElementById('dupOverlay').classList.add('open');
@@ -1129,7 +1191,8 @@
       status: isList ? 'template' : 'unassigned',
       assigned_kid_id: '', created_by: currentUser.id, created_at: new Date().toISOString(),
       assigned_at: '', completed_at: '', completed_by: '',
-      list_id: isList ? currentChoreTarget.listId : ''
+      list_id: isList ? currentChoreTarget.listId : '',
+      repeatable: !!data.repeatable, times_completed: 0, group_id: ''
     };
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newChore] });
     await refreshAndRerender();
@@ -1148,7 +1211,7 @@
     closeAddChoreModal();
     if (!existing) { editingChoreId = null; return; }
     showToast('Saving changes...');
-    const updated = Object.assign({}, existing, { name: data.name, points: data.points, description: data.description || '' });
+    const updated = Object.assign({}, existing, { name: data.name, points: data.points, description: data.description || '', repeatable: !!data.repeatable });
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
     editingChoreId = null;
     await refreshAndRerender();
@@ -1158,6 +1221,81 @@
     }
     showToast('Chore updated!');
   }
+
+  const multiAssignOverlay = document.getElementById('multiAssignOverlay');
+  let multiAssignChore = null;
+
+  function openMultiAssignModal(chore) {
+    multiAssignChore = chore;
+    document.getElementById('multiAssignTitle').textContent = `Split "${chore.name}" Between Kids`;
+    document.getElementById('multiAssignMode').value = 'full';
+    renderMultiAssignKidList();
+    multiAssignOverlay.classList.add('open');
+  }
+  document.getElementById('multiAssignClose').onclick = () => multiAssignOverlay.classList.remove('open');
+  document.getElementById('multiAssignMode').onchange = renderMultiAssignKidList;
+
+  function renderMultiAssignKidList() {
+    const wrap = document.getElementById('multiAssignKidList');
+    const mode = document.getElementById('multiAssignMode').value;
+    wrap.innerHTML = '';
+    if (appData.kids.length === 0) { wrap.innerHTML = '<div class="empty-note">No kids added yet.</div>'; return; }
+    appData.kids.forEach(kid => {
+      const row = document.createElement('div');
+      row.className = 'pick-item';
+      row.style.cursor = 'default';
+      row.innerHTML = `
+        <label style="display:flex; align-items:center; gap:8px; flex:1; cursor:pointer;">
+          <input type="checkbox" class="multi-assign-check" data-kid="${kid.kid_id}" style="width:auto;">
+          <span class="pick-item-name">${kid.name}</span>
+        </label>
+        ${mode === 'uneven'
+          ? `<input type="number" class="multi-assign-points" data-kid="${kid.kid_id}" min="0" placeholder="pts" style="width:70px; padding:6px 8px; border-radius:8px; border:1px solid rgba(38,40,63,0.15); background:var(--bg); text-align:center;">`
+          : `<span class="pick-item-sub">${mode === 'full' ? multiAssignChore.points + ' pts' : ''}</span>`
+        }
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('multiAssignConfirm').onclick = async () => {
+    const checks = Array.from(document.querySelectorAll('.multi-assign-check')).filter(c => c.checked);
+    if (checks.length === 0) { showToast('Pick at least one kid.'); return; }
+    const mode = document.getElementById('multiAssignMode').value;
+    const chore = multiAssignChore;
+    const groupId = 'grp_' + Date.now();
+    let assignments;
+
+    if (mode === 'full') {
+      assignments = checks.map(c => ({ kidId: c.dataset.kid, points: chore.points }));
+    } else if (mode === 'even') {
+      const base = Math.floor(chore.points / checks.length);
+      const remainder = chore.points - base * checks.length;
+      assignments = checks.map((c, i) => ({ kidId: c.dataset.kid, points: base + (i < remainder ? 1 : 0) }));
+    } else {
+      assignments = checks.map(c => {
+        const input = document.querySelector(`.multi-assign-points[data-kid="${c.dataset.kid}"]`);
+        return { kidId: c.dataset.kid, points: Math.max(0, Number(input.value) || 0) };
+      });
+    }
+
+    multiAssignOverlay.classList.remove('open');
+    showToast('Assigning...');
+
+    const newRows = assignments.map((a, i) => ({
+      chore_id: 'c_' + Date.now() + '_' + i,
+      name: chore.name, points: a.points, description: chore.description || '',
+      status: 'assigned', assigned_kid_id: a.kidId, created_by: currentUser.id,
+      created_at: new Date().toISOString(), assigned_at: new Date().toISOString(),
+      completed_at: '', completed_by: '', list_id: chore.list_id || '',
+      repeatable: isRepeatable(chore), times_completed: 0, group_id: groupId
+    }));
+
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: newRows });
+    await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: [chore.chore_id] });
+    await refreshAndRerender();
+    showToast(`Split between ${assignments.length} kid${assignments.length === 1 ? '' : 's'}!`);
+  };
 
   function suggestNextSeasonName() { return `Season ${appData.seasons.length + 1}`; }
 
