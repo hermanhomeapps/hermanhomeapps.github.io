@@ -277,6 +277,7 @@
   <div class="welcome-bar">
     <h1>🕯️ Shabbos Chores Tickets</h1>
     <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn-small my-color-btn" id="claimToggleBtn">🔓 Enable Claiming</button>
       <button class="btn-small my-color-btn" id="myColorBtn" style="display:none;">My Color</button>
       <button class="logout-link" id="mommyToggleBtn">Mommy View</button>
     </div>
@@ -444,7 +445,10 @@
   <div class="modal modal-wide">
     <button class="close-x" id="manageListClose">&times;</button>
     <h2 id="manageListTitle"></h2>
-    <button class="btn-primary" style="width:100%; margin-bottom:14px;" id="manageListAddChoreBtn">+ Add Chore to This List</button>
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <button class="btn-primary" style="flex:1;" id="manageListAddChoreBtn">+ New Chore</button>
+      <button class="btn-outline" style="flex:1; border-color:var(--sky); color:var(--sky);" id="manageListAddExistingBtn">+ From Unassigned</button>
+    </div>
     <div class="pick-list" id="manageListChores"></div>
     <button class="btn-cancel" style="width:100%; margin-top:14px; border:1px solid var(--error) !important; color: var(--error);" id="manageListDeleteBtn">Delete This List</button>
   </div>
@@ -628,11 +632,16 @@
     applyModeVisibility();
   }
 
+  function isClaimingEnabled() {
+    return String(appData.config.claiming_enabled).toUpperCase() === 'TRUE';
+  }
+
   function applyModeVisibility() {
     document.getElementById('adminToolbar').style.display = isMommyMode ? 'flex' : 'none';
     document.getElementById('addKidBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
     document.getElementById('myColorBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
     document.getElementById('mommyToggleBtn').textContent = isMommyMode ? 'Exit Mommy View' : 'Mommy View';
+    document.getElementById('claimToggleBtn').textContent = isClaimingEnabled() ? '🔒 Disable Claiming' : '🔓 Enable Claiming';
 
     const uDrawer = document.getElementById('unassignedDrawer');
     const clDrawer = document.getElementById('chorelistsDrawer');
@@ -814,10 +823,14 @@
   function renderPublicUnassignedList() {
     const list = document.getElementById('publicUnassignedList');
     const unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    const claimingOn = isClaimingEnabled();
     document.getElementById('publicUnassignedTabLabel').textContent = `Unassigned (${unassigned.length})`;
     list.innerHTML = '';
+    if (!claimingOn) {
+      list.innerHTML = '<div class="empty-note">🔒 Claiming is currently locked — ask Mommy to enable it.</div>';
+    }
     if (unassigned.length === 0) {
-      list.innerHTML = '<div class="empty-note">Nothing waiting right now.</div>';
+      list.innerHTML += '<div class="empty-note">Nothing waiting right now.</div>';
       return;
     }
     unassigned.forEach(chore => {
@@ -832,10 +845,10 @@
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
         <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-          <button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>
+          ${claimingOn ? `<button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>` : `<span style="font-size:0.72rem; color:var(--ink-soft); white-space:nowrap;">🔒 Locked</span>`}
         </div>
       `;
-      card.querySelector('[data-action="claim"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      if (claimingOn) card.querySelector('[data-action="claim"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
       list.appendChild(card);
     });
   }
@@ -929,10 +942,12 @@
     if (!name) { showToast('Name the list first.'); return; }
     document.getElementById('newListOverlay').classList.remove('open');
     showToast('Creating list...');
+    const newListId = 'l_' + Date.now();
     await postData({ sheet: 'chore_lists', action: 'upsert', id_field: 'list_id', rows: [{
-      list_id: 'l_' + Date.now(), list_name: name, created_at: new Date().toISOString()
+      list_id: newListId, list_name: name, created_at: new Date().toISOString()
     }] });
     await refreshAndRerender();
+    openManageList(newListId);
     showToast(`"${name}" list created!`);
   };
 
@@ -980,6 +995,42 @@
     document.getElementById('manageListOverlay').classList.remove('open');
     openAddChoreModal();
   };
+
+  document.getElementById('manageListAddExistingBtn').onclick = () => {
+    document.getElementById('manageListOverlay').classList.remove('open');
+    openPickExistingChoreForList();
+  };
+
+  function openPickExistingChoreForList() {
+    pickTitle.textContent = 'Add an existing chore to this list:';
+    pickList.innerHTML = '';
+    const unassignedChores = appData.chores.filter(c => c.status === 'unassigned');
+    if (unassignedChores.length === 0) pickList.innerHTML = '<div class="empty-note">No unassigned chores to pull in right now.</div>';
+    unassignedChores.forEach(chore => {
+      const item = document.createElement('div');
+      item.className = 'pick-item';
+      item.innerHTML = `<span class="pick-item-name">${chore.name}</span><span class="pick-item-sub">${chore.points} pts</span>`;
+      item.onclick = () => addExistingChoreToList(chore);
+      pickList.appendChild(item);
+    });
+    pickOverlay.classList.add('open');
+  }
+
+  async function addExistingChoreToList(chore) {
+    pickOverlay.classList.remove('open');
+    showToast('Adding to list...');
+    const newTemplate = {
+      chore_id: 'c_' + Date.now(), name: chore.name, points: chore.points, description: chore.description || '',
+      status: 'template', assigned_kid_id: '', created_by: 'mommy', created_at: new Date().toISOString(),
+      assigned_at: '', completed_at: '', completed_by: '', list_id: activeManageListId,
+      repeatable: isRepeatable(chore), times_completed: 0, group_id: ''
+    };
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newTemplate] });
+    await refreshAndRerender();
+    renderManageListChores();
+    document.getElementById('manageListOverlay').classList.add('open');
+    showToast('Added to list!');
+  }
 
   document.getElementById('manageListDeleteBtn').onclick = async () => {
     const list = appData.chore_lists.find(l => l.list_id === activeManageListId);
@@ -1686,13 +1737,31 @@
     showToast('PIN updated!');
   };
 
+  let pinPurpose = 'mommy';
+
   document.getElementById('mommyToggleBtn').onclick = () => {
     if (isMommyMode) {
       setMommyMode(false);
     } else {
+      pinPurpose = 'mommy';
       pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus();
     }
   };
+
+  async function toggleClaiming() {
+    const newVal = !isClaimingEnabled();
+    showToast(newVal ? 'Enabling claiming...' : 'Disabling claiming...');
+    await postData({ sheet: 'config', action: 'upsert', rows: [{ claiming_enabled: newVal }] });
+    await refreshAndRerender();
+    showToast(newVal ? 'Claiming enabled!' : 'Claiming disabled.');
+  }
+
+  document.getElementById('claimToggleBtn').onclick = () => {
+    if (isMommyMode) { toggleClaiming(); return; }
+    pinPurpose = 'claiming';
+    pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus();
+  };
+
   pinCancel.onclick = () => pinOverlay.classList.remove('open');
 
   // ===== COLOR PICKER =====
@@ -1791,7 +1860,10 @@
     const entered = pinInput.value.trim();
     const correct = String(appData.config.admin_pin || '');
     if (entered.length === 0) return;
-    if (entered === correct) { pinOverlay.classList.remove('open'); setMommyMode(true); }
+    if (entered === correct) {
+      pinOverlay.classList.remove('open');
+      if (pinPurpose === 'claiming') { toggleClaiming(); } else { setMommyMode(true); }
+    }
     else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
   }
   pinConfirm.onclick = tryPin;
