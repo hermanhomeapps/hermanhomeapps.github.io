@@ -105,22 +105,40 @@
   .section-header-row { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; }
 
   .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-  .kid-block { background: var(--bg-card); border: 1px solid rgba(38,40,63,0.08); border-top: 4px solid var(--kid-color, var(--sky)); border-radius: 16px; padding: 18px; position: relative; box-shadow: 0 6px 14px var(--card-shadow); }
-  .kid-delete-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--error); font-size: 1.1rem; cursor: pointer; opacity: 0.55; line-height: 1; }
+  .kid-block {
+    background: linear-gradient(150deg, var(--kid-color, var(--sky)), color-mix(in srgb, var(--kid-color, var(--sky)) 60%, black));
+    border: none; border-radius: 20px; padding: 20px; position: relative; box-shadow: 0 10px 24px var(--card-shadow);
+    color: #fff;
+  }
+  .kid-block-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+  .kid-emoji-display { font-size: 1.8rem; line-height: 1; }
+  .kid-delete-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #fff; opacity: 0.65; font-size: 1.1rem; cursor: pointer; line-height: 1; }
   .kid-delete-btn:hover { opacity: 1; }
-  .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0 0 2px; padding-right: 20px; color: var(--kid-color, var(--ink)); }
-  .kid-block-points { color: var(--ink-soft); font-size: 0.85rem; margin-bottom: 14px; }
+  .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin: 0; color: #fff; }
+  .kid-points-display { background: rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px; }
+  .kid-points-number { display: block; font-family: 'Fraunces', serif; font-weight: 800; font-size: 2.2rem; line-height: 1; color: #fff; }
+  .kid-points-label { font-size: 0.7rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.85); font-weight: 700; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
+  .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
+  .kid-block .btn-small:hover { background: rgba(255,255,255,0.85); }
 
-  .points-adjust-row { display: flex; gap: 6px; margin-top: 6px; }
-  .points-adjust-input { flex: 1; min-width: 0; padding: 8px 6px; border-radius: 8px; border: 1px solid rgba(38,40,63,0.15); background: var(--bg); color: var(--ink); font-size: 0.85rem; text-align: center; }
-  .points-adjust-input:focus { outline: none; border-color: var(--sky); }
-  .points-adjust-btn { width: 36px; flex-shrink: 0; padding: 8px 0; border-radius: 8px; border: 1px solid var(--sky); color: var(--sky); background: transparent; font-size: 1.1rem; font-weight: 700; cursor: pointer; line-height: 1; }
-  .points-adjust-btn:hover { background: rgba(93,156,236,0.1); }
-  .points-adjust-btn.plus { border-color: var(--mint); color: var(--mint); }
-  .points-adjust-btn.plus:hover { background: rgba(47,182,163,0.1); }
-  .points-adjust-btn.minus { border-color: var(--error); color: var(--error); }
+  .points-adjust-row { display: flex; gap: 6px; margin-top: 10px; }
+  .points-adjust-input { flex: 1; min-width: 0; padding: 8px 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.92); color: var(--ink); font-size: 0.85rem; text-align: center; }
+  .points-adjust-input:focus { outline: none; box-shadow: 0 0 0 2px #fff; }
+  .points-adjust-btn { width: 36px; flex-shrink: 0; padding: 8px 0; border-radius: 8px; border: none; background: #fff; color: var(--ink); font-size: 1.1rem; font-weight: 700; cursor: pointer; line-height: 1; }
+  .points-adjust-btn:hover { background: rgba(255,255,255,0.85); }
+  .points-adjust-btn.plus { color: var(--mint); }
+  .points-adjust-btn.minus { color: var(--error); }
+
+  .points-log { margin-top: 10px; }
+  .points-log-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.16); border-radius: 8px; padding: 7px 10px; margin-top: 6px; font-size: 0.78rem; color: #fff; }
+  .points-log-delta { font-weight: 700; }
+  .points-log-time { color: rgba(255,255,255,0.8); font-size: 0.7rem; }
+  .points-log-delete { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0 0 8px; }
+  .points-log-delete:hover { color: #fff; }
+  .points-log-showall { display: block; text-align: center; color: #fff; text-decoration: underline; font-size: 0.75rem; margin-top: 8px; cursor: pointer; background: none; border: none; width: 100%; opacity: 0.9; }
+  .points-log-showall:hover { opacity: 1; }
   .points-adjust-btn.minus:hover { background: rgba(224,87,74,0.1); }
 
   .rich-toolbar { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
@@ -152,9 +170,19 @@
   .mini-btn.delete-btn { border-color: var(--error); color: var(--error); }
   .empty-note-mini { font-size: 0.75rem; color: rgba(38,40,63,0.4); padding: 4px 0 10px; }
 
+  .kid-block .mini-chore-row { background: rgba(255,255,255,0.18); color: #fff; }
+  .kid-block .mini-chore-name { color: #fff; }
+  .kid-block .mini-chore-pts { color: #fff; opacity: 0.85; }
+  .kid-block .mini-btn { background: rgba(255,255,255,0.92); border: none; color: var(--ink); }
+  .kid-block .mini-btn.undo-btn { color: var(--sky); }
+  .kid-block .mini-btn.delete-btn { color: var(--error); }
+  .kid-block .empty-note-mini { color: rgba(255,255,255,0.8); }
+  .kid-block .done-tag { color: #fff; }
+
   .unassigned-panel, .lists-panel { background: var(--bg-card); border: 1px dashed rgba(38,40,63,0.2); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 
+  .unassigned-tab.hidden { display: none !important; }
   .unassigned-tab {
     position: fixed; left: 0; top: 50%; transform: translateY(-50%);
     background: var(--coral); color: #fff; border: none; border-radius: 0 14px 14px 0;
@@ -193,7 +221,9 @@
   .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .chore-card:last-child { margin-bottom: 0; }
   .chore-card-info { flex: 1; min-width: 0; }
-  .chore-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .chore-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; width: 168px; }
+  .chore-card-actions button { width: 100%; margin: 0; white-space: nowrap; }
+  .chore-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .chore-name { font-weight: 600; font-size: 0.95rem; }
   .chore-desc { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
   .chore-points { color: var(--coral); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
@@ -222,74 +252,68 @@
   .color-swatch.selected { border-color: var(--ink); }
   .color-swatch.auto-swatch { background: var(--bg); border: 2px dashed rgba(38,40,63,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--ink-soft); font-weight: 700; letter-spacing: 0.02em; }
   .my-color-btn { width: auto; padding: 8px 14px; margin: 0; }
+
+  .emoji-swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px 0 14px; }
+  .emoji-swatch { width: 44px; height: 44px; border-radius: 10px; border: 2px solid rgba(38,40,63,0.12); background: var(--bg); font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .emoji-swatch:hover, .emoji-swatch.selected { border-color: var(--sky); background: var(--bg-soft); }
+  .emoji-custom-row { display: flex; gap: 8px; align-items: center; }
+  .emoji-custom-input { flex: 1; text-align: center; font-size: 1.4rem; padding: 8px; }
 </style>
 </head>
 <body>
 
 <div class="page">
 
-  <div id="loginView" class="login-wrap">
-    <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
-    <div class="card">
-      <button class="reload-btn" id="loginReloadBtn" title="Refresh kid list">&#8635;</button>
-      <div class="flames"><div class="flame"></div><div class="flame"></div></div>
-      <h1>Shabbos Chores</h1>
-      <p class="subtitle">Who's checking in?</p>
-      <div id="kidGrid" class="kid-grid-login"></div>
-      <button class="mommy-btn" id="mommyBtn">I'm Mommy</button>
-      <div class="status-line" id="statusLine">Loading...</div>
+  <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
+
+  <div class="welcome-bar">
+    <h1>🕯️ Shabbos Chores Tickets</h1>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn-small my-color-btn" id="myColorBtn" style="display:none;">My Color</button>
+      <button class="logout-link" id="mommyToggleBtn">Mommy View</button>
     </div>
   </div>
 
-  <div id="dashboardView" class="dashboard">
-    <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
-    <div class="welcome-bar">
-      <h1 id="welcomeText"></h1>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn-small my-color-btn" id="myColorBtn">My Color</button>
-        <button class="logout-link" id="logoutBtn">Log out</button>
-      </div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Season progress</span><span id="progressNumber">0 / 500 pts</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="toolbar" id="adminToolbar" style="display:none;">
+    <button class="btn-outline" id="newWeekBtn">New Week</button>
+    <button class="btn-outline" id="newSeasonBtn">Begin New Season</button>
+    <button class="btn-outline" id="runRaffleBtn">Run Raffle</button>
+    <button class="btn-outline" id="changePinBtn">Change PIN</button>
+  </div>
+
+  <div class="section-header-row">
+    <div class="section-label">The Kids</div>
+    <button class="btn-primary" id="addKidBtn" style="display:none;">+ Add Kid</button>
+  </div>
+  <div class="kid-blocks" id="kidBlocks"></div>
+
+  <div id="adminListsWrap" style="display:none;">
+    <div class="section-header-row">
+      <div class="section-label">Chore Lists</div>
+      <button class="btn-primary" id="newListBtn">+ New List</button>
     </div>
-
-    <div class="progress-wrap">
-      <div class="progress-label"><span>Season progress</span><span id="progressNumber">0 / 500 pts</span></div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="lists-panel">
+      <div id="listGrid" class="list-grid"></div>
     </div>
+  </div>
 
-    <div id="mommyView">
-      <div class="toolbar">
-        <button class="btn-outline" id="newWeekBtn">New Week</button>
-        <button class="btn-outline" id="newSeasonBtn">Begin New Season</button>
-        <button class="btn-outline" id="runRaffleBtn">Run Raffle</button>
-        <button class="btn-outline" id="changePinBtn">Change PIN</button>
-      </div>
-
-      <div class="section-header-row">
-        <div class="section-label">The Kids</div>
-        <button class="btn-primary" id="addKidBtn">+ Add Kid</button>
-      </div>
-      <div class="kid-blocks" id="kidBlocks"></div>
-
-      <div class="section-header-row">
-        <div class="section-label">Chore Lists</div>
-        <button class="btn-primary" id="newListBtn">+ New List</button>
-      </div>
-      <div class="lists-panel">
-        <div id="listGrid" class="list-grid"></div>
-      </div>
+  <div id="publicUnassignedWrap">
+    <div class="section-header-row">
+      <div class="section-label">Unassigned Chores</div>
     </div>
-
-    <div id="kidView" style="display:none;">
-      <div class="section-label" style="margin-bottom:12px;">Your Chores</div>
-      <div id="myChoreList"></div>
-      <div id="myCompletedLabel" class="completed-section-label" style="display:none;">Completed</div>
-      <div id="myCompletedList"></div>
+    <div class="unassigned-panel">
+      <div id="publicUnassignedList"></div>
     </div>
   </div>
 
 </div>
 
-<button class="unassigned-tab" id="unassignedTab"><span id="unassignedTabLabel">Unassigned</span></button>
+<button class="unassigned-tab hidden" id="unassignedTab"><span id="unassignedTabLabel">Unassigned</span></button>
 
 <div class="unassigned-drawer" id="unassignedDrawer">
   <div class="unassigned-drawer-header">
@@ -487,6 +511,18 @@
   </div>
 </div>
 
+<div class="overlay" id="emojiPickerOverlay">
+  <div class="modal">
+    <button class="close-x" id="emojiPickerClose">&times;</button>
+    <h2 id="emojiPickerTitle">Choose an Emoji</h2>
+    <div class="emoji-swatch-grid" id="emojiSwatchGrid"></div>
+    <div class="emoji-custom-row">
+      <input type="text" id="emojiCustomInput" class="emoji-custom-input" maxlength="4" placeholder="🙂">
+      <button class="btn-confirm" style="flex:0 0 auto; padding:10px 16px;" id="emojiCustomSave">Use</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="colorPickerOverlay">
   <div class="modal">
     <button class="close-x" id="colorPickerClose">&times;</button>
@@ -502,6 +538,7 @@
   const SEASON_GOAL = 500;
   const DUP_THRESHOLD = 0.78;
   const KID_COLORS = ['#FF6B5B', '#FFC857', '#2FB6A3', '#5D9CEC', '#9B72CF', '#F2909D', '#4FB8D9', '#E0954B'];
+  const EMOJI_OPTIONS = ['🚀','⚡','🌟','🔥','🎨','🦄','🐶','🐱','⚽','🎮','🎵','📚','🍕','🌈','🏆','💎'];
 
   function colorForKid(kidId) {
     const str = String(kidId || '');
@@ -516,6 +553,11 @@
     return colorForKid(kidId);
   }
 
+  function getKidEmoji(kidId) {
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    return (kid && kid.kid_emoji) ? kid.kid_emoji : '⭐';
+  }
+
   function getMommyColor() {
     return appData.config.mommy_color || '';
   }
@@ -524,8 +566,10 @@
     return String(chore && chore.repeatable).toUpperCase() === 'TRUE';
   }
 
-  let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [] };
-  let currentUser = null;
+  let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [], points_log: [] };
+  let isMommyMode = false;
+  let expandedKidIds = new Set();
+  let expandedLogKidIds = new Set();
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
   let raffleState = null;
@@ -533,20 +577,11 @@
   let activeManageListId = null;
   let editingChoreId = null;
 
-  const kidGrid = document.getElementById('kidGrid');
-  const statusLine = document.getElementById('statusLine');
-  const mommyBtn = document.getElementById('mommyBtn');
   const pinOverlay = document.getElementById('pinOverlay');
   const pinInput = document.getElementById('pinInput');
   const pinError = document.getElementById('pinError');
   const pinConfirm = document.getElementById('pinConfirm');
   const pinCancel = document.getElementById('pinCancel');
-  const loginView = document.getElementById('loginView');
-  const dashboardView = document.getElementById('dashboardView');
-  const welcomeText = document.getElementById('welcomeText');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const mommyView = document.getElementById('mommyView');
-  const kidView = document.getElementById('kidView');
   const toast = document.getElementById('toast');
 
   function showToast(msg) {
@@ -566,8 +601,9 @@
       appData.season_totals = data.season_totals || [];
       appData.raffle_log = data.raffle_log || [];
       appData.chore_lists = data.chore_lists || [];
+      appData.points_log = data.points_log || [];
     } catch (err) {
-      statusLine.textContent = "Couldn't reach the chore list. Check your connection.";
+      showToast("Couldn't reach the chore list. Check your connection.");
       console.error(err);
     }
   }
@@ -578,68 +614,36 @@
 
   async function refreshAndRerender() {
     await loadData();
-    welcomeText.style.color = currentUser.isAdmin ? getMommyColor() : getKidColor(currentUser.id);
+    applyModeVisibility();
+  }
+
+  function setMommyMode(on) {
+    isMommyMode = on;
+    if (on) sessionStorage.setItem('shabbos_mommy_mode', 'true');
+    else sessionStorage.removeItem('shabbos_mommy_mode');
+    applyModeVisibility();
+  }
+
+  function applyModeVisibility() {
+    document.getElementById('adminToolbar').style.display = isMommyMode ? 'flex' : 'none';
+    document.getElementById('addKidBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
+    document.getElementById('adminListsWrap').style.display = isMommyMode ? 'block' : 'none';
+    document.getElementById('publicUnassignedWrap').style.display = isMommyMode ? 'none' : 'block';
+    document.getElementById('unassignedTab').classList.toggle('hidden', !isMommyMode);
+    document.getElementById('myColorBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
+    document.getElementById('mommyToggleBtn').textContent = isMommyMode ? 'Exit Mommy View' : 'Mommy View';
+    if (!isMommyMode) unassignedDrawer.classList.remove('open');
+
     renderProgressBar();
-    if (currentUser.isAdmin) { renderKidBlocks(); renderUnassignedChores(); renderChoreLists(); }
-    else { renderMyChores(); }
-  }
-
-  function renderKids() {
-    kidGrid.innerHTML = '';
-    if (appData.kids.length === 0) {
-      statusLine.textContent = "No kids added yet — Mommy can add them from her dashboard.";
-      return;
-    }
-    statusLine.textContent = '';
-    appData.kids.forEach(kid => {
-      const btn = document.createElement('button');
-      btn.className = 'kid-btn';
-      btn.style.setProperty('--kid-color', getKidColor(kid.kid_id));
-      btn.textContent = kid.name;
-      btn.onclick = () => logIn(kid.kid_id, kid.name, false);
-      kidGrid.appendChild(btn);
-    });
-  }
-
-  document.getElementById('loginReloadBtn').onclick = async () => {
-    const btn = document.getElementById('loginReloadBtn');
-    btn.classList.add('spinning');
-    statusLine.textContent = 'Refreshing...';
-    await loadData();
-    renderKids();
-    setTimeout(() => btn.classList.remove('spinning'), 700);
-  };
-
-  function logIn(id, name, isAdmin) {
-    currentUser = { id, name, isAdmin };
-    sessionStorage.setItem('shabbos_user', JSON.stringify(currentUser));
-    showDashboard();
-  }
-
-  function checkExistingSession() {
-    const saved = sessionStorage.getItem('shabbos_user');
-    if (saved) { currentUser = JSON.parse(saved); showDashboard(); }
-  }
-
-  function showDashboard() {
-    loginView.style.display = 'none';
-    dashboardView.classList.add('open');
-    welcomeText.textContent = currentUser.isAdmin ? 'Hi Mommy' : `Hi ${currentUser.name}`;
-    welcomeText.style.color = currentUser.isAdmin ? getMommyColor() : getKidColor(currentUser.id);
-    renderProgressBar();
-    if (currentUser.isAdmin) {
-      mommyView.style.display = 'block';
-      kidView.style.display = 'none';
-      renderKidBlocks();
+    renderKidBlocks();
+    if (isMommyMode) {
       renderUnassignedChores();
       renderChoreLists();
       if (String(appData.config.new_season_trigger).toUpperCase() === 'TRUE') {
         showToast("New Season trigger ticked in the Sheet — tap 'Begin New Season' to run it.");
       }
     } else {
-      mommyView.style.display = 'none';
-      kidView.style.display = 'block';
-      renderMyChores();
+      renderPublicUnassignedList();
     }
   }
 
@@ -656,73 +660,165 @@
     appData.kids.forEach(kid => {
       const assigned = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'assigned');
       const completed = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'completed');
+      const isExpanded = expandedKidIds.has(kid.kid_id);
+      const showRows = isMommyMode || isExpanded;
 
       const block = document.createElement('div');
       block.className = 'kid-block';
       block.style.setProperty('--kid-color', getKidColor(kid.kid_id));
 
       let rowsHtml = '';
-      if (assigned.length === 0 && completed.length === 0) {
-        rowsHtml = '<div class="empty-note-mini">No chores assigned yet</div>';
-      } else {
-        assigned.forEach(c => {
-          const repeatable = isRepeatable(c);
-          const timesCount = Number(c.times_completed) || 0;
-          rowsHtml += `
-            <div class="mini-chore-row">
-              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts${repeatable ? ' · ' + timesCount + '&times;' : ''}</span></span>
-              <div class="mini-btn-group">
+      if (showRows) {
+        if (assigned.length === 0 && completed.length === 0) {
+          rowsHtml = '<div class="empty-note-mini">No chores assigned yet</div>';
+        } else {
+          assigned.forEach(c => {
+            const repeatable = isRepeatable(c);
+            const timesCount = Number(c.times_completed) || 0;
+            const doneButtons = repeatable
+              ? `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="logdone">+1 Done</button>`
+                + (isMommyMode && timesCount > 0 ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo 1&times;</button>` : '')
+              : `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>`;
+            const adminOnlyButtons = isMommyMode ? `
                 <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
-                ${repeatable
-                  ? `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="logdone">+1 Done</button>`
-                    + (timesCount > 0 ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo 1&times;</button>` : '')
-                  : `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>`
-                }
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-action="unassign" data-name="${c.name}">Unassign</button>
                 <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
-              </div>
-            </div>`;
-        });
-        completed.forEach(c => {
-          rowsHtml += `
-            <div class="mini-chore-row done">
-              <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
-              <div class="mini-btn-group">
+            ` : '';
+            rowsHtml += `
+              <div class="mini-chore-row">
+                <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts${repeatable ? ' · ' + timesCount + '&times;' : ''}</span></span>
+                <div class="mini-btn-group">${adminOnlyButtons}${doneButtons}</div>
+              </div>`;
+          });
+          completed.forEach(c => {
+            const adminOnlyButtons = isMommyMode ? `
                 <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="incomplete">Incomplete</button>
                 <button class="mini-btn delete-btn" data-chore="${c.chore_id}" data-action="delete" data-name="${c.name}">Delete</button>
-              </div>
-            </div>`;
-        });
+            ` : `<span class="done-tag" style="font-size:0.7rem;">&#10003; Done</span>`;
+            rowsHtml += `
+              <div class="mini-chore-row done">
+                <span><span class="mini-chore-name">${c.name}</span><span class="mini-chore-pts">${c.points} pts</span></span>
+                <div class="mini-btn-group">${adminOnlyButtons}</div>
+              </div>`;
+          });
+        }
       }
 
-      block.innerHTML = `
-        <button class="kid-delete-btn" data-kid="${kid.kid_id}" data-name="${kid.name}">&times;</button>
-        <div class="kid-block-name">${kid.name}</div>
-        <div class="kid-block-points">${kid.current_points || 0} pts this season</div>
-        ${rowsHtml}
+      const summaryText = (!isMommyMode && !isExpanded)
+        ? `<div class="empty-note-mini">${assigned.length} assigned${completed.length ? ', ' + completed.length + ' done' : ''}</div>`
+        : '';
+
+      let logHtml = '';
+      if (isMommyMode) {
+        const kidLog = appData.points_log
+          .filter(l => l.kid_id === kid.kid_id)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const logExpanded = expandedLogKidIds.has(kid.kid_id);
+        const visibleLog = logExpanded ? kidLog : kidLog.slice(0, 4);
+        if (visibleLog.length) {
+          logHtml = '<div class="points-log">' + visibleLog.map(l => {
+            const d = Number(l.delta) || 0;
+            return `<div class="points-log-row">
+              <span class="points-log-delta">${d > 0 ? '+' + d : d}</span>
+              <span class="points-log-time">${formatLogTime(l.timestamp)}</span>
+              <button class="points-log-delete" data-log="${l.log_id}" data-kid="${kid.kid_id}" data-delta="${d}" title="Remove">&times;</button>
+            </div>`;
+          }).join('') + '</div>';
+          if (kidLog.length > 4) {
+            logHtml += `<button class="points-log-showall" data-action="togglelog">${logExpanded ? 'Show less' : 'Show all (' + kidLog.length + ')'}</button>`;
+          }
+        }
+      }
+
+      const actionButtons = isMommyMode ? `
         <button class="btn-small" data-action="assign">Assign Chore</button>
         <button class="btn-small" data-action="color">Change Color</button>
+        <button class="btn-small" data-action="emoji">Change Emoji</button>
         <div class="points-adjust-row">
           <input type="number" class="points-adjust-input" min="1" placeholder="amt">
           <button class="points-adjust-btn plus" data-action="addpoints" title="Add points">+</button>
           <button class="points-adjust-btn minus" data-action="subpoints" title="Deduct points">&minus;</button>
         </div>
+        ${logHtml}
+      ` : `
+        <button class="btn-small" data-action="togglechores">${isExpanded ? 'Hide Chores' : 'See Chores'}</button>
       `;
-      block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
-      block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
-      const pointsInput = block.querySelector('.points-adjust-input');
-      block.querySelector('[data-action="addpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value);
-      block.querySelector('[data-action="subpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value);
-      block.querySelector('.kid-delete-btn').onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
+
+      block.innerHTML = `
+        ${isMommyMode ? `<button class="kid-delete-btn" data-kid="${kid.kid_id}" data-name="${kid.name}">&times;</button>` : ''}
+        <div class="kid-block-header">
+          <div class="kid-block-name">${kid.name}</div>
+          <div class="kid-emoji-display">${getKidEmoji(kid.kid_id)}</div>
+        </div>
+        <div class="kid-points-display">
+          <span class="kid-points-number">${kid.current_points || 0}</span>
+          <span class="kid-points-label">POINTS</span>
+        </div>
+        ${summaryText}
+        ${rowsHtml}
+        ${actionButtons}
+      `;
+
+      if (isMommyMode) {
+        block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
+        block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
+        block.querySelector('[data-action="emoji"]').onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
+        const pointsInput = block.querySelector('.points-adjust-input');
+        block.querySelector('[data-action="addpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value);
+        block.querySelector('[data-action="subpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value);
+        const kidDeleteBtn = block.querySelector('.kid-delete-btn');
+        if (kidDeleteBtn) kidDeleteBtn.onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
+        block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
+        block.querySelectorAll('[data-action="unassign"]').forEach(btn => btn.onclick = () => unassignChore(btn.dataset.chore, btn.dataset.name));
+        block.querySelectorAll('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteChore(btn.dataset.chore, btn.dataset.name));
+        block.querySelectorAll('[data-action="edit"]').forEach(btn => btn.onclick = () => openEditChoreModal(appData.chores.find(c => c.chore_id === btn.dataset.chore)));
+        block.querySelectorAll('[data-action="undodone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, -1));
+        const showAllBtn = block.querySelector('[data-action="togglelog"]');
+        if (showAllBtn) showAllBtn.onclick = () => {
+          if (expandedLogKidIds.has(kid.kid_id)) expandedLogKidIds.delete(kid.kid_id); else expandedLogKidIds.add(kid.kid_id);
+          renderKidBlocks();
+        };
+        block.querySelectorAll('.points-log-delete').forEach(btn => btn.onclick = () => deletePointsLogEntry(btn.dataset.log, btn.dataset.kid, btn.dataset.delta));
+      } else {
+        const toggleBtn = block.querySelector('[data-action="togglechores"]');
+        if (toggleBtn) toggleBtn.onclick = () => {
+          if (expandedKidIds.has(kid.kid_id)) expandedKidIds.delete(kid.kid_id); else expandedKidIds.add(kid.kid_id);
+          renderKidBlocks();
+        };
+      }
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
-      block.querySelectorAll('[data-action="incomplete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, false));
-      block.querySelectorAll('[data-action="unassign"]').forEach(btn => btn.onclick = () => unassignChore(btn.dataset.chore, btn.dataset.name));
-      block.querySelectorAll('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteChore(btn.dataset.chore, btn.dataset.name));
-      block.querySelectorAll('[data-action="edit"]').forEach(btn => btn.onclick = () => openEditChoreModal(appData.chores.find(c => c.chore_id === btn.dataset.chore)));
       block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
-      block.querySelectorAll('[data-action="undodone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, -1));
+
       wrap.appendChild(block);
+    });
+  }
+
+  function renderPublicUnassignedList() {
+    const list = document.getElementById('publicUnassignedList');
+    const unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    list.innerHTML = '';
+    if (unassigned.length === 0) {
+      list.innerHTML = '<div class="empty-note">Nothing waiting right now.</div>';
+      return;
+    }
+    unassigned.forEach(chore => {
+      const card = document.createElement('div');
+      card.className = 'chore-card';
+      card.innerHTML = `
+        <div class="chore-card-info">
+          <div class="chore-title-row">
+            <div class="chore-name">${chore.name}</div>
+            <div class="chore-points">${chore.points} pts</div>
+          </div>
+          <div class="chore-desc">${chore.description || ''}</div>
+        </div>
+        <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+          <button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>
+        </div>
+      `;
+      card.querySelector('[data-action="claim"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      list.appendChild(card);
     });
   }
 
@@ -747,11 +843,13 @@
       card.className = 'chore-card';
       card.innerHTML = `
         <div class="chore-card-info">
-          <div class="chore-name">${chore.name}</div>
+          <div class="chore-title-row">
+            <div class="chore-name">${chore.name}</div>
+            <div class="chore-points">${chore.points} pts</div>
+          </div>
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
         <div class="chore-card-actions">
-          <div class="chore-points">${chore.points} pts</div>
           <button class="btn-small" style="width:auto;" data-action="edit">Edit</button>
           <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
           <button class="btn-small" style="width:auto;" data-action="split">Split</button>
@@ -881,7 +979,7 @@
     const copies = items.map((c, i) => ({
       chore_id: 'c_' + Date.now() + '_' + i,
       name: c.name, points: c.points, description: c.description || '',
-      status: 'unassigned', assigned_kid_id: '', created_by: currentUser.id,
+      status: 'unassigned', assigned_kid_id: '', created_by: 'mommy',
       created_at: new Date().toISOString(), assigned_at: '', completed_at: '', completed_by: '',
       list_id: listId, repeatable: isRepeatable(c), times_completed: 0, group_id: ''
     }));
@@ -890,55 +988,31 @@
     showToast(`${items.length} chore(s) from "${listName}" added to Unassigned!`);
   }
 
-  function renderMyChores() {
-    const activeList = document.getElementById('myChoreList');
-    const completedLabel = document.getElementById('myCompletedLabel');
-    const completedList = document.getElementById('myCompletedList');
-    const mine = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'assigned');
-    const mineDone = appData.chores.filter(c => c.assigned_kid_id === currentUser.id && c.status === 'completed');
-    const myColor = getKidColor(currentUser.id);
+  async function logPointsEvent(kidId, delta, note) {
+    await postData({ sheet: 'points_log', action: 'append', rows: [{
+      log_id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      kid_id: kidId, delta: delta, timestamp: new Date().toISOString(), note: note || ''
+    }] });
+  }
 
-    activeList.innerHTML = '';
-    if (mine.length === 0) {
-      activeList.innerHTML = '<div class="empty-note">No chores assigned to you right now.</div>';
-    } else {
-      mine.forEach(chore => {
-        const repeatable = isRepeatable(chore);
-        const timesCount = Number(chore.times_completed) || 0;
-        const card = document.createElement('div');
-        card.className = 'my-chore-card';
-        card.style.setProperty('--kid-color', myColor);
-        card.innerHTML = `
-          <div class="chore-card-info">
-            <div class="chore-name">${chore.name}</div>
-            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts${repeatable ? ' · done ' + timesCount + '&times;' : ''}</span></div>
-          </div>
-          <button class="btn-complete">${repeatable ? '+1 Done' : 'Complete'}</button>
-        `;
-        card.querySelector('.btn-complete').onclick = () => repeatable
-          ? logRepeatableCompletion(chore.chore_id, currentUser.id, 1)
-          : toggleChoreComplete(chore.chore_id, currentUser.id, true);
-        activeList.appendChild(card);
-      });
+  function formatLogTime(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const h = d.getHours(), m = d.getMinutes();
+    return `${months[d.getMonth()]} ${d.getDate()}, ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+
+  async function deletePointsLogEntry(logId, kidId, delta) {
+    if (!confirm('Remove this entry? This will also reverse those points.')) return;
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (kid) {
+      const updated = Object.assign({}, kid, { current_points: Math.max(0, (Number(kid.current_points) || 0) - Number(delta)) });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
     }
-
-    completedList.innerHTML = '';
-    if (mineDone.length > 0) {
-      completedLabel.style.display = 'block';
-      mineDone.forEach(chore => {
-        const card = document.createElement('div');
-        card.className = 'my-chore-card done';
-        card.style.setProperty('--kid-color', myColor);
-        card.innerHTML = `
-          <div class="chore-card-info">
-            <div class="chore-name">${chore.name}</div>
-            <div class="chore-desc">${chore.description || ''} · <span class="chore-points">${chore.points} pts</span></div>
-          </div>
-          <span class="done-tag">&#10003; Done</span>
-        `;
-        completedList.appendChild(card);
-      });
-    } else { completedLabel.style.display = 'none'; }
+    await postData({ sheet: 'points_log', action: 'delete', id_field: 'log_id', ids: [logId] });
+    await refreshAndRerender();
+    showToast('Entry removed.');
   }
 
   async function adjustPoints(kidId, kidName, sign, rawAmount) {
@@ -950,6 +1024,7 @@
     const updated = Object.assign({}, kid, { current_points: newTotal });
     showToast(sign > 0 ? `Adding ${amount} pts...` : `Removing ${amount} pts...`);
     await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+    await logPointsEvent(kidId, delta, 'Manual adjustment');
     await refreshAndRerender();
     showToast(sign > 0 ? `+${amount} pts for ${kidName}!` : `-${amount} pts for ${kidName}.`);
   }
@@ -968,6 +1043,7 @@
     showToast(delta > 0 ? 'Logging completion...' : 'Undoing...');
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updatedChore] });
     await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
+    await logPointsEvent(kidId, delta * pts, delta > 0 ? chore.name : `${chore.name} (undone)`);
     await refreshAndRerender();
     showToast(delta > 0 ? `+${pts} pts for ${kid.name}! (${newCount}\u00D7)` : `Undone \u2014 ${kid.name} now at ${newCount}\u00D7`);
   }
@@ -979,7 +1055,7 @@
     const pts = Number(chore.points) || 0;
     let updatedChore, updatedKid;
     if (markComplete) {
-      updatedChore = Object.assign({}, chore, { status: 'completed', completed_at: new Date().toISOString(), completed_by: currentUser.id });
+      updatedChore = Object.assign({}, chore, { status: 'completed', completed_at: new Date().toISOString(), completed_by: kidId });
       updatedKid = Object.assign({}, kid, { current_points: (Number(kid.current_points) || 0) + pts });
       showToast('Marking complete...');
     } else {
@@ -989,6 +1065,7 @@
     }
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updatedChore] });
     await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
+    await logPointsEvent(kidId, markComplete ? pts : -pts, markComplete ? chore.name : `${chore.name} (undone)`);
     await refreshAndRerender();
     showToast(markComplete ? `+${pts} pts for ${kid.name}!` : `Points removed from ${kid.name}.`);
   }
@@ -1237,7 +1314,7 @@
     const newChore = {
       chore_id: 'c_' + Date.now(), name: data.name, points: data.points, description: data.description || '',
       status: isList ? 'template' : 'unassigned',
-      assigned_kid_id: '', created_by: currentUser.id, created_at: new Date().toISOString(),
+      assigned_kid_id: '', created_by: 'mommy', created_at: new Date().toISOString(),
       assigned_at: '', completed_at: '', completed_by: '',
       list_id: isList ? currentChoreTarget.listId : '',
       repeatable: !!data.repeatable, times_completed: 0, group_id: ''
@@ -1333,7 +1410,7 @@
     const newRows = assignments.map((a, i) => ({
       chore_id: 'c_' + Date.now() + '_' + i,
       name: chore.name, points: a.points, description: chore.description || '',
-      status: 'assigned', assigned_kid_id: a.kidId, created_by: currentUser.id,
+      status: 'assigned', assigned_kid_id: a.kidId, created_by: 'mommy',
       created_at: new Date().toISOString(), assigned_at: new Date().toISOString(),
       completed_at: '', completed_by: '', list_id: chore.list_id || '',
       repeatable: isRepeatable(chore), times_completed: 0, group_id: groupId
@@ -1586,13 +1663,13 @@
     showToast('PIN updated!');
   };
 
-  logoutBtn.onclick = () => {
-    sessionStorage.removeItem('shabbos_user');
-    currentUser = null;
-    dashboardView.classList.remove('open');
-    loginView.style.display = 'flex';
+  document.getElementById('mommyToggleBtn').onclick = () => {
+    if (isMommyMode) {
+      setMommyMode(false);
+    } else {
+      pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus();
+    }
   };
-  mommyBtn.onclick = () => { pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus(); };
   pinCancel.onclick = () => pinOverlay.classList.remove('open');
 
   // ===== COLOR PICKER =====
@@ -1642,25 +1719,66 @@
   }
 
   document.getElementById('myColorBtn').onclick = () => {
-    if (currentUser.isAdmin) {
-      openColorPicker('mommy', null, 'Mommy', appData.config.mommy_color);
-    } else {
-      const kid = appData.kids.find(k => k.kid_id === currentUser.id);
-      openColorPicker('kid', currentUser.id, currentUser.name, kid ? kid.kid_color : null);
+    openColorPicker('mommy', null, 'Mommy', appData.config.mommy_color);
+  };
+
+  // ===== EMOJI PICKER =====
+  const emojiPickerOverlay = document.getElementById('emojiPickerOverlay');
+  const emojiCustomInput = document.getElementById('emojiCustomInput');
+  let currentEmojiKidId = null;
+
+  document.getElementById('emojiPickerClose').onclick = () => emojiPickerOverlay.classList.remove('open');
+
+  function openEmojiPicker(kidId, kidName, currentEmoji) {
+    currentEmojiKidId = kidId;
+    document.getElementById('emojiPickerTitle').textContent = `Choose ${kidName}'s Emoji`;
+    const grid = document.getElementById('emojiSwatchGrid');
+    grid.innerHTML = '';
+    EMOJI_OPTIONS.forEach(em => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'emoji-swatch' + (currentEmoji === em ? ' selected' : '');
+      btn.textContent = em;
+      btn.onclick = () => selectEmoji(em);
+      grid.appendChild(btn);
+    });
+    emojiCustomInput.value = currentEmoji || '';
+    emojiPickerOverlay.classList.add('open');
+  }
+
+  async function selectEmoji(emoji) {
+    emojiPickerOverlay.classList.remove('open');
+    const kid = appData.kids.find(k => k.kid_id === currentEmojiKidId);
+    if (kid) {
+      showToast('Saving emoji...');
+      const updated = Object.assign({}, kid, { kid_emoji: emoji || '' });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+      await refreshAndRerender();
+      showToast('Emoji updated!');
     }
+  }
+
+  document.getElementById('emojiCustomSave').onclick = () => {
+    const val = emojiCustomInput.value.trim();
+    if (!val) { showToast('Type or paste an emoji first.'); return; }
+    selectEmoji(val);
   };
 
   function tryPin() {
     const entered = pinInput.value.trim();
     const correct = String(appData.config.admin_pin || '');
     if (entered.length === 0) return;
-    if (entered === correct) { pinOverlay.classList.remove('open'); logIn('mommy', 'Mommy', true); }
+    if (entered === correct) { pinOverlay.classList.remove('open'); setMommyMode(true); }
     else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
   }
   pinConfirm.onclick = tryPin;
   pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
 
-  async function init() { await loadData(); renderKids(); checkExistingSession(); }
+  async function init() {
+    await loadData();
+    if (sessionStorage.getItem('shabbos_mommy_mode') === 'true') isMommyMode = true;
+    applyModeVisibility();
+  }
   init();
 </script>
 </body>
