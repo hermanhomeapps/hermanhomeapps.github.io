@@ -193,31 +193,28 @@
   .unassigned-panel, .lists-panel { background: var(--bg-card); border: 1px dashed rgba(38,40,63,0.2); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 
-  .unassigned-tab.hidden { display: none !important; }
-  .unassigned-tab {
-    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-    background: var(--coral); color: #fff; border: none; border-radius: 0 14px 14px 0;
-    padding: 16px 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem;
-    letter-spacing: 0.02em; cursor: pointer; box-shadow: 4px 0 14px var(--card-shadow); z-index: 45;
-    writing-mode: vertical-rl; text-orientation: mixed;
+  .side-drawer {
+    position: fixed; top: 0; height: 100vh; width: min(340px, 88vw);
+    background: var(--bg-card); z-index: 40; padding: 26px 20px; overflow-y: auto;
+    transition: transform 0.3s ease;
   }
-  .unassigned-tab:hover { filter: brightness(1.06); }
+  .side-drawer-left { left: 0; box-shadow: 10px 0 30px var(--card-shadow); transform: translateX(-100%); }
+  .side-drawer-left.open { transform: translateX(0); }
+  .side-drawer-right { right: 0; box-shadow: -10px 0 30px var(--card-shadow); transform: translateX(100%); }
+  .side-drawer-right.open { transform: translateX(0); }
 
-  .unassigned-drawer {
-    position: fixed; top: 0; left: 0; height: 100vh; width: min(340px, 88vw);
-    background: var(--bg-card); box-shadow: 10px 0 30px var(--card-shadow);
-    z-index: 40; padding: 26px 20px; overflow-y: auto;
-    transform: translateX(-105%); transition: transform 0.3s ease;
+  .side-tab {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    color: #fff; border: none; padding: 16px 10px; font-family: 'Inter', sans-serif; font-weight: 700;
+    font-size: 0.82rem; letter-spacing: 0.02em; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;
   }
-  .unassigned-drawer.open { transform: translateX(0); }
+  .side-tab:hover { filter: brightness(1.06); }
+  .side-drawer-left .side-tab { left: 100%; border-radius: 0 14px 14px 0; box-shadow: 4px 0 14px var(--card-shadow); background: var(--coral); }
+  .side-drawer-right .side-tab { right: 100%; border-radius: 14px 0 0 14px; box-shadow: -4px 0 14px var(--card-shadow); background: var(--coral); }
+  .side-drawer-right.lists-drawer .side-tab { background: var(--grape); }
 
-  .unassigned-drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .unassigned-drawer-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; margin: 0; }
-  .drawer-close-btn {
-    background: var(--bg); border: 1px solid rgba(38,40,63,0.15); color: var(--ink-soft);
-    padding: 7px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
-  }
-  .drawer-close-btn:hover { border-color: var(--sky); color: var(--sky); }
+  .side-drawer-header { margin-bottom: 14px; }
+  .side-drawer-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; margin: 0; }
 
   .unassigned-search {
     width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(38,40,63,0.15);
@@ -303,37 +300,27 @@
   </div>
   <div class="kid-blocks" id="kidBlocks"></div>
 
-  <div id="adminListsWrap" style="display:none;">
-    <div class="section-header-row">
-      <div class="section-label">Chore Lists</div>
-      <button class="btn-primary" id="newListBtn">+ New List</button>
-    </div>
-    <div class="lists-panel">
-      <div id="listGrid" class="list-grid"></div>
-    </div>
-  </div>
-
-  <div id="publicUnassignedWrap">
-    <div class="section-header-row">
-      <div class="section-label">Unassigned Chores</div>
-    </div>
-    <div class="unassigned-panel">
-      <div id="publicUnassignedList"></div>
-    </div>
-  </div>
-
 </div>
 
-<button class="unassigned-tab hidden" id="unassignedTab"><span id="unassignedTabLabel">Unassigned</span></button>
-
-<div class="unassigned-drawer" id="unassignedDrawer">
-  <div class="unassigned-drawer-header">
-    <h2>Unassigned Chores</h2>
-    <button class="drawer-close-btn" id="unassignedDrawerClose">Close</button>
-  </div>
+<div class="side-drawer side-drawer-left" id="unassignedDrawer" style="display:none;">
+  <button class="side-tab" id="unassignedTab"><span id="unassignedTabLabel">Unassigned</span></button>
+  <div class="side-drawer-header"><h2>Unassigned Chores</h2></div>
   <input type="text" id="unassignedSearchInput" class="unassigned-search" placeholder="Search chores...">
   <button class="btn-primary" style="width:100%; margin:12px 0 14px;" id="addChoreBtn">+ Add New Chore</button>
   <div id="unassignedList"></div>
+</div>
+
+<div class="side-drawer side-drawer-right lists-drawer" id="chorelistsDrawer" style="display:none;">
+  <button class="side-tab" id="chorelistsTab"><span>Chore Lists</span></button>
+  <div class="side-drawer-header"><h2>Chore Lists</h2></div>
+  <button class="btn-primary" style="width:100%; margin-bottom:14px;" id="newListBtn">+ New List</button>
+  <div id="listGrid" class="list-grid"></div>
+</div>
+
+<div class="side-drawer side-drawer-right" id="publicUnassignedDrawer">
+  <button class="side-tab" id="publicUnassignedTab"><span id="publicUnassignedTabLabel">Unassigned</span></button>
+  <div class="side-drawer-header"><h2>Unassigned Chores</h2></div>
+  <div id="publicUnassignedList"></div>
 </div>
 
 <div class="overlay" id="pinOverlay">
@@ -638,12 +625,17 @@
   function applyModeVisibility() {
     document.getElementById('adminToolbar').style.display = isMommyMode ? 'flex' : 'none';
     document.getElementById('addKidBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
-    document.getElementById('adminListsWrap').style.display = isMommyMode ? 'block' : 'none';
-    document.getElementById('publicUnassignedWrap').style.display = isMommyMode ? 'none' : 'block';
-    document.getElementById('unassignedTab').classList.toggle('hidden', !isMommyMode);
     document.getElementById('myColorBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
     document.getElementById('mommyToggleBtn').textContent = isMommyMode ? 'Exit Mommy View' : 'Mommy View';
-    if (!isMommyMode) unassignedDrawer.classList.remove('open');
+
+    const uDrawer = document.getElementById('unassignedDrawer');
+    const clDrawer = document.getElementById('chorelistsDrawer');
+    const puDrawer = document.getElementById('publicUnassignedDrawer');
+    uDrawer.style.display = isMommyMode ? '' : 'none';
+    clDrawer.style.display = isMommyMode ? '' : 'none';
+    puDrawer.style.display = isMommyMode ? 'none' : '';
+    if (!isMommyMode) { uDrawer.classList.remove('open'); clDrawer.classList.remove('open'); }
+    if (isMommyMode) puDrawer.classList.remove('open');
 
     renderProgressBar();
     renderKidBlocks();
@@ -754,6 +746,10 @@
         ${logHtml}
       ` : `
         <button class="btn-small" data-action="togglechores">${isExpanded ? 'Hide Chores' : 'See Chores'}</button>
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <button class="btn-small" style="flex:1; margin-top:0;" data-action="mycolor">Color</button>
+          <button class="btn-small" style="flex:1; margin-top:0;" data-action="myemoji">Emoji</button>
+        </div>
       `;
 
       block.innerHTML = `
@@ -797,6 +793,10 @@
           if (expandedKidIds.has(kid.kid_id)) expandedKidIds.delete(kid.kid_id); else expandedKidIds.add(kid.kid_id);
           renderKidBlocks();
         };
+        const myColorBtn2 = block.querySelector('[data-action="mycolor"]');
+        if (myColorBtn2) myColorBtn2.onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
+        const myEmojiBtn2 = block.querySelector('[data-action="myemoji"]');
+        if (myEmojiBtn2) myEmojiBtn2.onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
       }
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
@@ -808,6 +808,7 @@
   function renderPublicUnassignedList() {
     const list = document.getElementById('publicUnassignedList');
     const unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    document.getElementById('publicUnassignedTabLabel').textContent = `Unassigned (${unassigned.length})`;
     list.innerHTML = '';
     if (unassigned.length === 0) {
       list.innerHTML = '<div class="empty-note">Nothing waiting right now.</div>';
@@ -877,8 +878,13 @@
 
   const unassignedDrawer = document.getElementById('unassignedDrawer');
   document.getElementById('unassignedTab').onclick = () => unassignedDrawer.classList.toggle('open');
-  document.getElementById('unassignedDrawerClose').onclick = () => unassignedDrawer.classList.remove('open');
   document.getElementById('unassignedSearchInput').addEventListener('input', () => renderUnassignedChores());
+
+  const chorelistsDrawer = document.getElementById('chorelistsDrawer');
+  document.getElementById('chorelistsTab').onclick = () => chorelistsDrawer.classList.toggle('open');
+
+  const publicUnassignedDrawer = document.getElementById('publicUnassignedDrawer');
+  document.getElementById('publicUnassignedTab').onclick = () => publicUnassignedDrawer.classList.toggle('open');
 
   function renderChoreLists() {
     const grid = document.getElementById('listGrid');
