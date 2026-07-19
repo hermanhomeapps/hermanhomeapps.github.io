@@ -322,7 +322,7 @@
   </div>
 </div>
 
-<div class="side-drawer side-drawer-right" id="publicUnassignedDrawer">
+<div class="side-drawer side-drawer-left" id="publicUnassignedDrawer">
   <button class="side-tab" id="publicUnassignedTab"><span id="publicUnassignedTabLabel">Unassigned</span></button>
   <div class="side-drawer-content">
     <div class="side-drawer-header"><h2>Unassigned Chores</h2></div>
@@ -584,6 +584,7 @@
   let currentChoreTarget = { type: 'unassigned' };
   let activeManageListId = null;
   let editingChoreId = null;
+  let pendingRequestContext = null;
 
   const pinOverlay = document.getElementById('pinOverlay');
   const pinInput = document.getElementById('pinInput');
@@ -827,7 +828,7 @@
     document.getElementById('publicUnassignedTabLabel').textContent = `Unassigned (${unassigned.length})`;
     list.innerHTML = '';
     if (!claimingOn) {
-      list.innerHTML = '<div class="empty-note">🔒 Claiming is currently locked — ask Mommy to enable it.</div>';
+      list.innerHTML = '<div class="empty-note">🔒 Claiming is locked — tap Request on a chore to get Mommy\'s approval.</div>';
     }
     if (unassigned.length === 0) {
       list.innerHTML += '<div class="empty-note">Nothing waiting right now.</div>';
@@ -845,10 +846,14 @@
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
         <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-          ${claimingOn ? `<button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>` : `<span style="font-size:0.72rem; color:var(--ink-soft); white-space:nowrap;">🔒 Locked</span>`}
+          ${claimingOn
+            ? `<button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>`
+            : `<button class="btn-outline" style="width:auto; border-color:var(--grape); color:var(--grape);" data-action="request">Request</button>`
+          }
         </div>
       `;
       if (claimingOn) card.querySelector('[data-action="claim"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
+      else card.querySelector('[data-action="request"]').onclick = () => openPickKidForRequest(chore.chore_id, chore.name);
       list.appendChild(card);
     });
   }
@@ -1208,6 +1213,34 @@
       pickList.appendChild(item);
     });
     pickOverlay.classList.add('open');
+  }
+
+  function openPickKidForRequest(choreId, choreName) {
+    pickTitle.textContent = `Who's requesting "${choreName}"?`;
+    pickList.innerHTML = '';
+    if (appData.kids.length === 0) pickList.innerHTML = '<div class="empty-note">No kids added yet.</div>';
+    appData.kids.forEach(kid => {
+      const item = document.createElement('div');
+      item.className = 'pick-item';
+      item.innerHTML = `<span class="pick-item-name">${kid.name}</span><span class="pick-item-sub">${kid.current_points || 0} pts</span>`;
+      item.onclick = () => {
+        pickOverlay.classList.remove('open');
+        pendingRequestContext = { choreId, kidId: kid.kid_id };
+        pinPurpose = 'request';
+        pinInput.value = ''; pinError.textContent = '';
+        document.querySelector('#pinOverlay h2').textContent = "Ask Mommy to Approve";
+        pinOverlay.classList.add('open'); pinInput.focus();
+      };
+      pickList.appendChild(item);
+    });
+    pickOverlay.classList.add('open');
+  }
+
+  async function approveRequest() {
+    if (!pendingRequestContext) return;
+    const { choreId, kidId } = pendingRequestContext;
+    pendingRequestContext = null;
+    await assignChore(choreId, kidId);
   }
 
   function openPickChoreForKid(kidId, kidName) {
@@ -1744,7 +1777,9 @@
       setMommyMode(false);
     } else {
       pinPurpose = 'mommy';
-      pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus();
+      pinInput.value = ''; pinError.textContent = '';
+      document.querySelector('#pinOverlay h2').textContent = "Enter Mommy's PIN";
+      pinOverlay.classList.add('open'); pinInput.focus();
     }
   };
 
@@ -1759,7 +1794,9 @@
   document.getElementById('claimToggleBtn').onclick = () => {
     if (isMommyMode) { toggleClaiming(); return; }
     pinPurpose = 'claiming';
-    pinInput.value = ''; pinError.textContent = ''; pinOverlay.classList.add('open'); pinInput.focus();
+    pinInput.value = ''; pinError.textContent = '';
+    document.querySelector('#pinOverlay h2').textContent = "Enter Mommy's PIN";
+    pinOverlay.classList.add('open'); pinInput.focus();
   };
 
   pinCancel.onclick = () => pinOverlay.classList.remove('open');
@@ -1862,7 +1899,9 @@
     if (entered.length === 0) return;
     if (entered === correct) {
       pinOverlay.classList.remove('open');
-      if (pinPurpose === 'claiming') { toggleClaiming(); } else { setMommyMode(true); }
+      if (pinPurpose === 'claiming') { toggleClaiming(); }
+      else if (pinPurpose === 'request') { approveRequest(); }
+      else { setMommyMode(true); }
     }
     else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
   }
