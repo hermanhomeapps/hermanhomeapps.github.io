@@ -92,14 +92,25 @@
 
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
   .toolbar button { flex: 1; min-width: 140px; }
-  .btn-outline { background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 11px 14px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
-  .btn-outline:hover { background: rgba(93,156,236,0.1); }
-  #newSeasonBtn { border-color: var(--mint); color: var(--mint); }
-  #newSeasonBtn:hover { background: rgba(47,182,163,0.1); }
-  #runRaffleBtn { border-color: var(--grape); color: var(--grape); }
-  #runRaffleBtn:hover { background: rgba(155,114,207,0.1); }
-  #newWeekBtn { border-color: var(--coral); color: var(--coral); }
-  #newWeekBtn:hover { background: rgba(255,107,91,0.1); }
+  .btn-outline {
+    position: relative; overflow: hidden; background: transparent; border: 1px solid var(--sky); color: var(--sky);
+    padding: 11px 14px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; font-weight: 600;
+    --glow-hue: 213;
+    transition: box-shadow 0.35s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.12s ease;
+  }
+  .btn-outline::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(120deg, transparent 30%, hsla(var(--glow-hue), 100%, 70%, 0.4) 50%, transparent 70%);
+    background-size: 250% 100%; background-position: 150% 0; opacity: 0; transition: opacity 0.25s ease;
+  }
+  .btn-outline:hover { background: hsla(var(--glow-hue), 90%, 65%, 0.1); box-shadow: 0 0 0 1px hsla(var(--glow-hue), 90%, 65%, 0.45), 0 4px 16px hsla(var(--glow-hue), 90%, 65%, 0.3); }
+  .btn-outline:hover::after { opacity: 1; animation: btn-shimmer 1s ease forwards; }
+  @keyframes btn-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+  .btn-outline:active { transform: scale(0.97); background: hsla(var(--glow-hue), 90%, 65%, 0.16); box-shadow: 0 0 0 2px hsla(var(--glow-hue), 90%, 65%, 0.65), 0 0 18px hsla(var(--glow-hue), 95%, 65%, 0.5); }
+  #newSeasonBtn { border-color: var(--mint); color: var(--mint); --glow-hue: 174; }
+  #runRaffleBtn { border-color: var(--grape); color: var(--grape); --glow-hue: 267; }
+  #newWeekBtn { border-color: var(--coral); color: var(--coral); --glow-hue: 6; }
+  #changePinBtn { --glow-hue: 213; }
 
   .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink-soft); margin: 0; }
   .section-header-row { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; }
