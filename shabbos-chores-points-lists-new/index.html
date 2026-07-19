@@ -154,6 +154,41 @@
 
   .unassigned-panel, .lists-panel { background: var(--bg-card); border: 1px dashed rgba(38,40,63,0.2); border-radius: 16px; padding: 18px; }
   .unassigned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+  .unassigned-tab {
+    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+    background: var(--coral); color: #fff; border: none; border-radius: 0 14px 14px 0;
+    padding: 16px 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem;
+    letter-spacing: 0.02em; cursor: pointer; box-shadow: 4px 0 14px var(--card-shadow); z-index: 45;
+    writing-mode: vertical-rl; text-orientation: mixed;
+  }
+  .unassigned-tab:hover { filter: brightness(1.06); }
+
+  .unassigned-drawer {
+    position: fixed; top: 0; left: 0; height: 100vh; width: min(340px, 88vw);
+    background: var(--bg-card); box-shadow: 10px 0 30px var(--card-shadow);
+    z-index: 40; padding: 26px 20px; overflow-y: auto;
+    transform: translateX(-105%); transition: transform 0.3s ease;
+  }
+  .unassigned-drawer.open { transform: translateX(0); }
+
+  .unassigned-drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .unassigned-drawer-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; margin: 0; }
+  .drawer-close-btn {
+    background: var(--bg); border: 1px solid rgba(38,40,63,0.15); color: var(--ink-soft);
+    padding: 7px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  }
+  .drawer-close-btn:hover { border-color: var(--sky); color: var(--sky); }
+
+  .unassigned-search {
+    width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(38,40,63,0.15);
+    background: var(--bg); color: var(--ink); font-size: 0.9rem; font-family: 'Inter', sans-serif;
+  }
+  .unassigned-search:focus { outline: none; border-color: var(--sky); }
+
+  @media (max-width: 480px) {
+    .panel, .resume-panel { padding: 26px 18px; }
+  }
   .btn-primary { background: var(--coral); color: #fff; border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
   .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .chore-card:last-child { margin-bottom: 0; }
@@ -242,17 +277,6 @@
       <div class="lists-panel">
         <div id="listGrid" class="list-grid"></div>
       </div>
-
-      <div class="section-header-row">
-        <div class="section-label">Unassigned Chores</div>
-        <button class="btn-primary" id="addChoreBtn">+ Add New Chore</button>
-      </div>
-      <div class="unassigned-panel">
-        <div class="unassigned-header">
-          <span style="font-size:0.85rem; color:var(--ink-soft);" id="unassignedCount"></span>
-        </div>
-        <div id="unassignedList"></div>
-      </div>
     </div>
 
     <div id="kidView" style="display:none;">
@@ -263,6 +287,18 @@
     </div>
   </div>
 
+</div>
+
+<button class="unassigned-tab" id="unassignedTab"><span id="unassignedTabLabel">Unassigned</span></button>
+
+<div class="unassigned-drawer" id="unassignedDrawer">
+  <div class="unassigned-drawer-header">
+    <h2>Unassigned Chores</h2>
+    <button class="drawer-close-btn" id="unassignedDrawerClose">Close</button>
+  </div>
+  <input type="text" id="unassignedSearchInput" class="unassigned-search" placeholder="Search chores...">
+  <button class="btn-primary" style="width:100%; margin:12px 0 14px;" id="addChoreBtn">+ Add New Chore</button>
+  <div id="unassignedList"></div>
 </div>
 
 <div class="overlay" id="pinOverlay">
@@ -692,11 +728,18 @@
 
   function renderUnassignedChores() {
     const list = document.getElementById('unassignedList');
-    const unassigned = appData.chores.filter(c => c.status === 'unassigned');
-    document.getElementById('unassignedCount').textContent = `${unassigned.length} waiting`;
+    const searchVal = (document.getElementById('unassignedSearchInput').value || '').trim().toLowerCase();
+    let unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    document.getElementById('unassignedTabLabel').textContent = `Unassigned (${unassigned.length})`;
+    if (searchVal) {
+      unassigned = unassigned.filter(c =>
+        c.name.toLowerCase().includes(searchVal) ||
+        (c.description || '').toLowerCase().includes(searchVal)
+      );
+    }
     list.innerHTML = '';
     if (unassigned.length === 0) {
-      list.innerHTML = '<div class="empty-note">Nothing waiting — add a chore to get started.</div>';
+      list.innerHTML = `<div class="empty-note">${searchVal ? 'No matches.' : "Nothing waiting — add a chore to get started."}</div>`;
       return;
     }
     unassigned.forEach(chore => {
@@ -722,6 +765,11 @@
       list.appendChild(card);
     });
   }
+
+  const unassignedDrawer = document.getElementById('unassignedDrawer');
+  document.getElementById('unassignedTab').onclick = () => unassignedDrawer.classList.toggle('open');
+  document.getElementById('unassignedDrawerClose').onclick = () => unassignedDrawer.classList.remove('open');
+  document.getElementById('unassignedSearchInput').addEventListener('input', () => renderUnassignedChores());
 
   function renderChoreLists() {
     const grid = document.getElementById('listGrid');
