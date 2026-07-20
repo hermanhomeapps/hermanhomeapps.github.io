@@ -18,7 +18,7 @@
   body {
     margin: 0; min-height: 100vh;
     background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 60%);
-    font-family: 'Inter', sans-serif; color: var(--ink); padding: 24px;
+    font-family: 'Inter', sans-serif; color: var(--ink); padding: 24px 24px 110px 24px;
   }
   .page { max-width: 720px; margin: 0 auto; }
 
@@ -2514,6 +2514,50 @@
       }
     });
   });
+  // ===== PULL-TO-REFRESH (mobile) =====
+  (function () {
+    const indicator = document.createElement('div');
+    indicator.textContent = '↓ Pull to refresh';
+    indicator.style.cssText = 'position:fixed;top:-50px;left:50%;transform:translateX(-50%);z-index:150;' +
+      'background:#fff;color:#262A3F;font-size:0.78rem;font-weight:700;padding:8px 16px;border-radius:999px;' +
+      'box-shadow:0 6px 16px rgba(0,0,0,0.18);transition:top 0.2s ease, opacity 0.2s ease;opacity:0;pointer-events:none;';
+    document.body.appendChild(indicator);
+
+    let startY = 0;
+    let pulling = false;
+    const THRESHOLD = 70;
+
+    document.addEventListener('touchstart', (e) => {
+      pulling = window.scrollY <= 0;
+      if (pulling) startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!pulling || window.scrollY > 0) return;
+      const dist = e.touches[0].clientY - startY;
+      if (dist > 0) {
+        const clamped = Math.min(dist, 120);
+        indicator.style.top = (clamped - 50) + 'px';
+        indicator.style.opacity = Math.min(clamped / THRESHOLD, 1);
+        indicator.textContent = dist > THRESHOLD ? '↑ Release to refresh' : '↓ Pull to refresh';
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+      if (!pulling) return;
+      pulling = false;
+      const currentTop = parseFloat(indicator.style.top) || -50;
+      if (currentTop + 50 > THRESHOLD) {
+        indicator.textContent = 'Refreshing…';
+        indicator.style.top = '10px';
+        indicator.style.opacity = '1';
+        setTimeout(() => window.location.reload(), 200);
+      } else {
+        indicator.style.top = '-50px';
+        indicator.style.opacity = '0';
+      }
+    });
+  })();
 </script>
 <script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
 </body>
