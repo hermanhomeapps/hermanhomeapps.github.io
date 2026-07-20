@@ -18,7 +18,8 @@
 */
 (function () {
   var DOCK_CSS =
-    '.hha-dock-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;}' +
+    '.hha-dock-wrap{position:fixed;bottom:max(20px, env(safe-area-inset-bottom));left:50%;' +
+    'transform:translate3d(-50%,0,0);-webkit-transform:translate3d(-50%,0,0);z-index:200;}' +
     '.hha-dock{display:flex;gap:10px;align-items:center;padding:9px 14px;border-radius:20px;' +
     'background:rgba(255,255,255,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);' +
     'border:1px solid rgba(255,255,255,0.5);box-shadow:0 10px 30px rgba(0,0,0,0.18);font-family:"Inter",sans-serif;}' +
