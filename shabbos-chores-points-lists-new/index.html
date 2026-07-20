@@ -138,6 +138,18 @@
   .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin: 0; color: #fff; }
   .kid-points-display { background: rgba(255,255,255,0.2); background-size: cover, cover; background-position: center, center; border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px; }
   .kid-points-number { display: block; font-family: 'Fraunces', serif; font-weight: 800; font-size: 2.2rem; line-height: 1; color: #fff; }
+  .kid-points-number.pop-up, .profile-points.pop-up { animation: pointsPopUp 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+  .kid-points-number.pop-down, .profile-points.pop-down { animation: pointsPopDown 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes pointsPopUp {
+    0% { transform: scale(1.6); color: #4ADE80; }
+    60% { transform: scale(1.15); color: #4ADE80; }
+    100% { transform: scale(1); color: #fff; }
+  }
+  @keyframes pointsPopDown {
+    0% { transform: scale(1.6); color: #F87171; }
+    60% { transform: scale(1.15); color: #F87171; }
+    100% { transform: scale(1); color: #fff; }
+  }
   .kid-points-label { font-size: 0.7rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.85); font-weight: 700; }
 
   /* ===== LEADERBOARD ===== */
@@ -189,9 +201,11 @@
   /* ===== PROFILE MODAL ===== */
   .profile-header {
     border-radius: 16px; padding: 24px 20px; text-align: center; color: #fff; margin-bottom: 18px;
-    background-size: cover, cover; background-position: center, center;
+    background-size: cover, cover; background-position: center, center; position: relative;
   }
   .profile-emoji { font-size: 2.2rem; }
+  .profile-emoji-btn { background: none; border: none; cursor: pointer; padding: 0; display: block; margin: 0 auto; }
+  .profile-emoji-btn:hover { transform: scale(1.15); }
   .profile-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; margin: 4px 0 10px; }
   .profile-points { font-family: 'Fraunces', serif; font-weight: 800; font-size: 2rem; }
   .profile-points-label { font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.85; font-weight: 700; }
@@ -200,8 +214,39 @@
     color: #fff; opacity: 0.95; margin: 2px 0 12px; max-width: 320px; margin-left: auto; margin-right: auto;
     quotes: "\201C" "\201D";
   }
+  .profile-quote-btn { background: none; border: none; cursor: pointer; font: inherit; display: block; width: 100%; }
+  .profile-quote-btn:hover { opacity: 1; text-decoration: underline; }
   .profile-quote::before { content: open-quote; }
   .profile-quote::after { content: close-quote; }
+  .profile-quickedit-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+  .profile-quickedit-dot {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7);
+    cursor: pointer; padding: 0; transition: transform 0.15s ease;
+  }
+  .profile-quickedit-dot:hover { transform: scale(1.2); }
+  .profile-nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.92); color: var(--ink); font-size: 1.5rem; font-weight: 700;
+    cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.28); z-index: 60; line-height: 1;
+  }
+  .profile-nav-btn:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
+  .profile-nav-left { left: 8px; }
+  .profile-nav-right { right: 8px; }
+  #profileOverlay { perspective: 1200px; }
+  @media (max-width: 620px) {
+    .profile-nav-btn { width: 36px; height: 36px; font-size: 1.2rem; }
+    .profile-nav-left { left: 2px; }
+    .profile-nav-right { right: 2px; }
+  }
+  .profile-flip-out-left { animation: profileFlipOutLeft 0.22s ease forwards; }
+  .profile-flip-out-right { animation: profileFlipOutRight 0.22s ease forwards; }
+  .profile-flip-in-left { animation: profileFlipInLeft 0.28s ease forwards; }
+  .profile-flip-in-right { animation: profileFlipInRight 0.28s ease forwards; }
+  @keyframes profileFlipOutLeft { to { transform: rotateY(-30deg) translateX(-30px); opacity: 0; } }
+  @keyframes profileFlipOutRight { to { transform: rotateY(30deg) translateX(30px); opacity: 0; } }
+  @keyframes profileFlipInLeft { from { transform: rotateY(30deg) translateX(30px); opacity: 0; } to { transform: rotateY(0) translateX(0); opacity: 1; } }
+  @keyframes profileFlipInRight { from { transform: rotateY(-30deg) translateX(-30px); opacity: 0; } to { transform: rotateY(0) translateX(0); opacity: 1; } }
   .profile-section-label { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--ink-soft); margin: 16px 0 8px; }
   .profile-chore-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
   .profile-complete-btn {
@@ -282,6 +327,76 @@
   .leaderboard-toggle-link:hover { color: var(--coral); }
   .leaderboard-first-place { color: var(--ink-soft); font-weight: 600; }
   .leaderboard-inline { margin-bottom: 20px; }
+
+  .loading-pill {
+    position: fixed; left: 50%; bottom: 100px; z-index: 199;
+    transform: translateX(-50%) translateY(10px) scale(0.85); opacity: 0; pointer-events: none;
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    border-radius: 999px; padding: 6px 18px 6px 10px;
+    display: flex; align-items: center; gap: 6px;
+    transition: opacity 0.3s cubic-bezier(0.34,1.56,0.64,1), transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .loading-pill.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto; }
+  .loading-pill-text { font-size: 0.78rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+  .kinetic-loader-wrap { width: 30px; height: 20px; overflow: hidden; position: relative; }
+  .kinetic-loader {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.16);
+    display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-weight: 300;
+  }
+  .kinetic-dot {
+    position: absolute; z-index: 10; top: 40px; left: 85px; width: 6px; height: 6px;
+    background: var(--ink); border-radius: 50%;
+    animation: ktl-dotMove 1800ms cubic-bezier(0.25,0.25,0.75,0.75) infinite;
+  }
+  .kinetic-text { margin: 0; white-space: nowrap; font-size: 3.75rem; color: var(--ink); }
+  .kl-letter { display: inline-block; position: relative; letter-spacing: 8px; }
+  .kl-L { animation: ktl-l-bounce 1800ms cubic-bezier(0.25,0.25,0.75,0.75) infinite; transform-origin: 100% 70%; }
+  .kl-i { animation: ktl-letterStretch 1800ms cubic-bezier(0.25,0.23,0.73,0.75) infinite; transform-origin: 100% 70%; }
+  @keyframes ktl-dotMove {
+    0%, 100% { transform: rotate(180deg) translate(-80px, -10px) rotate(-180deg); }
+    50% { transform: rotate(0deg) translate(-81px, 10px) rotate(0deg); }
+  }
+  @keyframes ktl-letterStretch {
+    0%, 100% { transform: scale(1, 0.35); transform-origin: 100% 75%; }
+    8%, 28% { transform: scale(1, 1.4); transform-origin: 100% 67%; }
+    37% { transform: scale(1, 0.875); transform-origin: 100% 75%; }
+    46% { transform: scale(1, 1.03); transform-origin: 100% 75%; }
+    50%, 97% { transform: scale(1); transform-origin: 100% 75%; }
+  }
+  @keyframes ktl-l-bounce {
+    0%, 45%, 70%, 100% { transform: scaleY(1.11); }
+    49% { transform: scaleY(0.31); }
+    50% { transform: scaleY(0.16); }
+    53% { transform: scaleY(0.63); }
+    60% { transform: scaleY(1.275); }
+    68% { transform: scaleY(1.04); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .loading-pill, .kinetic-dot, .kl-L, .kl-i { transition: none; animation: none; }
+  }
+
+  .onscreen-kb {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 250;
+    background: rgba(38,40,63,0.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 6px; align-items: center;
+    transform: translateY(105%); transition: transform 0.25s ease;
+  }
+  .onscreen-kb.show { transform: translateY(0); }
+  .kb-row { display: flex; gap: 4px; justify-content: center; width: 100%; max-width: 480px; }
+  .kb-key {
+    flex: 1; min-width: 0; max-width: 40px; height: 38px; border-radius: 6px;
+    background: rgba(255,255,255,0.12); color: #fff; font-size: 0.78rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; user-select: none;
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+  .kb-key.active { background: var(--sunflower); color: var(--ink); transform: scale(0.9); }
+  .kb-key.kb-space { flex: 4; max-width: none; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.05em; }
+  .kb-key.kb-backspace { flex: 2; max-width: none; font-size: 1rem; }
+  @media (prefers-reduced-motion: reduce) { .onscreen-kb, .kb-key { transition: none; } }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
   .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
@@ -520,12 +635,18 @@
 </div>
 
 <div class="overlay" id="profileOverlay">
+  <button class="profile-nav-btn profile-nav-left" id="profilePrevBtn" aria-label="Previous kid">&#8249;</button>
   <div class="modal modal-wide">
     <button class="close-x" id="profileClose">&times;</button>
     <div id="profileHeader" class="profile-header">
-      <div class="profile-emoji" id="profileEmoji"></div>
+      <div class="profile-quickedit-row">
+        <button class="profile-quickedit-dot" id="profileColorDot" style="background:#FF9F43;" title="Change color"></button>
+        <button class="profile-quickedit-dot" id="profileQuoteDot" style="background:var(--error);" title="Edit quote"></button>
+        <button class="profile-quickedit-dot" id="profilePhotoDot" style="background:#9CA3AF;" title="Change photo"></button>
+      </div>
+      <button class="profile-emoji profile-emoji-btn" id="profileEmoji" title="Change emoji"></button>
       <div class="profile-name" id="profileName"></div>
-      <div class="profile-quote" id="profileQuote" style="display:none;"></div>
+      <button class="profile-quote profile-quote-btn" id="profileQuote" style="display:none;" title="Edit quote"></button>
       <div class="profile-points" id="profilePoints"></div>
       <div class="profile-points-label">POINTS</div>
     </div>
@@ -536,6 +657,7 @@
     <div class="profile-section-label">Points History</div>
     <div id="profileLog"></div>
   </div>
+  <button class="profile-nav-btn profile-nav-right" id="profileNextBtn" aria-label="Next kid">&#8250;</button>
 </div>
 
 <div class="side-drawer side-drawer-left" id="unassignedDrawer" style="display:none;">
@@ -777,6 +899,18 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="loading-pill" id="loadingPill">
+  <div class="kinetic-loader-wrap">
+    <div class="kinetic-loader">
+      <div class="kinetic-dot"></div>
+      <p class="kinetic-text">
+        <span class="kl-letter kl-L">L</span><span class="kl-letter">o</span><span class="kl-letter">a</span><span class="kl-letter">d</span><span class="kl-letter kl-i">ı</span><span class="kl-letter">n</span><span class="kl-letter">g</span>
+      </p>
+    </div>
+  </div>
+  <span class="loading-pill-text" id="loadingPillText"></span>
+</div>
+
 <script>
   const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec";
   const SEASON_GOAL = 500;
@@ -821,6 +955,18 @@
   let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [], points_log: [] };
   let isMommyMode = false;
   let expandedLogKidIds = new Set();
+  let lastKnownPoints = {};
+
+  function animatePointsChange(el, newVal, kidId) {
+    el.textContent = newVal;
+    const prevVal = lastKnownPoints[kidId];
+    if (prevVal !== undefined && prevVal !== newVal) {
+      el.classList.remove('pop-up', 'pop-down');
+      void el.offsetWidth; // force reflow so the animation restarts even if it just played
+      el.classList.add(newVal > prevVal ? 'pop-up' : 'pop-down');
+    }
+    lastKnownPoints[kidId] = newVal;
+  }
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
   let raffleState = null;
@@ -835,8 +981,29 @@
   const pinConfirm = document.getElementById('pinConfirm');
   const pinCancel = document.getElementById('pinCancel');
   const toast = document.getElementById('toast');
+  const loadingPill = document.getElementById('loadingPill');
+  const loadingPillText = document.getElementById('loadingPillText');
+  let loadingHideTimer = null;
+
+  function showLoadingIndicator(msg) {
+    clearTimeout(loadingHideTimer);
+    loadingPillText.textContent = msg;
+    loadingPill.classList.add('show');
+    // Safety net: if something throws mid-request and the matching "done"
+    // toast never fires, don't leave this stuck on screen forever.
+    loadingHideTimer = setTimeout(() => hideLoadingIndicator(), 15000);
+  }
+  function hideLoadingIndicator() {
+    loadingPill.classList.remove('show');
+  }
 
   function showToast(msg) {
+    const trimmed = (msg || '').trim();
+    if (trimmed.endsWith('...') || trimmed.endsWith('…')) {
+      showLoadingIndicator(msg);
+      return;
+    }
+    hideLoadingIndicator();
     toast.textContent = msg;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2200);
@@ -884,7 +1051,11 @@
     document.getElementById('adminToolbar').style.display = isMommyMode ? 'flex' : 'none';
     document.getElementById('addKidBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
     document.getElementById('myColorBtn').style.display = isMommyMode ? 'inline-flex' : 'none';
-    document.getElementById('mommyToggleBtn').textContent = isMommyMode ? 'Exit Mommy View' : 'Mommy View';
+    if (typeof mommyBtnGlitch !== 'undefined') {
+      mommyBtnGlitch.setText(isMommyMode ? 'Exit Mommy View' : 'Mommy View');
+    } else {
+      document.getElementById('mommyToggleBtn').textContent = isMommyMode ? 'Exit Mommy View' : 'Mommy View';
+    }
     document.getElementById('claimToggleBtn').textContent = isClaimingEnabled() ? '🔒 Disable Claiming' : '🔓 Enable Claiming';
 
     const uDrawer = document.getElementById('unassignedDrawer');
@@ -936,11 +1107,19 @@
         } else {
           assigned.forEach(c => {
             const repeatable = isRepeatable(c);
+            const consistent = isConsistent(c);
             const timesCount = Number(c.times_completed) || 0;
-            const doneButtons = repeatable
-              ? `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="logdone">+1 Done</button>`
-                + (isMommyMode && timesCount > 0 ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo 1&times;</button>` : '')
-              : `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>`;
+            const isDoneOnce = consistent && timesCount >= 1;
+            let doneButtons;
+            if (isDoneOnce) {
+              doneButtons = `<span class="mini-btn" style="opacity:.6; cursor:default; background:var(--mint); color:#fff; border-color:var(--mint);">&#10003; Done</span>`
+                + (isMommyMode ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo</button>` : '');
+            } else if (repeatable || consistent) {
+              doneButtons = `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="logdone">+1 Done</button>`
+                + (isMommyMode && timesCount > 0 ? `<button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="undodone">Undo 1&times;</button>` : '');
+            } else {
+              doneButtons = `<button class="mini-btn" data-chore="${c.chore_id}" data-kid="${kid.kid_id}" data-action="complete">Complete</button>`;
+            }
             const adminOnlyButtons = isMommyMode ? `
                 <button class="mini-btn" data-chore="${c.chore_id}" data-action="edit">Edit</button>
                 <button class="mini-btn undo-btn" data-chore="${c.chore_id}" data-action="unassign" data-name="${c.name}">Unassign</button>
@@ -1023,7 +1202,7 @@
           ${kid.kid_quote ? `<div class="kid-quote-bubble"><span class="kid-quote-arrow"></span>${escapeHtml(kid.kid_quote)}</div>` : ''}
         </div>
         <div class="kid-points-display" id="pointsDisplay-${kid.kid_id}">
-          <span class="kid-points-number">${kid.current_points || 0}</span>
+          <span class="kid-points-number" id="pointsNum-${kid.kid_id}">${kid.current_points || 0}</span>
           <span class="kid-points-label">POINTS</span>
         </div>
         ${summaryText}
@@ -1034,6 +1213,8 @@
         const pd = block.querySelector(`#pointsDisplay-${kid.kid_id}`);
         pd.style.backgroundImage = `linear-gradient(rgba(30,30,30,0.5), rgba(30,30,30,0.5)), url('${kid.kid_photo}')`;
       }
+      const numEl = block.querySelector(`#pointsNum-${kid.kid_id}`);
+      if (numEl) animatePointsChange(numEl, kid.current_points || 0, kid.kid_id);
 
       if (isMommyMode) {
         block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
@@ -1833,7 +2014,7 @@
       status: 'assigned', assigned_kid_id: a.kidId, created_by: 'mommy',
       created_at: new Date().toISOString(), assigned_at: new Date().toISOString(),
       completed_at: '', completed_by: '', list_id: chore.list_id || '',
-      repeatable: isRepeatable(chore), times_completed: 0, group_id: groupId
+      repeatable: isRepeatable(chore), consistent: isConsistent(chore), times_completed: 0, group_id: groupId
     }));
 
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: newRows });
@@ -2419,6 +2600,8 @@
   const profileOverlay = document.getElementById('profileOverlay');
   document.getElementById('profileClose').onclick = () => flipModalClose(profileOverlay);
 
+  let currentProfileKidId = null;
+
   function openKidProfileModal(kidId, originEl) {
     renderProfileModalContent(kidId);
     profileOverlay.classList.add('open');
@@ -2429,21 +2612,30 @@
   function renderProfileModalContent(kidId) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
     if (!kid) return;
+    currentProfileKidId = kidId;
+    const showNav = appData.kids.length > 1;
+    document.getElementById('profilePrevBtn').style.display = showNav ? '' : 'none';
+    document.getElementById('profileNextBtn').style.display = showNav ? '' : 'none';
     const color = getKidColor(kidId);
     const header = document.getElementById('profileHeader');
     header.style.backgroundImage = kid.kid_photo
       ? `linear-gradient(rgba(20,20,20,0.35), rgba(20,20,20,0.55)), url('${kid.kid_photo}')`
       : `linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black))`;
     document.getElementById('profileEmoji').textContent = getKidEmoji(kidId);
+    document.getElementById('profileEmoji').onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
+    document.getElementById('profileColorDot').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
+    document.getElementById('profileQuoteDot').onclick = () => openQuotePicker(kid.kid_id, kid.name, kid.kid_quote);
+    document.getElementById('profilePhotoDot').onclick = () => openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo);
     document.getElementById('profileName').textContent = kid.name;
     const quoteEl = document.getElementById('profileQuote');
+    quoteEl.onclick = () => openQuotePicker(kid.kid_id, kid.name, kid.kid_quote);
     if (kid.kid_quote) {
       quoteEl.textContent = kid.kid_quote;
       quoteEl.style.display = 'block';
     } else {
       quoteEl.style.display = 'none';
     }
-    document.getElementById('profilePoints').textContent = kid.current_points || 0;
+    animatePointsChange(document.getElementById('profilePoints'), kid.current_points || 0, kidId);
 
     const assigned = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
     const completed = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'completed');
@@ -2451,13 +2643,22 @@
     assignedEl.innerHTML = assigned.length
       ? assigned.map(c => {
           const repeatable = isRepeatable(c);
+          const consistent = isConsistent(c);
           const timesCount = Number(c.times_completed) || 0;
-          const btnLabel = repeatable ? '+1 Done' : 'Complete';
+          const isDoneOnce = consistent && timesCount >= 1;
+          let btnHtml;
+          if (isDoneOnce) {
+            btnHtml = `<span style="opacity:.6; font-weight:700; color:var(--mint);">&#10003; Done</span>`;
+          } else if (repeatable || consistent) {
+            btnHtml = `<button class="profile-complete-btn" data-chore="${c.chore_id}" data-mode="repeat">+1 Done</button>`;
+          } else {
+            btnHtml = `<button class="profile-complete-btn" data-chore="${c.chore_id}" data-mode="normal">Complete</button>`;
+          }
           return `<div class="profile-chore-row">
             <span>${c.name}${repeatable ? ` <span style="opacity:.7;">(${timesCount}&times;)</span>` : ''}</span>
             <span style="display:flex; align-items:center; gap:8px;">
               <span>${c.points} pts</span>
-              <button class="profile-complete-btn" data-chore="${c.chore_id}" data-repeatable="${repeatable}">${btnLabel}</button>
+              ${btnHtml}
             </span>
           </div>`;
         }).join('')
@@ -2466,7 +2667,7 @@
       btn.onclick = async () => {
         btn.disabled = true;
         const choreId = btn.dataset.chore;
-        if (btn.dataset.repeatable === 'true') {
+        if (btn.dataset.mode === 'repeat') {
           await logRepeatableCompletion(choreId, kidId, 1);
         } else {
           await toggleChoreComplete(choreId, kidId, true);
@@ -2489,6 +2690,29 @@
         }).join('')
       : '<div class="empty-note">No history yet.</div>';
   }
+
+  function shuffleProfile(direction) {
+    const ids = appData.kids.map(k => k.kid_id);
+    const idx = ids.indexOf(currentProfileKidId);
+    if (idx === -1 || ids.length < 2) return;
+    const nextId = ids[(idx + direction + ids.length) % ids.length];
+    const modalEl = profileOverlay.querySelector('.modal');
+    modalEl.classList.add(direction > 0 ? 'profile-flip-out-left' : 'profile-flip-out-right');
+    setTimeout(() => {
+      renderProfileModalContent(nextId);
+      modalEl.classList.remove('profile-flip-out-left', 'profile-flip-out-right');
+      modalEl.classList.add(direction > 0 ? 'profile-flip-in-right' : 'profile-flip-in-left');
+      setTimeout(() => modalEl.classList.remove('profile-flip-in-right', 'profile-flip-in-left'), 300);
+    }, 220);
+  }
+
+  document.getElementById('profilePrevBtn').onclick = () => shuffleProfile(-1);
+  document.getElementById('profileNextBtn').onclick = () => shuffleProfile(1);
+  document.addEventListener('keydown', (e) => {
+    if (!profileOverlay.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft') shuffleProfile(-1);
+    else if (e.key === 'ArrowRight') shuffleProfile(1);
+  });
 
   let lastModalOriginRect = null;
 
@@ -2586,6 +2810,211 @@
       }
     });
   });
+  // ===== ON-SCREEN KEYBOARD (highlights the key you just typed) =====
+  // Uses value-diffing on the 'input' event rather than keydown/keyCode —
+  // this is what makes it actually reliable on mobile/virtual keyboards
+  // and with number fields, unlike a keyCode-based approach.
+  (function () {
+    const KB_ROWS = [
+      ['1','2','3','4','5','6','7','8','9','0'],
+      ['Q','W','E','R','T','Y','U','I','O','P'],
+      ['A','S','D','F','G','H','J','K','L'],
+      ['Z','X','C','V','B','N','M']
+    ];
+    const kb = document.createElement('div');
+    kb.className = 'onscreen-kb';
+    kb.id = 'onscreenKb';
+    const keyEls = {};
+
+    KB_ROWS.forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'kb-row';
+      row.forEach(ch => {
+        const keyEl = document.createElement('div');
+        keyEl.className = 'kb-key';
+        keyEl.textContent = ch;
+        keyEls[ch] = keyEl;
+        rowEl.appendChild(keyEl);
+      });
+      kb.appendChild(rowEl);
+    });
+
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'kb-row';
+    const spaceKey = document.createElement('div');
+    spaceKey.className = 'kb-key kb-space';
+    spaceKey.textContent = 'space';
+    keyEls[' '] = spaceKey;
+    const bkKey = document.createElement('div');
+    bkKey.className = 'kb-key kb-backspace';
+    bkKey.textContent = '⌫';
+    keyEls['BACKSPACE'] = bkKey;
+    bottomRow.appendChild(spaceKey);
+    bottomRow.appendChild(bkKey);
+    kb.appendChild(bottomRow);
+    document.body.appendChild(kb);
+
+    function highlightKey(ch) {
+      const key = keyEls[ch];
+      if (!key) return;
+      key.classList.add('active');
+      setTimeout(() => key.classList.remove('active'), 150);
+    }
+
+    function isTypingField(el) {
+      if (!el) return false;
+      if (el.tagName === 'TEXTAREA') return true;
+      if (el.tagName === 'INPUT') {
+        const t = (el.type || 'text').toLowerCase();
+        return ['text', 'number', 'url', 'search'].includes(t);
+      }
+      return false;
+    }
+
+    const fieldValues = new WeakMap();
+
+    document.addEventListener('focusin', (e) => {
+      if (!isTypingField(e.target)) return;
+      fieldValues.set(e.target, e.target.value);
+      kb.classList.add('show');
+    });
+    document.addEventListener('focusout', (e) => {
+      if (!isTypingField(e.target)) return;
+      kb.classList.remove('show');
+    });
+    document.addEventListener('input', (e) => {
+      if (!isTypingField(e.target)) return;
+      const prev = fieldValues.get(e.target) || '';
+      const cur = e.target.value;
+      fieldValues.set(e.target, cur);
+      if (cur.length > prev.length) {
+        highlightKey(cur.slice(-1).toUpperCase());
+      } else if (cur.length < prev.length) {
+        highlightKey('BACKSPACE');
+      }
+    });
+  })();
+
+  // ===== ASCII GLITCH RIPPLE (hover text-scramble effect) =====
+  function applyAsciiGlitchRipple(el, opts) {
+    opts = opts || {};
+    const dur = opts.dur || 900;
+    const chars = opts.chars || '.,·-─~+:;=*π""┐┌┘┴┬╗╔╝╚╬╠╣╩╦║░▒▓█▄▀▌▐■!?&#$@0123456789*';
+    const preserveSpaces = opts.preserveSpaces !== false;
+    const spread = opts.spread || 1.0;
+    const WAVE_THRESH = 3, CHAR_MULT = 3, ANIM_STEP = 40, WAVE_BUF = 5;
+
+    let origTxt = el.textContent;
+    let origChars = origTxt.split('');
+    let isAnim = false;
+    let cursorPos = 0;
+    let waves = [];
+    let animId = null;
+    let isHover = false;
+    let origW = null;
+
+    function updateCursorPos(e) {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const len = origTxt.length;
+      const pos = Math.round((x / rect.width) * len);
+      cursorPos = Math.max(0, Math.min(pos, len - 1));
+    }
+
+    function stop() {
+      el.textContent = origTxt;
+      if (origW !== null) { el.style.width = ''; origW = null; }
+      isAnim = false;
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+    }
+
+    function calcWaveEffect(charIdx, t) {
+      let shouldAnim = false;
+      let resultChar = origChars[charIdx];
+      for (const w of waves) {
+        const age = t - w.startTime;
+        const prog = Math.min(age / dur, 1);
+        const dist = Math.abs(charIdx - w.startPos);
+        const maxDist = Math.max(w.startPos, origChars.length - w.startPos - 1);
+        const rad = (prog * (maxDist + WAVE_BUF)) / spread;
+        if (dist <= rad) {
+          shouldAnim = true;
+          const intens = Math.max(0, rad - dist);
+          if (intens <= WAVE_THRESH && intens > 0) {
+            const index = (dist * CHAR_MULT + Math.floor(age / ANIM_STEP)) % chars.length;
+            resultChar = chars[index];
+          }
+        }
+      }
+      return { shouldAnim, char: resultChar };
+    }
+
+    function genScrambledTxt(t) {
+      return origChars.map((char, i) => {
+        if (preserveSpaces && char === ' ') return ' ';
+        const res = calcWaveEffect(i, t);
+        return res.shouldAnim ? res.char : char;
+      }).join('');
+    }
+
+    function animate() {
+      const t = Date.now();
+      waves = waves.filter(w => t - w.startTime < dur);
+      if (waves.length === 0) { stop(); return; }
+      el.textContent = genScrambledTxt(t);
+      animId = requestAnimationFrame(animate);
+    }
+
+    function start() {
+      if (isAnim) return;
+      if (origW === null) {
+        origW = el.getBoundingClientRect().width;
+        el.style.width = origW + 'px';
+      }
+      isAnim = true;
+      animId = requestAnimationFrame(animate);
+    }
+
+    function startWave() {
+      waves.push({ startPos: cursorPos, startTime: Date.now(), id: Math.random() });
+      if (!isAnim) start();
+    }
+
+    el.addEventListener('mouseenter', (e) => {
+      isHover = true;
+      // Refresh the source text each time — this button's label toggles
+      // between "Mommy View" / "Exit Mommy View", so it can't be captured once.
+      if (!isAnim) { origTxt = el.textContent; origChars = origTxt.split(''); }
+      updateCursorPos(e);
+      startWave();
+    });
+    el.addEventListener('mousemove', (e) => {
+      if (!isHover) return;
+      const old = cursorPos;
+      updateCursorPos(e);
+      if (cursorPos !== old) startWave();
+    });
+    el.addEventListener('mouseleave', () => { isHover = false; });
+
+    return {
+      // If the button's real label needs to change (e.g. Mommy View <->
+      // Exit Mommy View) while a ripple is mid-animation, this cancels the
+      // animation cleanly so the new label always wins instead of getting
+      // clobbered by the in-flight scramble loop.
+      setText(newText) {
+        waves = [];
+        if (animId) { cancelAnimationFrame(animId); animId = null; }
+        isAnim = false;
+        if (origW !== null) { el.style.width = ''; origW = null; }
+        origTxt = newText;
+        origChars = newText.split('');
+        el.textContent = newText;
+      }
+    };
+  }
+
+  const mommyBtnGlitch = applyAsciiGlitchRipple(document.getElementById('mommyToggleBtn'));
+
   // ===== PULL-TO-REFRESH (mobile) =====
   (function () {
     const indicator = document.createElement('div');
