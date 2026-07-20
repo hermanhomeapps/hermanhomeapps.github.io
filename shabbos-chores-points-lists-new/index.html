@@ -115,12 +115,14 @@
   .section-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink-soft); margin: 0; }
   .section-header-row { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 12px; }
 
-  .kid-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kid-blocks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 560px) { .kid-blocks { grid-template-columns: 1fr; } }
   .kid-block {
     background: linear-gradient(150deg, var(--kid-color, var(--sky)), color-mix(in srgb, var(--kid-color, var(--sky)) 60%, black));
     border: none; border-radius: 20px; padding: 20px; position: relative; box-shadow: 0 10px 24px var(--card-shadow);
-    color: #fff;
+    color: #fff; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
   }
+  .kid-block:hover { transform: translateY(-6px) scale(1.015); box-shadow: 0 18px 34px var(--card-shadow); }
   .kid-block-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
   .kid-emoji-display { font-size: 1.8rem; line-height: 1; }
   .kid-delete-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #fff; opacity: 0.65; font-size: 1.1rem; cursor: pointer; line-height: 1; }
@@ -187,6 +189,12 @@
   .profile-section-label { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--ink-soft); margin: 16px 0 8px; }
   .profile-chore-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
   .profile-log-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; font-size: 0.78rem; }
+
+  .chore-detail-points { color: var(--coral); font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; }
+  .chore-detail-desc { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; margin-bottom: 18px; white-space: pre-wrap; }
+  .chore-detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chore-detail-actions.single { grid-template-columns: 1fr; }
+  .chore-detail-actions button { margin: 0; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
   .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
@@ -284,14 +292,15 @@
     .panel, .resume-panel { padding: 26px 18px; }
   }
   .btn-primary { background: var(--coral); color: #fff; border: none; padding: 10px 16px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-  .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .chore-card { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; }
+  .chore-card:hover { background: var(--bg-soft); transform: translateX(2px); }
   .chore-card:last-child { margin-bottom: 0; }
   .chore-card-info { flex: 1; min-width: 0; }
   .chore-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; width: 168px; }
   .chore-card-actions button { width: 100%; margin: 0; white-space: nowrap; }
   .chore-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .chore-name { font-weight: 600; font-size: 0.95rem; }
-  .chore-desc { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+  .chore-desc { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .chore-points { color: var(--coral); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
   .empty-note { font-size: 0.85rem; color: var(--ink-soft); text-align: center; padding: 10px 0; }
 
@@ -384,6 +393,16 @@
       <button class="btn-cancel" id="photoPickerCancel">Cancel</button>
       <button class="btn-confirm" id="photoSaveBtn" style="display:none;">Use This Photo</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="choreDetailOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="choreDetailClose">&times;</button>
+    <h2 id="choreDetailTitle"></h2>
+    <div class="chore-detail-points" id="choreDetailPoints"></div>
+    <div class="chore-detail-desc" id="choreDetailDesc"></div>
+    <div class="chore-detail-actions" id="choreDetailActions"></div>
   </div>
 </div>
 
@@ -934,7 +953,7 @@
     document.getElementById('publicUnassignedTabLabel').textContent = `Unassigned (${unassigned.length})`;
     list.innerHTML = '';
     if (!claimingOn) {
-      list.innerHTML = '<div class="empty-note">🔒 Claiming is locked — tap Request on a chore to get Mommy\'s approval.</div>';
+      list.innerHTML = '<div class="empty-note">🔒 Claiming is locked — tap a chore to request Mommy\'s approval.</div>';
     }
     if (unassigned.length === 0) {
       list.innerHTML += '<div class="empty-note">Nothing waiting right now.</div>';
@@ -952,14 +971,10 @@
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
         <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-          ${claimingOn
-            ? `<button class="btn-primary" style="width:auto;" data-action="claim">Claim</button>`
-            : `<button class="btn-outline" style="width:auto; border-color:var(--grape); color:var(--grape);" data-action="request">Request</button>`
-          }
+          <button class="btn-small" style="width:auto;" data-action="view">View</button>
         </div>
       `;
-      if (claimingOn) card.querySelector('[data-action="claim"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
-      else card.querySelector('[data-action="request"]').onclick = () => openPickKidForRequest(chore.chore_id, chore.name);
+      card.addEventListener('click', () => openChoreDetailModal(chore));
       list.appendChild(card);
     });
   }
@@ -991,17 +1006,11 @@
           </div>
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
-        <div class="chore-card-actions">
-          <button class="btn-small" style="width:auto;" data-action="edit">Edit</button>
-          <button class="btn-small" style="width:auto;" data-action="assign">Assign</button>
-          <button class="btn-small" style="width:auto;" data-action="split">Split</button>
-          <button class="mini-btn delete-btn" style="width:auto;" data-action="delete">Delete</button>
+        <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+          <button class="btn-small" style="width:auto;" data-action="view">View</button>
         </div>
       `;
-      card.querySelector('[data-action="edit"]').onclick = () => openEditChoreModal(chore);
-      card.querySelector('[data-action="assign"]').onclick = () => openPickKidForChore(chore.chore_id, chore.name);
-      card.querySelector('[data-action="split"]').onclick = () => openMultiAssignModal(chore);
-      card.querySelector('[data-action="delete"]').onclick = () => deleteChore(chore.chore_id, chore.name);
+      card.addEventListener('click', () => openChoreDetailModal(chore));
       list.appendChild(card);
     });
   }
@@ -1015,6 +1024,12 @@
 
   const publicUnassignedDrawer = document.getElementById('publicUnassignedDrawer');
   document.getElementById('publicUnassignedTab').onclick = () => publicUnassignedDrawer.classList.toggle('open');
+
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.side-drawer.open').forEach(drawer => {
+      if (!drawer.contains(e.target)) drawer.classList.remove('open');
+    });
+  });
 
   function renderChoreLists() {
     const grid = document.getElementById('listGrid');
@@ -1398,6 +1413,40 @@
     choreNameInput.focus();
   }
   function closeAddChoreModal() { addChoreOverlay.classList.remove('open'); }
+
+  const choreDetailOverlay = document.getElementById('choreDetailOverlay');
+  document.getElementById('choreDetailClose').onclick = () => choreDetailOverlay.classList.remove('open');
+
+  function openChoreDetailModal(chore) {
+    document.getElementById('choreDetailTitle').textContent = chore.name;
+    document.getElementById('choreDetailPoints').textContent = `${chore.points} pts${isRepeatable(chore) ? ' · repeats' : ''}`;
+    document.getElementById('choreDetailDesc').innerHTML = chore.description || '<span style="opacity:0.6;">No description.</span>';
+    const actions = document.getElementById('choreDetailActions');
+
+    if (isMommyMode) {
+      actions.className = 'chore-detail-actions';
+      actions.innerHTML = `
+        <button class="btn-small" data-action="edit">Edit</button>
+        <button class="btn-small" data-action="assign">Assign</button>
+        <button class="btn-small" data-action="split">Split</button>
+        <button class="mini-btn delete-btn" data-action="delete">Delete</button>
+      `;
+      actions.querySelector('[data-action="edit"]').onclick = () => { choreDetailOverlay.classList.remove('open'); openEditChoreModal(chore); };
+      actions.querySelector('[data-action="assign"]').onclick = () => { choreDetailOverlay.classList.remove('open'); openPickKidForChore(chore.chore_id, chore.name); };
+      actions.querySelector('[data-action="split"]').onclick = () => { choreDetailOverlay.classList.remove('open'); openMultiAssignModal(chore); };
+      actions.querySelector('[data-action="delete"]').onclick = () => { choreDetailOverlay.classList.remove('open'); deleteChore(chore.chore_id, chore.name); };
+    } else {
+      actions.className = 'chore-detail-actions single';
+      if (isClaimingEnabled()) {
+        actions.innerHTML = `<button class="btn-primary" data-action="claim">Claim</button>`;
+        actions.querySelector('[data-action="claim"]').onclick = () => { choreDetailOverlay.classList.remove('open'); openPickKidForChore(chore.chore_id, chore.name); };
+      } else {
+        actions.innerHTML = `<button class="btn-outline" style="border-color:var(--grape); color:var(--grape);" data-action="request">Request</button>`;
+        actions.querySelector('[data-action="request"]').onclick = () => { choreDetailOverlay.classList.remove('open'); openPickKidForRequest(chore.chore_id, chore.name); };
+      }
+    }
+    choreDetailOverlay.classList.add('open');
+  }
 
   function openEditChoreModal(chore) {
     if (!chore) return;
