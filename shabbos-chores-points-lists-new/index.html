@@ -55,6 +55,16 @@
   .modal input:focus, .modal textarea:focus, .modal select:focus { outline: none; border-color: var(--sky); }
   .pin-modal-input { text-align: center; letter-spacing: 0.3em; font-size: 1.1rem; }
   .field-label { font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 6px; display: block; }
+  .hint { font-size: 0.76rem; color: var(--ink-soft); line-height: 1.4; margin: 6px 0 0; }
+  .chore-mode-row { display: flex; gap: 8px; margin-top: 20px; }
+  .mode-toggle-btn {
+    flex: 1; padding: 10px 8px; border-radius: 10px; border: 2px solid rgba(38,40,63,0.15);
+    background: var(--bg); color: var(--ink-soft); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .mode-toggle-btn:hover { border-color: var(--sky); }
+  .mode-toggle-btn.active { background: var(--mint); border-color: var(--mint); color: #fff; }
+  #choreConsistentToggle.active { background: var(--grape); border-color: var(--grape); }
   .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
   .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; border: none; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; }
   .btn-confirm { background: var(--coral); color: #fff; }
@@ -193,7 +203,13 @@
   .profile-quote::before { content: open-quote; }
   .profile-quote::after { content: close-quote; }
   .profile-section-label { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--ink-soft); margin: 16px 0 8px; }
-  .profile-chore-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
+  .profile-chore-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
+  .profile-complete-btn {
+    background: var(--mint); color: #fff; border: none; padding: 5px 12px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .profile-complete-btn:hover { filter: brightness(1.08); }
+  .profile-complete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .profile-log-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; font-size: 0.78rem; }
 
   .chore-detail-points { color: var(--coral); font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; }
@@ -592,10 +608,11 @@
       <label class="field-label">Points</label>
       <input type="number" id="chorePointsInput" min="1" placeholder="10">
     </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="choreRepeatableInput">
-      <label for="choreRepeatableInput" style="margin:0; font-weight:500;">Can be completed multiple times (e.g. garbage)</label>
+    <div class="chore-mode-row">
+      <button type="button" class="mode-toggle-btn" id="choreRepeatableToggle">Make Repeatable</button>
+      <button type="button" class="mode-toggle-btn" id="choreConsistentToggle">Make Consistent</button>
     </div>
+    <p class="hint" id="choreModeHint">Repeatable: can be completed unlimited times (e.g. garbage). Consistent: completes once, but stays assigned until you unassign it.</p>
     <div class="field-wrap">
       <label class="field-label">Description</label>
       <div class="rich-toolbar">
@@ -795,6 +812,10 @@
 
   function isRepeatable(chore) {
     return String(chore && chore.repeatable).toUpperCase() === 'TRUE';
+  }
+
+  function isConsistent(chore) {
+    return String(chore && chore.consistent).toUpperCase() === 'TRUE';
   }
 
   let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [], points_log: [] };
@@ -1262,7 +1283,7 @@
       chore_id: 'c_' + Date.now(), name: chore.name, points: chore.points, description: chore.description || '',
       status: 'template', assigned_kid_id: '', created_by: 'mommy', created_at: new Date().toISOString(),
       assigned_at: '', completed_at: '', completed_by: '', list_id: activeManageListId,
-      repeatable: isRepeatable(chore), times_completed: 0, group_id: ''
+      repeatable: isRepeatable(chore), consistent: isConsistent(chore), times_completed: 0, group_id: ''
     };
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newTemplate] });
     await refreshAndRerender();
@@ -1294,7 +1315,7 @@
       name: c.name, points: c.points, description: c.description || '',
       status: 'unassigned', assigned_kid_id: '', created_by: 'mommy',
       created_at: new Date().toISOString(), assigned_at: '', completed_at: '', completed_by: '',
-      list_id: listId, repeatable: isRepeatable(c), times_completed: 0, group_id: ''
+      list_id: listId, repeatable: isRepeatable(c), consistent: isConsistent(c), times_completed: 0, group_id: ''
     }));
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: copies });
     await refreshAndRerender();
@@ -1507,8 +1528,30 @@
   const choreNameInput = document.getElementById('choreNameInput');
   const chorePointsInput = document.getElementById('chorePointsInput');
   const choreDescInput = document.getElementById('choreDescInput');
-  const choreRepeatableInput = document.getElementById('choreRepeatableInput');
   const typeaheadList = document.getElementById('typeaheadList');
+
+  let choreModeRepeatable = false;
+  let choreModeConsistent = false;
+
+  function updateChoreModeButtons() {
+    const repBtn = document.getElementById('choreRepeatableToggle');
+    const conBtn = document.getElementById('choreConsistentToggle');
+    repBtn.textContent = choreModeRepeatable ? 'Un-Repeatable' : 'Make Repeatable';
+    repBtn.classList.toggle('active', choreModeRepeatable);
+    conBtn.textContent = choreModeConsistent ? 'Un-Consistent' : 'Make Consistent';
+    conBtn.classList.toggle('active', choreModeConsistent);
+  }
+
+  document.getElementById('choreRepeatableToggle').onclick = () => {
+    choreModeRepeatable = !choreModeRepeatable;
+    if (choreModeRepeatable) choreModeConsistent = false;
+    updateChoreModeButtons();
+  };
+  document.getElementById('choreConsistentToggle').onclick = () => {
+    choreModeConsistent = !choreModeConsistent;
+    if (choreModeConsistent) choreModeRepeatable = false;
+    updateChoreModeButtons();
+  };
 
   document.getElementById('addChoreBtn').onclick = () => { currentChoreTarget = { type: 'unassigned' }; openAddChoreModal(); };
   document.getElementById('addChoreCancel').onclick = closeAddChoreModal;
@@ -1518,7 +1561,7 @@
     editingChoreId = null;
     document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
     choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.innerHTML = '';
-    choreRepeatableInput.checked = false;
+    choreModeRepeatable = false; choreModeConsistent = false; updateChoreModeButtons();
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Complete';
@@ -1532,7 +1575,8 @@
 
   function openChoreDetailModal(chore) {
     document.getElementById('choreDetailTitle').textContent = chore.name;
-    document.getElementById('choreDetailPoints').textContent = `${chore.points} pts${isRepeatable(chore) ? ' · repeats' : ''}`;
+    const modeLabel = isRepeatable(chore) ? ' · repeats' : (isConsistent(chore) ? ' · one-time, stays assigned' : '');
+    document.getElementById('choreDetailPoints').textContent = `${chore.points} pts${modeLabel}`;
     document.getElementById('choreDetailDesc').innerHTML = chore.description || '<span style="opacity:0.6;">No description.</span>';
     const actions = document.getElementById('choreDetailActions');
 
@@ -1568,7 +1612,7 @@
     choreNameInput.value = chore.name;
     chorePointsInput.value = chore.points;
     choreDescInput.innerHTML = chore.description || '';
-    choreRepeatableInput.checked = isRepeatable(chore);
+    choreModeRepeatable = isRepeatable(chore); choreModeConsistent = isConsistent(chore); updateChoreModeButtons();
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Save Changes';
@@ -1624,7 +1668,7 @@
         choreNameInput.value = s.chore.name;
         chorePointsInput.value = s.chore.points;
         choreDescInput.innerHTML = s.chore.description || '';
-        choreRepeatableInput.checked = isRepeatable(s.chore);
+        choreModeRepeatable = isRepeatable(s.chore); choreModeConsistent = isConsistent(s.chore); updateChoreModeButtons();
         selectedExistingChoreName = s.chore.name.toLowerCase();
         typeaheadList.classList.remove('open');
       };
@@ -1654,16 +1698,17 @@
     const name = choreNameInput.value.trim();
     const points = Number(chorePointsInput.value);
     const description = choreDescInput.textContent.trim() ? choreDescInput.innerHTML : '';
-    const repeatable = choreRepeatableInput.checked;
+    const repeatable = choreModeRepeatable;
+    const consistent = choreModeConsistent;
     if (!name) { showToast('Give the chore a name first.'); return; }
     if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
 
     if (editingChoreId) {
-      finalizeEditChore({ name, points, description, repeatable });
+      finalizeEditChore({ name, points, description, repeatable, consistent });
       return;
     }
 
-    const typed = { name, points, description, repeatable };
+    const typed = { name, points, description, repeatable, consistent };
 
     if (selectedExistingChoreName === name.toLowerCase()) { finalizeSaveChore(typed); return; }
 
@@ -1672,7 +1717,7 @@
     distinct.forEach(c => { const s = similarity(c.name.toLowerCase(), name.toLowerCase()); if (s > bestScore) { bestScore = s; best = c; } });
 
     if (best && bestScore >= DUP_THRESHOLD && best.name.toLowerCase() !== name.toLowerCase()) {
-      pendingDupResolution = { typed, matched: { name: best.name, points: best.points, description: best.description || '', repeatable: isRepeatable(best) } };
+      pendingDupResolution = { typed, matched: { name: best.name, points: best.points, description: best.description || '', repeatable: isRepeatable(best), consistent: isConsistent(best) } };
       document.getElementById('dupMessage').textContent = `This looks similar to "${best.name}" — add it as a new chore anyway, or use the existing one?`;
       addChoreOverlay.classList.remove('open');
       document.getElementById('dupOverlay').classList.add('open');
@@ -1692,7 +1737,7 @@
       assigned_kid_id: '', created_by: 'mommy', created_at: new Date().toISOString(),
       assigned_at: '', completed_at: '', completed_by: '',
       list_id: isList ? currentChoreTarget.listId : '',
-      repeatable: !!data.repeatable, times_completed: 0, group_id: ''
+      repeatable: !!data.repeatable, consistent: !!data.consistent, times_completed: 0, group_id: ''
     };
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [newChore] });
     await refreshAndRerender();
@@ -1711,7 +1756,7 @@
     closeAddChoreModal();
     if (!existing) { editingChoreId = null; return; }
     showToast('Saving changes...');
-    const updated = Object.assign({}, existing, { name: data.name, points: data.points, description: data.description || '', repeatable: !!data.repeatable });
+    const updated = Object.assign({}, existing, { name: data.name, points: data.points, description: data.description || '', repeatable: !!data.repeatable, consistent: !!data.consistent });
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
     editingChoreId = null;
     await refreshAndRerender();
@@ -2375,6 +2420,13 @@
   document.getElementById('profileClose').onclick = () => flipModalClose(profileOverlay);
 
   function openKidProfileModal(kidId, originEl) {
+    renderProfileModalContent(kidId);
+    profileOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    flipModalOpen(profileOverlay.querySelector('.modal'), originEl);
+  }
+
+  function renderProfileModalContent(kidId) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
     if (!kid) return;
     const color = getKidColor(kidId);
@@ -2397,8 +2449,32 @@
     const completed = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'completed');
     const assignedEl = document.getElementById('profileAssigned');
     assignedEl.innerHTML = assigned.length
-      ? assigned.map(c => `<div class="profile-chore-row"><span>${c.name}</span><span>${c.points} pts</span></div>`).join('')
+      ? assigned.map(c => {
+          const repeatable = isRepeatable(c);
+          const timesCount = Number(c.times_completed) || 0;
+          const btnLabel = repeatable ? '+1 Done' : 'Complete';
+          return `<div class="profile-chore-row">
+            <span>${c.name}${repeatable ? ` <span style="opacity:.7;">(${timesCount}&times;)</span>` : ''}</span>
+            <span style="display:flex; align-items:center; gap:8px;">
+              <span>${c.points} pts</span>
+              <button class="profile-complete-btn" data-chore="${c.chore_id}" data-repeatable="${repeatable}">${btnLabel}</button>
+            </span>
+          </div>`;
+        }).join('')
       : '<div class="empty-note">Nothing assigned right now.</div>';
+    assignedEl.querySelectorAll('.profile-complete-btn').forEach(btn => {
+      btn.onclick = async () => {
+        btn.disabled = true;
+        const choreId = btn.dataset.chore;
+        if (btn.dataset.repeatable === 'true') {
+          await logRepeatableCompletion(choreId, kidId, 1);
+        } else {
+          await toggleChoreComplete(choreId, kidId, true);
+        }
+        renderProfileModalContent(kidId);
+      };
+    });
+
     const completedEl = document.getElementById('profileCompleted');
     completedEl.innerHTML = completed.length
       ? completed.map(c => `<div class="profile-chore-row"><span>${c.name}</span><span>${c.points} pts</span></div>`).join('')
@@ -2412,10 +2488,6 @@
           return `<div class="profile-log-row"><span>${d > 0 ? '+' + d : d} &middot; ${l.note || ''}</span><span>${formatLogTime(l.timestamp)}</span></div>`;
         }).join('')
       : '<div class="empty-note">No history yet.</div>';
-
-    profileOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    flipModalOpen(profileOverlay.querySelector('.modal'), originEl);
   }
 
   let lastModalOriginRect = null;
