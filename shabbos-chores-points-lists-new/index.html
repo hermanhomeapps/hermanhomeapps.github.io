@@ -126,9 +126,67 @@
   .kid-delete-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #fff; opacity: 0.65; font-size: 1.1rem; cursor: pointer; line-height: 1; }
   .kid-delete-btn:hover { opacity: 1; }
   .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin: 0; color: #fff; }
-  .kid-points-display { background: rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px; }
+  .kid-points-display { background: rgba(255,255,255,0.2); background-size: cover, cover; background-position: center, center; border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px; }
   .kid-points-number { display: block; font-family: 'Fraunces', serif; font-weight: 800; font-size: 2.2rem; line-height: 1; color: #fff; }
   .kid-points-label { font-size: 0.7rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.85); font-weight: 700; }
+
+  /* ===== LEADERBOARD ===== */
+  .leaderboard-wrap {
+    position: fixed; top: 90px; right: 24px; width: 260px; z-index: 10;
+  }
+  @media (max-width: 1180px) { .leaderboard-wrap { display: none; } }
+  .leaderboard-title { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 10px 4px; }
+  .leaderboard-list {
+    list-style: none; margin: 0; padding: 6px; background: rgba(255,255,255,0.7); border-radius: 16px;
+    border: 1px solid rgba(38,40,63,0.08); backdrop-filter: blur(8px); box-shadow: 0 10px 24px var(--card-shadow);
+  }
+  .leaderboard-row-wrap { position: relative; }
+  .leaderboard-row {
+    display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; cursor: pointer;
+    text-decoration: none; transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .leaderboard-row:hover { background: rgba(255,255,255,0.9); transform: translateX(3px); }
+  .leaderboard-rank { font-size: 0.75rem; color: var(--ink-soft); min-width: 16px; font-weight: 600; }
+  .leaderboard-name { font-weight: 700; font-size: 0.9rem; flex: 1; }
+  .leaderboard-pts { font-size: 0.72rem; color: var(--ink-soft); font-weight: 600; margin-right: 4px; }
+  .leaderboard-emoji { font-size: 1.1rem; line-height: 1; }
+
+  .leaderboard-hover-card {
+    position: absolute; top: 50%; left: -104px; transform: translateY(-50%) scale(0.9); z-index: 100;
+    width: 92px; height: 118px; border-radius: 12px; opacity: 0; pointer-events: none;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.28); overflow: hidden; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #fff; text-align: center; padding: 8px;
+    transition: opacity 0.3s ease, left 0.3s cubic-bezier(0.34,1.56,0.64,1), transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .leaderboard-row-wrap:hover .leaderboard-hover-card { opacity: 1; left: -112px; transform: translateY(-50%) scale(1); }
+  .leaderboard-hover-emoji { font-size: 1.6rem; }
+  .leaderboard-hover-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 0.82rem; margin-top: 2px; }
+  .leaderboard-hover-pts { font-size: 0.7rem; opacity: 0.9; margin-top: 2px; }
+
+  /* ===== PHOTO CROP TOOL ===== */
+  .crop-viewport {
+    width: 240px; height: 240px; margin: 8px auto 14px; border-radius: 14px; overflow: hidden;
+    position: relative; background: var(--bg); touch-action: none; cursor: grab; border: 2px solid rgba(38,40,63,0.1);
+  }
+  .crop-viewport.dragging { cursor: grabbing; }
+  .crop-viewport img { position: absolute; top: 50%; left: 50%; transform-origin: center; user-select: none; -webkit-user-drag: none; }
+  .crop-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .crop-controls input[type="range"] { flex: 1; }
+  .crop-empty-note { text-align: center; color: var(--ink-soft); font-size: 0.85rem; padding: 30px 10px; }
+  .photo-remove-link { display: block; text-align: center; font-size: 0.78rem; color: var(--error); background: none; border: none; cursor: pointer; margin-top: -6px; margin-bottom: 10px; text-decoration: underline; }
+
+  /* ===== PROFILE MODAL ===== */
+  .profile-header {
+    border-radius: 16px; padding: 24px 20px; text-align: center; color: #fff; margin-bottom: 18px;
+    background-size: cover, cover; background-position: center, center;
+  }
+  .profile-emoji { font-size: 2.2rem; }
+  .profile-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; margin: 4px 0 10px; }
+  .profile-points { font-family: 'Fraunces', serif; font-weight: 800; font-size: 2rem; }
+  .profile-points-label { font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.85; font-weight: 700; }
+  .profile-section-label { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--ink-soft); margin: 16px 0 8px; }
+  .profile-chore-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
+  .profile-log-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; font-size: 0.78rem; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
   .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
@@ -301,6 +359,50 @@
   </div>
   <div class="kid-blocks" id="kidBlocks"></div>
 
+</div>
+
+<div class="leaderboard-wrap">
+  <div class="leaderboard-title">🏆 Leaderboard</div>
+  <ul class="leaderboard-list" id="leaderboardList"></ul>
+</div>
+
+<div class="overlay" id="photoPickerOverlay">
+  <div class="modal">
+    <button class="close-x" id="photoPickerClose">&times;</button>
+    <h2 id="photoPickerTitle">Choose a Photo</h2>
+    <input type="file" accept="image/*" id="photoFileInput" style="display:none;">
+    <div class="crop-viewport" id="cropViewport">
+      <div class="crop-empty-note" id="cropEmptyNote">No photo yet</div>
+    </div>
+    <div class="crop-controls" id="cropControls" style="display:none;">
+      <span style="font-size:0.8rem;">🔍</span>
+      <input type="range" id="cropZoomSlider" min="1" max="3" step="0.01" value="1">
+    </div>
+    <button class="btn-cancel" style="width:100%; margin-bottom:10px;" id="photoChooseBtn">Choose Photo&hellip;</button>
+    <button class="photo-remove-link" id="photoRemoveBtn" style="display:none;">Remove current photo</button>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="photoPickerCancel">Cancel</button>
+      <button class="btn-confirm" id="photoSaveBtn" style="display:none;">Use This Photo</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="profileOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="profileClose">&times;</button>
+    <div id="profileHeader" class="profile-header">
+      <div class="profile-emoji" id="profileEmoji"></div>
+      <div class="profile-name" id="profileName"></div>
+      <div class="profile-points" id="profilePoints"></div>
+      <div class="profile-points-label">POINTS</div>
+    </div>
+    <div class="profile-section-label">Assigned Chores</div>
+    <div id="profileAssigned"></div>
+    <div class="profile-section-label">Completed Chores</div>
+    <div id="profileCompleted"></div>
+    <div class="profile-section-label">Points History</div>
+    <div id="profileLog"></div>
+  </div>
 </div>
 
 <div class="side-drawer side-drawer-left" id="unassignedDrawer" style="display:none;">
@@ -576,7 +678,6 @@
 
   let appData = { kids: [], config: {}, chores: [], seasons: [], season_totals: [], raffle_log: [], chore_lists: [], points_log: [] };
   let isMommyMode = false;
-  let expandedKidIds = new Set();
   let expandedLogKidIds = new Set();
   let selectedExistingChoreName = null;
   let pendingDupResolution = null;
@@ -655,6 +756,7 @@
 
     renderProgressBar();
     renderKidBlocks();
+    renderLeaderboard();
     if (isMommyMode) {
       renderUnassignedChores();
       renderChoreLists();
@@ -679,8 +781,7 @@
     appData.kids.forEach(kid => {
       const assigned = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'assigned');
       const completed = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && c.status === 'completed');
-      const isExpanded = expandedKidIds.has(kid.kid_id);
-      const showRows = isMommyMode || isExpanded;
+      const showRows = isMommyMode;
 
       const block = document.createElement('div');
       block.className = 'kid-block';
@@ -724,7 +825,7 @@
         }
       }
 
-      const summaryText = (!isMommyMode && !isExpanded)
+      const summaryText = !isMommyMode
         ? `<div class="empty-note-mini">${assigned.length} assigned${completed.length ? ', ' + completed.length + ' done' : ''}</div>`
         : '';
 
@@ -754,6 +855,7 @@
         <button class="btn-small" data-action="assign">Assign Chore</button>
         <button class="btn-small" data-action="color">Change Color</button>
         <button class="btn-small" data-action="emoji">Change Emoji</button>
+        <button class="btn-small" data-action="photo">Change Photo</button>
         <div class="points-adjust-row">
           <input type="number" class="points-adjust-input" min="1" placeholder="amt">
           <button class="points-adjust-btn plus" data-action="addpoints" title="Add points">+</button>
@@ -761,10 +863,11 @@
         </div>
         ${logHtml}
       ` : `
-        <button class="btn-small" data-action="togglechores">${isExpanded ? 'Hide Chores' : 'See Chores'}</button>
+        <button class="btn-small" data-action="viewprofile">See Chores</button>
         <div style="display:flex; gap:6px; margin-top:6px;">
           <button class="btn-small" style="flex:1; margin-top:0;" data-action="mycolor">Color</button>
           <button class="btn-small" style="flex:1; margin-top:0;" data-action="myemoji">Emoji</button>
+          <button class="btn-small" style="flex:1; margin-top:0;" data-action="myphoto">Photo</button>
         </div>
       `;
 
@@ -774,7 +877,7 @@
           <div class="kid-block-name">${kid.name}</div>
           <div class="kid-emoji-display">${getKidEmoji(kid.kid_id)}</div>
         </div>
-        <div class="kid-points-display">
+        <div class="kid-points-display" id="pointsDisplay-${kid.kid_id}">
           <span class="kid-points-number">${kid.current_points || 0}</span>
           <span class="kid-points-label">POINTS</span>
         </div>
@@ -782,11 +885,16 @@
         ${rowsHtml}
         ${actionButtons}
       `;
+      if (kid.kid_photo) {
+        const pd = block.querySelector(`#pointsDisplay-${kid.kid_id}`);
+        pd.style.backgroundImage = `linear-gradient(rgba(30,30,30,0.5), rgba(30,30,30,0.5)), url('${kid.kid_photo}')`;
+      }
 
       if (isMommyMode) {
         block.querySelector('[data-action="assign"]').onclick = () => openPickChoreForKid(kid.kid_id, kid.name);
         block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
         block.querySelector('[data-action="emoji"]').onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
+        block.querySelector('[data-action="photo"]').onclick = () => openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo);
         const pointsInput = block.querySelector('.points-adjust-input');
         block.querySelector('[data-action="addpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value);
         block.querySelector('[data-action="subpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value);
@@ -804,15 +912,13 @@
         };
         block.querySelectorAll('.points-log-delete').forEach(btn => btn.onclick = () => deletePointsLogEntry(btn.dataset.log, btn.dataset.kid, btn.dataset.delta));
       } else {
-        const toggleBtn = block.querySelector('[data-action="togglechores"]');
-        if (toggleBtn) toggleBtn.onclick = () => {
-          if (expandedKidIds.has(kid.kid_id)) expandedKidIds.delete(kid.kid_id); else expandedKidIds.add(kid.kid_id);
-          renderKidBlocks();
-        };
+        block.querySelector('[data-action="viewprofile"]').onclick = () => openKidProfileModal(kid.kid_id);
         const myColorBtn2 = block.querySelector('[data-action="mycolor"]');
         if (myColorBtn2) myColorBtn2.onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
         const myEmojiBtn2 = block.querySelector('[data-action="myemoji"]');
         if (myEmojiBtn2) myEmojiBtn2.onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
+        const myPhotoBtn2 = block.querySelector('[data-action="myphoto"]');
+        if (myPhotoBtn2) myPhotoBtn2.onclick = () => openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo);
       }
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
@@ -1892,6 +1998,206 @@
     if (!val) { showToast('Type or paste an emoji first.'); return; }
     selectEmoji(val);
   };
+
+  // ===== PHOTO PICKER / CROP TOOL =====
+  const PHOTO_OUTPUT_SIZE = 200;
+  const photoPickerOverlay = document.getElementById('photoPickerOverlay');
+  const cropViewport = document.getElementById('cropViewport');
+  const photoFileInput = document.getElementById('photoFileInput');
+  let currentPhotoKidId = null;
+  let cropImg = null;
+  let cropZoom = 1, cropBaseScale = 1, cropOffsetX = 0, cropOffsetY = 0;
+  let cropDragging = false, cropDragStartX = 0, cropDragStartY = 0, cropStartOffsetX = 0, cropStartOffsetY = 0;
+  const CROP_VIEWPORT_SIZE = 240;
+
+  function openPhotoPicker(kidId, kidName, currentPhoto) {
+    currentPhotoKidId = kidId;
+    document.getElementById('photoPickerTitle').textContent = `${kidName}'s Photo`;
+    document.getElementById('photoRemoveBtn').style.display = currentPhoto ? 'block' : 'none';
+    document.getElementById('photoSaveBtn').style.display = 'none';
+    document.getElementById('cropControls').style.display = 'none';
+    cropViewport.innerHTML = '<div class="crop-empty-note" id="cropEmptyNote">No photo yet</div>';
+    cropImg = null;
+    photoPickerOverlay.classList.add('open');
+  }
+  document.getElementById('photoPickerClose').onclick = () => photoPickerOverlay.classList.remove('open');
+  document.getElementById('photoPickerCancel').onclick = () => photoPickerOverlay.classList.remove('open');
+  document.getElementById('photoChooseBtn').onclick = () => photoFileInput.click();
+
+  document.getElementById('photoRemoveBtn').onclick = async () => {
+    photoPickerOverlay.classList.remove('open');
+    const kid = appData.kids.find(k => k.kid_id === currentPhotoKidId);
+    if (kid) {
+      showToast('Removing photo...');
+      const updated = Object.assign({}, kid, { kid_photo: '' });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+      await refreshAndRerender();
+      showToast('Photo removed.');
+    }
+  };
+
+  photoFileInput.addEventListener('change', () => {
+    const file = photoFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        cropImg = img;
+        cropZoom = 1; cropOffsetX = 0; cropOffsetY = 0;
+        cropBaseScale = Math.max(CROP_VIEWPORT_SIZE / img.naturalWidth, CROP_VIEWPORT_SIZE / img.naturalHeight);
+        cropViewport.innerHTML = '';
+        img.style.width = img.naturalWidth + 'px';
+        img.style.height = img.naturalHeight + 'px';
+        cropViewport.appendChild(img);
+        applyCropTransform();
+        document.getElementById('cropControls').style.display = 'flex';
+        document.getElementById('photoSaveBtn').style.display = 'inline-block';
+        document.getElementById('cropZoomSlider').value = 1;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    photoFileInput.value = '';
+  });
+
+  function applyCropTransform() {
+    if (!cropImg) return;
+    const totalScale = cropBaseScale * cropZoom;
+    cropImg.style.transform = `translate(-50%, -50%) translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${totalScale})`;
+  }
+
+  function clampCropOffsets() {
+    if (!cropImg) return;
+    const totalScale = cropBaseScale * cropZoom;
+    const halfDiffX = Math.max(0, (cropImg.naturalWidth * totalScale - CROP_VIEWPORT_SIZE) / 2);
+    const halfDiffY = Math.max(0, (cropImg.naturalHeight * totalScale - CROP_VIEWPORT_SIZE) / 2);
+    cropOffsetX = Math.min(halfDiffX, Math.max(-halfDiffX, cropOffsetX));
+    cropOffsetY = Math.min(halfDiffY, Math.max(-halfDiffY, cropOffsetY));
+  }
+
+  cropViewport.addEventListener('pointerdown', (e) => {
+    if (!cropImg) return;
+    cropDragging = true;
+    cropViewport.classList.add('dragging');
+    cropDragStartX = e.clientX; cropDragStartY = e.clientY;
+    cropStartOffsetX = cropOffsetX; cropStartOffsetY = cropOffsetY;
+    cropViewport.setPointerCapture(e.pointerId);
+  });
+  cropViewport.addEventListener('pointermove', (e) => {
+    if (!cropDragging || !cropImg) return;
+    cropOffsetX = cropStartOffsetX + (e.clientX - cropDragStartX);
+    cropOffsetY = cropStartOffsetY + (e.clientY - cropDragStartY);
+    clampCropOffsets();
+    applyCropTransform();
+  });
+  const endCropDrag = () => { cropDragging = false; cropViewport.classList.remove('dragging'); };
+  cropViewport.addEventListener('pointerup', endCropDrag);
+  cropViewport.addEventListener('pointercancel', endCropDrag);
+
+  document.getElementById('cropZoomSlider').addEventListener('input', (e) => {
+    if (!cropImg) return;
+    cropZoom = Number(e.target.value);
+    clampCropOffsets();
+    applyCropTransform();
+  });
+
+  document.getElementById('photoSaveBtn').onclick = async () => {
+    if (!cropImg) return;
+    const totalScale = cropBaseScale * cropZoom;
+    const renderedX0 = (CROP_VIEWPORT_SIZE - cropImg.naturalWidth * totalScale) / 2 + cropOffsetX;
+    const renderedY0 = (CROP_VIEWPORT_SIZE - cropImg.naturalHeight * totalScale) / 2 + cropOffsetY;
+    let sx = -renderedX0 / totalScale;
+    let sy = -renderedY0 / totalScale;
+    let sSize = CROP_VIEWPORT_SIZE / totalScale;
+    sx = Math.max(0, Math.min(sx, cropImg.naturalWidth - sSize));
+    sy = Math.max(0, Math.min(sy, cropImg.naturalHeight - sSize));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = PHOTO_OUTPUT_SIZE; canvas.height = PHOTO_OUTPUT_SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(cropImg, sx, sy, sSize, sSize, 0, 0, PHOTO_OUTPUT_SIZE, PHOTO_OUTPUT_SIZE);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+    photoPickerOverlay.classList.remove('open');
+    const kid = appData.kids.find(k => k.kid_id === currentPhotoKidId);
+    if (kid) {
+      showToast('Saving photo...');
+      const updated = Object.assign({}, kid, { kid_photo: dataUrl });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+      await refreshAndRerender();
+      showToast('Photo updated!');
+    }
+  };
+
+  // ===== LEADERBOARD =====
+  function renderLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+    const sorted = [...appData.kids].sort((a, b) => (Number(b.current_points) || 0) - (Number(a.current_points) || 0));
+    sorted.forEach((kid, i) => {
+      const li = document.createElement('li');
+      li.className = 'leaderboard-row-wrap';
+      const color = getKidColor(kid.kid_id);
+      const photoStyle = kid.kid_photo
+        ? `background-image: linear-gradient(rgba(20,20,20,0.35), rgba(20,20,20,0.55)), url('${kid.kid_photo}'); background-size: cover; background-position: center;`
+        : `background: linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black));`;
+      li.innerHTML = `
+        <a class="leaderboard-row" data-kid="${kid.kid_id}">
+          <span class="leaderboard-rank">${i + 1}</span>
+          <span class="leaderboard-name" style="color:${color};">${kid.name}</span>
+          <span class="leaderboard-pts">${kid.current_points || 0} pts</span>
+          <span class="leaderboard-emoji">${getKidEmoji(kid.kid_id)}</span>
+        </a>
+        <div class="leaderboard-hover-card" style="${photoStyle}">
+          <span class="leaderboard-hover-emoji">${getKidEmoji(kid.kid_id)}</span>
+          <span class="leaderboard-hover-name">${kid.name}</span>
+          <span class="leaderboard-hover-pts">${kid.current_points || 0} pts</span>
+        </div>
+      `;
+      li.querySelector('.leaderboard-row').onclick = () => openKidProfileModal(kid.kid_id);
+      list.appendChild(li);
+    });
+  }
+
+  // ===== KID PROFILE MODAL =====
+  const profileOverlay = document.getElementById('profileOverlay');
+  document.getElementById('profileClose').onclick = () => profileOverlay.classList.remove('open');
+
+  function openKidProfileModal(kidId) {
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!kid) return;
+    const color = getKidColor(kidId);
+    const header = document.getElementById('profileHeader');
+    header.style.backgroundImage = kid.kid_photo
+      ? `linear-gradient(rgba(20,20,20,0.35), rgba(20,20,20,0.55)), url('${kid.kid_photo}')`
+      : `linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black))`;
+    document.getElementById('profileEmoji').textContent = getKidEmoji(kidId);
+    document.getElementById('profileName').textContent = kid.name;
+    document.getElementById('profilePoints').textContent = kid.current_points || 0;
+
+    const assigned = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
+    const completed = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'completed');
+    const assignedEl = document.getElementById('profileAssigned');
+    assignedEl.innerHTML = assigned.length
+      ? assigned.map(c => `<div class="profile-chore-row"><span>${c.name}</span><span>${c.points} pts</span></div>`).join('')
+      : '<div class="empty-note">Nothing assigned right now.</div>';
+    const completedEl = document.getElementById('profileCompleted');
+    completedEl.innerHTML = completed.length
+      ? completed.map(c => `<div class="profile-chore-row"><span>${c.name}</span><span>${c.points} pts</span></div>`).join('')
+      : '<div class="empty-note">Nothing completed yet this season.</div>';
+
+    const kidLog = appData.points_log.filter(l => l.kid_id === kidId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const logEl = document.getElementById('profileLog');
+    logEl.innerHTML = kidLog.length
+      ? kidLog.map(l => {
+          const d = Number(l.delta) || 0;
+          return `<div class="profile-log-row"><span>${d > 0 ? '+' + d : d} &middot; ${l.note || ''}</span><span>${formatLogTime(l.timestamp)}</span></div>`;
+        }).join('')
+      : '<div class="empty-note">No history yet.</div>';
+
+    profileOverlay.classList.add('open');
+  }
 
   function tryPin() {
     const entered = pinInput.value.trim();
