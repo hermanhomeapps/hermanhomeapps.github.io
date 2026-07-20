@@ -2369,6 +2369,9 @@
   // ===== KID PROFILE MODAL =====
   const profileOverlay = document.getElementById('profileOverlay');
   document.getElementById('profileClose').onclick = () => flipModalClose(profileOverlay);
+  profileOverlay.addEventListener('click', (e) => {
+    if (e.target === profileOverlay) flipModalClose(profileOverlay);
+  });
 
   function openKidProfileModal(kidId, originEl) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
@@ -2406,9 +2409,12 @@
     flipModalOpen(profileOverlay.querySelector('.modal'), originEl);
   }
 
+  let lastModalOriginRect = null;
+
   function flipModalOpen(modalEl, originEl) {
-    if (!originEl) return;
+    if (!originEl) { lastModalOriginRect = null; return; }
     const originRect = originEl.getBoundingClientRect();
+    lastModalOriginRect = originRect;
     const modalRect = modalEl.getBoundingClientRect();
     const dx = (originRect.left + originRect.width / 2) - (modalRect.left + modalRect.width / 2);
     const dy = (originRect.top + originRect.height / 2) - (modalRect.top + modalRect.height / 2);
@@ -2426,13 +2432,30 @@
 
   function flipModalClose(overlayEl) {
     const modalEl = overlayEl.querySelector('.modal');
-    modalEl.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
-    modalEl.style.transform = 'scale(0.92)';
-    modalEl.style.opacity = '0';
-    setTimeout(() => {
-      overlayEl.classList.remove('open');
-      modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
-    }, 180);
+
+    if (lastModalOriginRect) {
+      const modalRect = modalEl.getBoundingClientRect();
+      const dx = (lastModalOriginRect.left + lastModalOriginRect.width / 2) - (modalRect.left + modalRect.width / 2);
+      const dy = (lastModalOriginRect.top + lastModalOriginRect.height / 2) - (modalRect.top + modalRect.height / 2);
+      const sx = Math.max(0.15, lastModalOriginRect.width / modalRect.width);
+      const sy = Math.max(0.15, lastModalOriginRect.height / modalRect.height);
+      modalEl.style.transition = 'transform 0.35s cubic-bezier(0.5,0,0.75,0), opacity 0.28s ease';
+      modalEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+      modalEl.style.opacity = '0.3';
+      setTimeout(() => {
+        overlayEl.classList.remove('open');
+        modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
+        lastModalOriginRect = null;
+      }, 350);
+    } else {
+      modalEl.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+      modalEl.style.transform = 'scale(0.92)';
+      modalEl.style.opacity = '0';
+      setTimeout(() => {
+        overlayEl.classList.remove('open');
+        modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
+      }, 180);
+    }
   }
 
   function tryPin() {
