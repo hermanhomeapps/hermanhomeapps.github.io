@@ -195,6 +195,25 @@
   .chore-detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .chore-detail-actions.single { grid-template-columns: 1fr; }
   .chore-detail-actions button { margin: 0; }
+
+  .kid-name-tooltip-wrap { position: relative; display: inline-block; }
+  .kid-quote-bubble {
+    position: absolute; bottom: calc(100% + 12px); left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.85);
+    background: #fff; color: var(--ink); padding: 10px 14px; border-radius: 12px;
+    font-size: 0.78rem; font-weight: 500; max-width: 200px; white-space: normal;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.28); opacity: 0; pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.34,1.56,0.64,1), transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 20; text-align: center; line-height: 1.4;
+  }
+  .kid-quote-arrow {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid #fff;
+  }
+  .kid-name-tooltip-wrap:hover .kid-quote-bubble, .kid-name-tooltip-wrap:focus-within .kid-quote-bubble {
+    opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto;
+  }
+  .leaderboard-name.kid-name-tooltip-wrap { display: inline-flex; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
   .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
@@ -392,6 +411,18 @@
     <div class="modal-actions">
       <button class="btn-cancel" id="photoPickerCancel">Cancel</button>
       <button class="btn-confirm" id="photoSaveBtn" style="display:none;">Use This Photo</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="quoteOverlay">
+  <div class="modal">
+    <button class="close-x" id="quoteClose">&times;</button>
+    <h2 id="quoteTitle">Add a Quote</h2>
+    <input type="text" id="quoteInput" placeholder="Their favorite saying..." autocomplete="off" maxlength="120">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="quoteCancel">Cancel</button>
+      <button class="btn-confirm" id="quoteSave">Save</button>
     </div>
   </div>
 </div>
@@ -687,6 +718,10 @@
     return (kid && kid.kid_emoji) ? kid.kid_emoji : '⭐';
   }
 
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   function getMommyColor() {
     return appData.config.mommy_color || '';
   }
@@ -875,6 +910,7 @@
         <button class="btn-small" data-action="color">Change Color</button>
         <button class="btn-small" data-action="emoji">Change Emoji</button>
         <button class="btn-small" data-action="photo">Change Photo</button>
+        <button class="btn-small" data-action="quote">Add Quote</button>
         <div class="points-adjust-row">
           <input type="number" class="points-adjust-input" min="1" placeholder="amt">
           <button class="points-adjust-btn plus" data-action="addpoints" title="Add points">+</button>
@@ -888,12 +924,16 @@
           <button class="btn-small" style="flex:1; margin-top:0;" data-action="myemoji">Emoji</button>
           <button class="btn-small" style="flex:1; margin-top:0;" data-action="myphoto">Photo</button>
         </div>
+        <button class="btn-small" data-action="myquote">Add Quote</button>
       `;
 
       block.innerHTML = `
         ${isMommyMode ? `<button class="kid-delete-btn" data-kid="${kid.kid_id}" data-name="${kid.name}">&times;</button>` : ''}
         <div class="kid-block-header">
-          <div class="kid-block-name">${kid.name}</div>
+          <div class="kid-name-tooltip-wrap">
+            <div class="kid-block-name">${kid.name}</div>
+            ${kid.kid_quote ? `<div class="kid-quote-bubble"><span class="kid-quote-arrow"></span>${escapeHtml(kid.kid_quote)}</div>` : ''}
+          </div>
           <div class="kid-emoji-display">${getKidEmoji(kid.kid_id)}</div>
         </div>
         <div class="kid-points-display" id="pointsDisplay-${kid.kid_id}">
@@ -914,6 +954,7 @@
         block.querySelector('[data-action="color"]').onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
         block.querySelector('[data-action="emoji"]').onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
         block.querySelector('[data-action="photo"]').onclick = () => openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo);
+        block.querySelector('[data-action="quote"]').onclick = () => openQuotePicker(kid.kid_id, kid.name, kid.kid_quote);
         const pointsInput = block.querySelector('.points-adjust-input');
         block.querySelector('[data-action="addpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value);
         block.querySelector('[data-action="subpoints"]').onclick = () => adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value);
@@ -931,13 +972,15 @@
         };
         block.querySelectorAll('.points-log-delete').forEach(btn => btn.onclick = () => deletePointsLogEntry(btn.dataset.log, btn.dataset.kid, btn.dataset.delta));
       } else {
-        block.querySelector('[data-action="viewprofile"]').onclick = () => openKidProfileModal(kid.kid_id);
+        block.querySelector('[data-action="viewprofile"]').onclick = () => openKidProfileModal(kid.kid_id, block);
         const myColorBtn2 = block.querySelector('[data-action="mycolor"]');
         if (myColorBtn2) myColorBtn2.onclick = () => openColorPicker('kid', kid.kid_id, kid.name, kid.kid_color);
         const myEmojiBtn2 = block.querySelector('[data-action="myemoji"]');
         if (myEmojiBtn2) myEmojiBtn2.onclick = () => openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji);
         const myPhotoBtn2 = block.querySelector('[data-action="myphoto"]');
         if (myPhotoBtn2) myPhotoBtn2.onclick = () => openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo);
+        const myQuoteBtn2 = block.querySelector('[data-action="myquote"]');
+        if (myQuoteBtn2) myQuoteBtn2.onclick = () => openQuotePicker(kid.kid_id, kid.name, kid.kid_quote);
       }
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
@@ -2048,6 +2091,32 @@
     selectEmoji(val);
   };
 
+  // ===== QUOTE PICKER =====
+  let currentQuoteKidId = null;
+  document.getElementById('quoteClose').onclick = () => document.getElementById('quoteOverlay').classList.remove('open');
+  document.getElementById('quoteCancel').onclick = () => document.getElementById('quoteOverlay').classList.remove('open');
+
+  function openQuotePicker(kidId, kidName, currentQuote) {
+    currentQuoteKidId = kidId;
+    document.getElementById('quoteTitle').textContent = `${kidName}'s Quote`;
+    document.getElementById('quoteInput').value = currentQuote || '';
+    document.getElementById('quoteOverlay').classList.add('open');
+    document.getElementById('quoteInput').focus();
+  }
+
+  document.getElementById('quoteSave').onclick = async () => {
+    const val = document.getElementById('quoteInput').value.trim();
+    document.getElementById('quoteOverlay').classList.remove('open');
+    const kid = appData.kids.find(k => k.kid_id === currentQuoteKidId);
+    if (kid) {
+      showToast('Saving quote...');
+      const updated = Object.assign({}, kid, { kid_quote: val });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+      await refreshAndRerender();
+      showToast('Quote saved!');
+    }
+  };
+
   // ===== PHOTO PICKER / CROP TOOL =====
   const PHOTO_OUTPUT_SIZE = 200;
   const photoPickerOverlay = document.getElementById('photoPickerOverlay');
@@ -2204,16 +2273,16 @@
           <span class="leaderboard-hover-pts">${kid.current_points || 0} pts</span>
         </div>
       `;
-      li.querySelector('.leaderboard-row').onclick = () => openKidProfileModal(kid.kid_id);
+      li.querySelector('.leaderboard-row').onclick = (e) => openKidProfileModal(kid.kid_id, e.currentTarget);
       list.appendChild(li);
     });
   }
 
   // ===== KID PROFILE MODAL =====
   const profileOverlay = document.getElementById('profileOverlay');
-  document.getElementById('profileClose').onclick = () => profileOverlay.classList.remove('open');
+  document.getElementById('profileClose').onclick = () => flipModalClose(profileOverlay);
 
-  function openKidProfileModal(kidId) {
+  function openKidProfileModal(kidId, originEl) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
     if (!kid) return;
     const color = getKidColor(kidId);
@@ -2246,6 +2315,36 @@
       : '<div class="empty-note">No history yet.</div>';
 
     profileOverlay.classList.add('open');
+    flipModalOpen(profileOverlay.querySelector('.modal'), originEl);
+  }
+
+  function flipModalOpen(modalEl, originEl) {
+    if (!originEl) return;
+    const originRect = originEl.getBoundingClientRect();
+    const modalRect = modalEl.getBoundingClientRect();
+    const dx = (originRect.left + originRect.width / 2) - (modalRect.left + modalRect.width / 2);
+    const dy = (originRect.top + originRect.height / 2) - (modalRect.top + modalRect.height / 2);
+    const sx = Math.max(0.15, originRect.width / modalRect.width);
+    const sy = Math.max(0.15, originRect.height / modalRect.height);
+    modalEl.style.transition = 'none';
+    modalEl.style.opacity = '0.5';
+    modalEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    // force reflow so the browser registers the starting state before animating
+    modalEl.offsetHeight;
+    modalEl.style.transition = 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease';
+    modalEl.style.transform = 'translate(0, 0) scale(1, 1)';
+    modalEl.style.opacity = '1';
+  }
+
+  function flipModalClose(overlayEl) {
+    const modalEl = overlayEl.querySelector('.modal');
+    modalEl.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+    modalEl.style.transform = 'scale(0.92)';
+    modalEl.style.opacity = '0';
+    setTimeout(() => {
+      overlayEl.classList.remove('open');
+      modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
+    }, 180);
   }
 
   function tryPin() {
