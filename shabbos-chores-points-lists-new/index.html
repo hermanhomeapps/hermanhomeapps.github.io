@@ -137,6 +137,7 @@
     position: fixed; top: 90px; right: 24px; width: 260px; z-index: 10;
   }
   @media (max-width: 1180px) { .leaderboard-wrap { display: none; } }
+  @media (max-width: 560px) { .leaderboard-hover-card { display: none; } }
   .leaderboard-title { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 10px 4px; }
   .leaderboard-list {
     list-style: none; margin: 0; padding: 6px; background: rgba(255,255,255,0.7); border-radius: 16px;
@@ -214,6 +215,52 @@
     opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto;
   }
   .leaderboard-name.kid-name-tooltip-wrap { display: inline-flex; }
+
+  /* ===== CORNER ACCENT HOVER (claim toggle button) ===== */
+  .corner-btn-wrapper {
+    --dot-size: 5px; --line-weight: 1px; --speed: 0.35s;
+    --accent-glow: color-mix(in srgb, var(--grape) 30%, transparent);
+    position: relative; display: inline-flex; padding: 5px 7px; border-radius: 999px;
+    transition: background-color 0.3s ease-in-out;
+  }
+  .corner-btn-wrapper:has(button:hover) { animation: corner-bg-change calc(var(--speed) * 4) ease-in-out forwards; }
+  @keyframes corner-bg-change { 80% { background-color: transparent; } 100% { background-color: var(--accent-glow); } }
+
+  .corner-dot {
+    position: absolute; width: var(--dot-size); aspect-ratio: 1; border-radius: 50%;
+    background-color: var(--grape); opacity: 0; transition: all 0.3s ease-in-out; pointer-events: none;
+  }
+  .corner-btn-wrapper:has(button:hover) .corner-dot.top.left { top: 50%; left: 14%; animation: corner-dot-tl var(--speed) ease-in-out forwards; }
+  @keyframes corner-dot-tl { 90% { opacity: .6; } 100% { top: calc(var(--dot-size) * -0.5); left: calc(var(--dot-size) * -0.5); opacity: 1; } }
+  .corner-btn-wrapper:has(button:hover) .corner-dot.top.right { top: 50%; right: 14%; animation: corner-dot-tr var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 0.6); }
+  @keyframes corner-dot-tr { 80% { opacity: .6; } 100% { top: calc(var(--dot-size) * -0.5); right: calc(var(--dot-size) * -0.5); opacity: 1; } }
+  .corner-btn-wrapper:has(button:hover) .corner-dot.bottom.right { bottom: 50%; right: 14%; animation: corner-dot-br var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 1.2); }
+  @keyframes corner-dot-br { 80% { opacity: .6; } 100% { bottom: calc(var(--dot-size) * -0.5); right: calc(var(--dot-size) * -0.5); opacity: 1; } }
+  .corner-btn-wrapper:has(button:hover) .corner-dot.bottom.left { bottom: 50%; left: 14%; animation: corner-dot-bl var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 1.8); }
+  @keyframes corner-dot-bl { 80% { opacity: .6; } 100% { bottom: calc(var(--dot-size) * -0.5); left: calc(var(--dot-size) * -0.5); opacity: 1; } }
+
+  .corner-line { position: absolute; transition: all 0.3s ease-in-out; pointer-events: none; }
+  .corner-line.horizontal { height: var(--line-weight); width: 100%; background-image: repeating-linear-gradient(90deg, transparent 0 calc(var(--line-weight) * 2), var(--grape) calc(var(--line-weight) * 2) calc(var(--line-weight) * 4)); }
+  .corner-line.vertical { width: var(--line-weight); height: 100%; background-image: repeating-linear-gradient(0deg, transparent 0 calc(var(--line-weight) * 2), var(--grape) calc(var(--line-weight) * 2) calc(var(--line-weight) * 4)); }
+  .corner-line.top { top: calc(var(--line-weight) * -0.5); transform-origin: top left; transform: rotate(5deg) scaleX(0); }
+  .corner-line.bottom { bottom: calc(var(--line-weight) * -0.5); transform-origin: bottom right; transform: rotate(5deg) scaleX(0); }
+  .corner-line.left { left: calc(var(--line-weight) * -0.5); transform-origin: bottom left; transform: scaleY(0); }
+  .corner-line.right { right: calc(var(--line-weight) * -0.5); transform-origin: top right; transform: rotate(5deg) scaleY(0); }
+  .corner-btn-wrapper:has(button:hover) .corner-line.top { animation: corner-line-top var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 0.8); }
+  @keyframes corner-line-top { 100% { transform: rotate(0deg) scaleX(1); } }
+  .corner-btn-wrapper:has(button:hover) .corner-line.bottom { animation: corner-line-bottom var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 2); }
+  @keyframes corner-line-bottom { 100% { transform: rotate(0deg) scaleX(1); } }
+  .corner-btn-wrapper:has(button:hover) .corner-line.left { animation: corner-line-left var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 2.4); }
+  @keyframes corner-line-left { 100% { transform: scaleY(1); } }
+  .corner-btn-wrapper:has(button:hover) .corner-line.right { animation: corner-line-right var(--speed) ease-in-out forwards; animation-delay: calc(var(--speed) * 1.4); }
+  @keyframes corner-line-right { 100% { transform: rotate(0deg) scaleY(1); } }
+
+  /* ===== MOBILE LEADERBOARD TOGGLE ===== */
+  .leaderboard-toggle-row { display: flex; justify-content: space-between; align-items: center; margin: -8px 0 18px; font-size: 0.82rem; flex-wrap: wrap; gap: 6px; }
+  .leaderboard-toggle-link { color: var(--sky); font-weight: 700; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; }
+  .leaderboard-toggle-link:hover { color: var(--coral); }
+  .leaderboard-first-place { color: var(--ink-soft); font-weight: 600; }
+  .leaderboard-inline { margin-bottom: 20px; }
   .btn-small { width: 100%; background: transparent; border: 1px solid var(--sky); color: var(--sky); padding: 9px; border-radius: 9px; font-size: 0.85rem; cursor: pointer; margin-top: 4px; }
   .btn-small:hover { background: rgba(93,156,236,0.1); }
   .kid-block .btn-small { background: #fff; border: none; color: var(--ink); font-weight: 700; }
@@ -363,7 +410,17 @@
   <div class="welcome-bar">
     <h1>🕯️ Shabbos Chores Tickets</h1>
     <div style="display:flex; align-items:center; gap:10px;">
-      <button class="btn-small my-color-btn" id="claimToggleBtn">🔓 Enable Claiming</button>
+      <div class="corner-btn-wrapper">
+        <div class="corner-line horizontal top"></div>
+        <div class="corner-line vertical right"></div>
+        <div class="corner-line horizontal bottom"></div>
+        <div class="corner-line vertical left"></div>
+        <div class="corner-dot top left"></div>
+        <div class="corner-dot top right"></div>
+        <div class="corner-dot bottom right"></div>
+        <div class="corner-dot bottom left"></div>
+        <button class="btn-small my-color-btn" id="claimToggleBtn">🔓 Enable Claiming</button>
+      </div>
       <button class="btn-small my-color-btn" id="myColorBtn" style="display:none;">My Color</button>
       <button class="logout-link" id="mommyToggleBtn">Mommy View</button>
     </div>
@@ -372,6 +429,11 @@
   <div class="progress-wrap">
     <div class="progress-label"><span>Season progress</span><span id="progressNumber">0 / 500 pts</span></div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="leaderboard-toggle-row">
+    <span class="leaderboard-toggle-link" id="leaderboardToggleLink">Show Leaderboard</span>
+    <span class="leaderboard-first-place" id="leaderboardFirstPlace"></span>
   </div>
 
   <div class="toolbar" id="adminToolbar" style="display:none;">
@@ -386,6 +448,7 @@
     <button class="btn-primary" id="addKidBtn" style="display:none;">+ Add Kid</button>
   </div>
   <div class="kid-blocks" id="kidBlocks"></div>
+  <ul class="leaderboard-list leaderboard-inline" id="leaderboardListInline" style="display:none;"></ul>
 
 </div>
 
@@ -984,6 +1047,11 @@
       }
       block.querySelectorAll('[data-action="complete"]').forEach(btn => btn.onclick = () => toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true));
       block.querySelectorAll('[data-action="logdone"]').forEach(btn => btn.onclick = () => logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1));
+
+      block.addEventListener('click', (e) => {
+        if (e.target.closest('button, input, a')) return;
+        openKidProfileModal(kid.kid_id, block);
+      });
 
       wrap.appendChild(block);
     });
@@ -2249,9 +2317,10 @@
   };
 
   // ===== LEADERBOARD =====
-  function renderLeaderboard() {
-    const list = document.getElementById('leaderboardList');
-    list.innerHTML = '';
+  let leaderboardInlineOpen = false;
+
+  function renderLeaderboardInto(listEl) {
+    listEl.innerHTML = '';
     const sorted = [...appData.kids].sort((a, b) => (Number(b.current_points) || 0) - (Number(a.current_points) || 0));
     sorted.forEach((kid, i) => {
       const li = document.createElement('li');
@@ -2274,9 +2343,29 @@
         </div>
       `;
       li.querySelector('.leaderboard-row').onclick = (e) => openKidProfileModal(kid.kid_id, e.currentTarget);
-      list.appendChild(li);
+      listEl.appendChild(li);
     });
   }
+
+  function renderLeaderboardToggleRow() {
+    const sorted = [...appData.kids].sort((a, b) => (Number(b.current_points) || 0) - (Number(a.current_points) || 0));
+    document.getElementById('leaderboardToggleLink').textContent = leaderboardInlineOpen ? 'Hide Leaderboard' : 'Show Leaderboard';
+    const firstEl = document.getElementById('leaderboardFirstPlace');
+    firstEl.textContent = sorted.length ? `🏆 ${sorted[0].name} — ${sorted[0].current_points || 0} pts` : '';
+  }
+
+  function renderLeaderboard() {
+    renderLeaderboardInto(document.getElementById('leaderboardList'));
+    if (leaderboardInlineOpen) renderLeaderboardInto(document.getElementById('leaderboardListInline'));
+    renderLeaderboardToggleRow();
+  }
+
+  document.getElementById('leaderboardToggleLink').onclick = () => {
+    leaderboardInlineOpen = !leaderboardInlineOpen;
+    document.getElementById('kidBlocks').style.display = leaderboardInlineOpen ? 'none' : '';
+    document.getElementById('leaderboardListInline').style.display = leaderboardInlineOpen ? 'block' : 'none';
+    renderLeaderboard();
+  };
 
   // ===== KID PROFILE MODAL =====
   const profileOverlay = document.getElementById('profileOverlay');
