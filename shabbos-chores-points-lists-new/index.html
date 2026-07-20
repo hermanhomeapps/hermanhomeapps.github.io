@@ -21,8 +21,6 @@
     font-family: 'Inter', sans-serif; color: var(--ink); padding: 24px;
   }
   .page { max-width: 720px; margin: 0 auto; }
-  .hub-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); text-decoration: none; font-size: 0.8rem; opacity: 0.7; margin-bottom: 18px; }
-  .hub-link:hover { opacity: 1; }
 
   .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; flex-direction: column; }
   .card { width: 100%; max-width: 480px; text-align: center; position: relative; }
@@ -187,6 +185,13 @@
   .profile-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; margin: 4px 0 10px; }
   .profile-points { font-family: 'Fraunces', serif; font-weight: 800; font-size: 2rem; }
   .profile-points-label { font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.85; font-weight: 700; }
+  .profile-quote {
+    font-family: 'Caveat', cursive; font-size: 1.5rem; font-weight: 700; line-height: 1.25;
+    color: #fff; opacity: 0.95; margin: 2px 0 12px; max-width: 320px; margin-left: auto; margin-right: auto;
+    quotes: "\201C" "\201D";
+  }
+  .profile-quote::before { content: open-quote; }
+  .profile-quote::after { content: close-quote; }
   .profile-section-label { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--ink-soft); margin: 16px 0 8px; }
   .profile-chore-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82rem; }
   .profile-log-row { display: flex; justify-content: space-between; background: var(--bg); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; font-size: 0.78rem; }
@@ -405,8 +410,6 @@
 
 <div class="page">
 
-  <a class="hub-link" href="https://hermanhomeapps.github.io/">&larr; HermanHomeApps</a>
-
   <div class="welcome-bar">
     <h1>🕯️ Shabbos Chores Tickets</h1>
     <div style="display:flex; align-items:center; gap:10px;">
@@ -506,6 +509,7 @@
     <div id="profileHeader" class="profile-header">
       <div class="profile-emoji" id="profileEmoji"></div>
       <div class="profile-name" id="profileName"></div>
+      <div class="profile-quote" id="profileQuote" style="display:none;"></div>
       <div class="profile-points" id="profilePoints"></div>
       <div class="profile-points-label">POINTS</div>
     </div>
@@ -2369,9 +2373,6 @@
   // ===== KID PROFILE MODAL =====
   const profileOverlay = document.getElementById('profileOverlay');
   document.getElementById('profileClose').onclick = () => flipModalClose(profileOverlay);
-  profileOverlay.addEventListener('click', (e) => {
-    if (e.target === profileOverlay) flipModalClose(profileOverlay);
-  });
 
   function openKidProfileModal(kidId, originEl) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
@@ -2383,6 +2384,13 @@
       : `linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black))`;
     document.getElementById('profileEmoji').textContent = getKidEmoji(kidId);
     document.getElementById('profileName').textContent = kid.name;
+    const quoteEl = document.getElementById('profileQuote');
+    if (kid.kid_quote) {
+      quoteEl.textContent = kid.kid_quote;
+      quoteEl.style.display = 'block';
+    } else {
+      quoteEl.style.display = 'none';
+    }
     document.getElementById('profilePoints').textContent = kid.current_points || 0;
 
     const assigned = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
@@ -2406,6 +2414,7 @@
       : '<div class="empty-note">No history yet.</div>';
 
     profileOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
     flipModalOpen(profileOverlay.querySelector('.modal'), originEl);
   }
 
@@ -2413,21 +2422,31 @@
 
   function flipModalOpen(modalEl, originEl) {
     if (!originEl) { lastModalOriginRect = null; return; }
-    const originRect = originEl.getBoundingClientRect();
-    lastModalOriginRect = originRect;
-    const modalRect = modalEl.getBoundingClientRect();
-    const dx = (originRect.left + originRect.width / 2) - (modalRect.left + modalRect.width / 2);
-    const dy = (originRect.top + originRect.height / 2) - (modalRect.top + modalRect.height / 2);
-    const sx = Math.max(0.15, originRect.width / modalRect.width);
-    const sy = Math.max(0.15, originRect.height / modalRect.height);
-    modalEl.style.transition = 'none';
-    modalEl.style.opacity = '0.5';
-    modalEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-    // force reflow so the browser registers the starting state before animating
-    modalEl.offsetHeight;
-    modalEl.style.transition = 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease';
-    modalEl.style.transform = 'translate(0, 0) scale(1, 1)';
-    modalEl.style.opacity = '1';
+    // Wait one frame so iOS Safari's viewport (address bar collapse, etc.)
+    // has settled before we measure — measuring immediately can capture a
+    // rect that's about to shift, leaving the modal slightly off-center.
+    requestAnimationFrame(() => {
+      const originRect = originEl.getBoundingClientRect();
+      lastModalOriginRect = originRect;
+      const modalRect = modalEl.getBoundingClientRect();
+      const dx = (originRect.left + originRect.width / 2) - (modalRect.left + modalRect.width / 2);
+      const dy = (originRect.top + originRect.height / 2) - (modalRect.top + modalRect.height / 2);
+      const sx = Math.max(0.15, originRect.width / modalRect.width);
+      const sy = Math.max(0.15, originRect.height / modalRect.height);
+      modalEl.style.transition = 'none';
+      modalEl.style.opacity = '0.5';
+      modalEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+      // force reflow so the browser registers the starting state before animating
+      modalEl.offsetHeight;
+      modalEl.style.transition = 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease';
+      modalEl.style.transform = 'translate(0, 0) scale(1, 1)';
+      modalEl.style.opacity = '1';
+      setTimeout(() => {
+        modalEl.style.transition = '';
+        modalEl.style.transform = '';
+        modalEl.style.opacity = '';
+      }, 460);
+    });
   }
 
   function flipModalClose(overlayEl) {
@@ -2446,6 +2465,7 @@
         overlayEl.classList.remove('open');
         modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
         lastModalOriginRect = null;
+        document.body.style.overflow = '';
       }, 350);
     } else {
       modalEl.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
@@ -2454,6 +2474,7 @@
       setTimeout(() => {
         overlayEl.classList.remove('open');
         modalEl.style.transition = ''; modalEl.style.transform = ''; modalEl.style.opacity = '';
+        document.body.style.overflow = '';
       }, 180);
     }
   }
@@ -2479,7 +2500,21 @@
     applyModeVisibility();
   }
   init();
+
+  // ===== UNIVERSAL CLICK-OUTSIDE-CLOSES FOR EVERY MODAL =====
+  // Covers every .overlay in the app in one place — any new modal added
+  // later gets this for free, nothing to wire up per-modal.
+  document.querySelectorAll('.overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target !== overlay) return; // only the backdrop itself, not something inside the modal
+      if (overlay === profileOverlay) {
+        flipModalClose(profileOverlay);
+      } else {
+        overlay.classList.remove('open');
+      }
+    });
+  });
 </script>
-  <script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
+<script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
 </body>
 </html>
