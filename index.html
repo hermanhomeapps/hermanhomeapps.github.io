@@ -278,53 +278,37 @@
 
 <script>
   /*
-    APP CONFIG
-    ----------
-    This array is only for apps you're adding by hand — typically INTEGRATED
-    apps, since those need real backend work before they're ready to link.
+    APP LIST
+    --------
+    Integrated apps now live in ONE shared place: shared/apps.json, at the
+    root of this repo. Add a new app there (name, path, icon, statusUrl,
+    color) and it shows up here AND in the navigation dock on every app's
+    page automatically — nothing to edit in this file for that anymore.
 
-    External apps no longer need to be added here manually: once someone
+    This hub-only array is just for genuinely one-off manual additions
+    (rare) — most of the time you want shared/apps.json instead.
+
+    External apps still don't need to be added here manually: once someone
     finishes the New App wizard for an external app and clicks "Send to
     developer," it's automatically registered in the External Apps Registry
-    Sheet and will show up on this hub on the next page load — nothing to
-    paste in.
-
-    Shape for an INTEGRATED app (lives at a sub-path of this same site,
-    has a lightweight status endpoint from its Apps Script doGet):
-      {
-        name: "Laundry",
-        type: "integrated",
-        path: "/laundry/",
-        icon: "🧺",
-        statusUrl: "https://script.google.com/macros/s/XXXXXXXX/exec?action=status",
-        color: "var(--mint)"
-      }
-
-    Shape for a manually-added EXTERNAL app (rarely needed now — the wizard
-    handles this automatically, but this is here as a fallback):
-      {
-        name: "Health Tracker",
-        type: "external",
-        url: "https://example.com",
-        icon: "❤️",
-        color: "var(--coral)"
-      }
+    Sheet and shows up on next page load.
   */
-  const APPS = [
-    {
-      name: "Shabbos Chores & Points Lists",
-      type: "integrated",
-      path: "/shabbos-chores-points-lists-new/",
-      icon: "🕯️",
-      statusUrl: "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec?status=1",
-      color: "var(--sunflower)"
-    }
-  ];
+  const APPS = [];
 
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23/exec";
 
   const PALETTE = ['var(--coral)', 'var(--sunflower)', 'var(--mint)', 'var(--sky)', 'var(--grape)'];
   const ROTATIONS = [-3, 2, -2, 3, -1.5, 1.5];
+
+  async function fetchIntegratedApps() {
+    try {
+      const res = await fetch('https://hermanhomeapps.github.io/shared/apps.json');
+      const apps = await res.json();
+      return apps.map(a => ({ ...a, type: 'integrated' }));
+    } catch (err) {
+      return [];
+    }
+  }
 
   async function fetchRegisteredExternalApps() {
     try {
@@ -362,21 +346,20 @@
     return shabbosKidsCache;
   }
 
-  // Same fan-out math as the "Ardra" folder reference — spreads items across
-  // an upper semicircle above the trigger.
+  // Full 360° spread starting at the top, going clockwise — a fuller ring
+  // than the Ardra reference's upper-semicircle, since 8 kids need more room.
   function circularPositions(count, radius) {
     return Array.from({ length: count }, (_, i) => {
-      const startAngle = Math.PI / count;
-      const angle = startAngle / 2 + startAngle * i;
+      const angle = (2 * Math.PI * i) / count - Math.PI / 2;
       return {
         x: Math.round(radius * Math.cos(angle)),
-        y: Math.round(-radius * Math.sin(angle))
+        y: Math.round(radius * Math.sin(angle))
       };
     });
   }
 
   function attachKidPreviewBubbles(card, kids) {
-    const positions = circularPositions(kids.length, 104);
+    const positions = circularPositions(kids.length, 148);
     kids.forEach((kid, i) => {
       const bubble = document.createElement('div');
       bubble.className = 'kid-preview-bubble';
@@ -461,8 +444,11 @@
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
 
-    const dynamicExternalApps = await fetchRegisteredExternalApps();
-    const allApps = [...APPS, ...dynamicExternalApps];
+    const [integratedApps, dynamicExternalApps] = await Promise.all([
+      fetchIntegratedApps(),
+      fetchRegisteredExternalApps()
+    ]);
+    const allApps = [...APPS, ...integratedApps, ...dynamicExternalApps];
 
     if (allApps.length === 0) {
       const empty = document.createElement('div');
