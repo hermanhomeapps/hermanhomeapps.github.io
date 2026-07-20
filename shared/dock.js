@@ -6,13 +6,11 @@
 
     <script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
 
-  That's it — no HTML or CSS to copy into the app itself. This script
-  injects its own <style> tag and builds the floating dock at runtime.
-
-  To add a new app icon later, add one entry to the APP_ITEMS array below —
-  it will always land between Home and New App automatically. Every app
-  that includes the script tag above picks up the change on their next
-  page load — nothing to touch in the individual app files.
+  That's it — no HTML or CSS to copy into the app itself, and nothing to
+  add here either when a new app is built. This script fetches the app
+  list from shared/apps.json at runtime — the SAME file the homepage
+  reads to build its tiles. Add a new app there once, and both the
+  homepage and every page's dock update automatically.
 
   Colors are hardcoded here on purpose (not using var(--ink) etc.) so this
   works correctly even in an app that doesn't define the usual house CSS
@@ -38,9 +36,11 @@
 
   var HUB_URL = 'https://hermanhomeapps.github.io/';
   var NEW_APP_URL = 'https://hermanhomeapps.github.io/new-app/index.html';
+  var APPS_JSON_URL = 'https://hermanhomeapps.github.io/shared/apps.json';
 
-  // Home always renders first, New App always renders last — that's
-  // enforced below in DOCK_ITEMS, not just by convention here.
+  // Home always renders first, New App always renders last — enforced
+  // structurally below (apps from apps.json are always inserted between
+  // these two, however many there are).
   var HOME_ITEM = {
     href: HUB_URL,
     label: 'Home',
@@ -52,28 +52,25 @@
     svg: '<path d="M12 5v14M5 12h14"/>'
   };
 
-  // Add each integrated app here as it's built — order here is the order
-  // they'll appear in, always sandwiched between Home and New App.
-  // Use either `svg` (icon path content, viewBox 0 0 24 24) or `emoji`
-  // (a single character) — not both.
-  var APP_ITEMS = [
-    {
-      href: 'https://hermanhomeapps.github.io/shabbos-chores-points-lists-new/',
-      label: 'Shabbos Chores',
-      emoji: '🕯️'
-    }
-  ];
+  function loadAppItems() {
+    return fetch(APPS_JSON_URL)
+      .then(function (res) { return res.json(); })
+      .then(function (apps) {
+        return apps.map(function (app) {
+          return { href: HUB_URL.replace(/\/$/, '') + app.path, label: app.name, emoji: app.icon };
+        });
+      })
+      .catch(function () { return []; });
+  }
 
-  var DOCK_ITEMS = [HOME_ITEM].concat(APP_ITEMS, [NEW_APP_ITEM]);
-
-  function buildDock() {
+  function buildDock(dockItems) {
     var wrap = document.createElement('div');
     wrap.className = 'hha-dock-wrap';
 
     var dock = document.createElement('div');
     dock.className = 'hha-dock';
 
-    DOCK_ITEMS.forEach(function (item) {
+    dockItems.forEach(function (item) {
       var a = document.createElement('a');
       a.className = 'hha-dock-btn';
       a.href = item.href;
@@ -93,7 +90,11 @@
     var styleEl = document.createElement('style');
     styleEl.textContent = DOCK_CSS;
     document.head.appendChild(styleEl);
-    document.body.appendChild(buildDock());
+
+    loadAppItems().then(function (appItems) {
+      var dockItems = [HOME_ITEM].concat(appItems, [NEW_APP_ITEM]);
+      document.body.appendChild(buildDock(dockItems));
+    });
   }
 
   if (document.readyState === 'loading') {
