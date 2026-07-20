@@ -21,9 +21,9 @@
     --card-shadow: rgba(38, 40, 63, 0.18);
     --paper: #FFFFFF;
   }
- 
+
   * { box-sizing: border-box; }
- 
+
   body {
     margin: 0;
     min-height: 100vh;
@@ -35,17 +35,17 @@
     color: var(--ink);
     padding: 48px 24px 80px;
   }
- 
+
   .wrap {
     max-width: 980px;
     margin: 0 auto;
   }
- 
+
   header {
     text-align: center;
     margin-bottom: 56px;
   }
- 
+
   .wordmark {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
@@ -54,33 +54,33 @@
     letter-spacing: -0.01em;
     line-height: 1;
   }
- 
+
   .wordmark span:nth-child(1) { color: var(--coral); }
   .wordmark span:nth-child(2) { color: var(--sunflower); }
   .wordmark span:nth-child(3) { color: var(--mint); }
   .wordmark span:nth-child(4) { color: var(--sky); }
   .wordmark span:nth-child(5) { color: var(--grape); }
- 
+
   .tagline {
     font-size: 1.05rem;
     color: var(--ink-soft);
     margin-top: 14px;
     font-weight: 500;
   }
- 
+
   .doodle {
     width: 120px;
     margin: 0 auto 8px;
     display: block;
   }
- 
+
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 28px 24px;
     padding: 8px 0;
   }
- 
+
   .card {
     --rot: 0deg;
     position: relative;
@@ -99,18 +99,19 @@
     transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease;
     border-top: 6px solid var(--color, var(--sky));
   }
- 
+
   .card:hover, .card:focus-visible {
     transform: rotate(0deg) translateY(-6px) scale(1.03);
     box-shadow: 0 16px 28px var(--card-shadow);
     outline: none;
+    z-index: 60;
   }
- 
+
   .card:focus-visible {
     outline: 3px solid var(--ink);
     outline-offset: 3px;
   }
- 
+
   .card-pin {
     position: absolute;
     top: -9px;
@@ -122,18 +123,18 @@
     background: var(--color, var(--sky));
     box-shadow: 0 2px 4px var(--card-shadow);
   }
- 
+
   .card-icon {
     font-size: 2.4rem;
     line-height: 1;
   }
- 
+
   .card-name {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 700;
     font-size: 1.15rem;
   }
- 
+
   .status-pill {
     font-size: 0.8rem;
     font-weight: 600;
@@ -142,9 +143,9 @@
     background: var(--bg-deep);
     color: var(--ink-soft);
   }
- 
+
   .status-pill.is-loading { opacity: 0.5; }
- 
+
   .external-badge {
     font-size: 0.72rem;
     font-weight: 600;
@@ -152,7 +153,56 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
- 
+
+  .kid-preview-bubble {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease;
+    z-index: 5;
+  }
+  .card:hover .kid-preview-bubble {
+    transform: translate(calc(-50% + var(--kx, 0px)), calc(-50% + var(--ky, 0px))) scale(1);
+    opacity: 1;
+  }
+  .kid-preview-photo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background-color: var(--sky);
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  }
+  .kid-preview-name {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fff;
+    padding: 1px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .kid-preview-pts {
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--coral);
+    padding: 1px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
   .card.add-new {
     background: transparent;
     border: 2px dashed #B9C4E0;
@@ -160,49 +210,49 @@
     justify-content: center;
     cursor: pointer;
   }
- 
+
   .card.add-new:hover, .card.add-new:focus-visible {
     border-color: var(--ink-soft);
     box-shadow: none;
   }
- 
+
   .card.add-new .card-icon { color: var(--ink-soft); }
- 
+
   .empty-state {
     grid-column: 1 / -1;
     text-align: center;
     padding: 20px 16px 12px;
     color: var(--ink-soft);
   }
- 
+
   .empty-state .emoji {
     font-size: 2.2rem;
     display: block;
     margin-bottom: 10px;
     animation: sway 3.5s ease-in-out infinite;
   }
- 
+
   @keyframes sway {
     0%, 100% { transform: rotate(-4deg); }
     50% { transform: rotate(4deg); }
   }
- 
+
   .empty-state p {
     max-width: 380px;
     margin: 0 auto;
     font-size: 0.98rem;
     line-height: 1.5;
   }
- 
+
   footer {
     text-align: center;
     margin-top: 64px;
     font-size: 0.82rem;
     color: var(--ink-soft);
   }
- 
+
   @media (prefers-reduced-motion: reduce) {
-    .card, .empty-state .emoji { transition: none; animation: none; }
+    .card, .empty-state .emoji, .kid-preview-bubble { transition: none; animation: none; }
   }
 </style>
 </head>
@@ -220,25 +270,25 @@
       </h1>
       <p class="tagline">the family's corner of the internet</p>
     </header>
- 
+
     <main class="grid" id="grid" aria-live="polite"></main>
- 
+
     <footer>Built by the Herman family &middot; hosted on GitHub Pages</footer>
   </div>
- 
+
 <script>
   /*
     APP CONFIG
     ----------
     This array is only for apps you're adding by hand — typically INTEGRATED
     apps, since those need real backend work before they're ready to link.
- 
+
     External apps no longer need to be added here manually: once someone
     finishes the New App wizard for an external app and clicks "Send to
     developer," it's automatically registered in the External Apps Registry
     Sheet and will show up on this hub on the next page load — nothing to
     paste in.
- 
+
     Shape for an INTEGRATED app (lives at a sub-path of this same site,
     has a lightweight status endpoint from its Apps Script doGet):
       {
@@ -249,7 +299,7 @@
         statusUrl: "https://script.google.com/macros/s/XXXXXXXX/exec?action=status",
         color: "var(--mint)"
       }
- 
+
     Shape for a manually-added EXTERNAL app (rarely needed now — the wizard
     handles this automatically, but this is here as a fallback):
       {
@@ -260,23 +310,22 @@
         color: "var(--coral)"
       }
   */
-
   const APPS = [
-  {
-    name: "Shabbos Chores & Points Lists",
-    type: "integrated",
-    path: "/shabbos-chores-points-lists-new/",
-    icon: "🕯️",
-    statusUrl: "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec?status=1",
-    color: "var(--sunflower)"
-  }
-];
- 
+    {
+      name: "Shabbos Chores & Points Lists",
+      type: "integrated",
+      path: "/shabbos-chores-points-lists-new/",
+      icon: "🕯️",
+      statusUrl: "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec?status=1",
+      color: "var(--sunflower)"
+    }
+  ];
+
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23/exec";
- 
+
   const PALETTE = ['var(--coral)', 'var(--sunflower)', 'var(--mint)', 'var(--sky)', 'var(--grape)'];
   const ROTATIONS = [-3, 2, -2, 3, -1.5, 1.5];
- 
+
   async function fetchRegisteredExternalApps() {
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=listApps`);
@@ -286,7 +335,7 @@
       return [];
     }
   }
- 
+
   async function fetchStatus(url) {
     try {
       const res = await fetch(url);
@@ -296,12 +345,61 @@
       return '—';
     }
   }
- 
+
+  const SHABBOS_CARD_PATH = '/shabbos-chores-points-lists-new/';
+  let shabbosKidsCache = null;
+
+  async function fetchShabbosKids(app) {
+    if (shabbosKidsCache) return shabbosKidsCache;
+    try {
+      const base = (app.statusUrl || '').split('?')[0];
+      const res = await fetch(`${base}?sheet=kids`);
+      const data = await res.json();
+      shabbosKidsCache = Array.isArray(data) ? data : [];
+    } catch (err) {
+      shabbosKidsCache = [];
+    }
+    return shabbosKidsCache;
+  }
+
+  // Same fan-out math as the "Ardra" folder reference — spreads items across
+  // an upper semicircle above the trigger.
+  function circularPositions(count, radius) {
+    return Array.from({ length: count }, (_, i) => {
+      const startAngle = Math.PI / count;
+      const angle = startAngle / 2 + startAngle * i;
+      return {
+        x: Math.round(radius * Math.cos(angle)),
+        y: Math.round(-radius * Math.sin(angle))
+      };
+    });
+  }
+
+  function attachKidPreviewBubbles(card, kids) {
+    const positions = circularPositions(kids.length, 104);
+    kids.forEach((kid, i) => {
+      const bubble = document.createElement('div');
+      bubble.className = 'kid-preview-bubble';
+      bubble.style.setProperty('--kx', positions[i].x + 'px');
+      bubble.style.setProperty('--ky', positions[i].y + 'px');
+      bubble.style.transitionDelay = (i * 0.03) + 's';
+      const photoStyle = kid.kid_photo
+        ? `background-image:url('${kid.kid_photo}');`
+        : `background-image: linear-gradient(150deg, var(--sky), var(--grape));`;
+      bubble.innerHTML = `
+        <span class="kid-preview-name">${kid.name || ''}</span>
+        <div class="kid-preview-photo" style="${photoStyle}"></div>
+        <span class="kid-preview-pts">${kid.current_points || 0} pts</span>
+      `;
+      card.appendChild(bubble);
+    });
+  }
+
   function makeCard(app, index) {
     const color = app.color || PALETTE[index % PALETTE.length];
     const rot = ROTATIONS[index % ROTATIONS.length];
     const href = app.type === 'integrated' ? app.path : app.url;
- 
+
     const card = document.createElement('a');
     card.className = 'card';
     card.href = href;
@@ -311,21 +409,21 @@
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
     }
- 
+
     const pin = document.createElement('span');
     pin.className = 'card-pin';
     card.appendChild(pin);
- 
+
     const icon = document.createElement('span');
     icon.className = 'card-icon';
     icon.textContent = app.icon || '✨';
     card.appendChild(icon);
- 
+
     const name = document.createElement('span');
     name.className = 'card-name';
     name.textContent = app.name;
     card.appendChild(name);
- 
+
     if (app.type === 'integrated' && app.statusUrl) {
       const pill = document.createElement('span');
       pill.className = 'status-pill is-loading';
@@ -341,10 +439,16 @@
       badge.textContent = 'opens elsewhere';
       card.appendChild(badge);
     }
- 
+
+    if (app.type === 'integrated' && app.path === SHABBOS_CARD_PATH) {
+      fetchShabbosKids(app).then(kids => {
+        if (kids && kids.length) attachKidPreviewBubbles(card, kids);
+      });
+    }
+
     return card;
   }
- 
+
   function makeAddNewCard() {
     const card = document.createElement('a');
     card.className = 'card add-new';
@@ -352,14 +456,14 @@
     card.innerHTML = '<span class="card-icon">＋</span><span class="card-name">New App</span>';
     return card;
   }
- 
+
   async function render() {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
- 
+
     const dynamicExternalApps = await fetchRegisteredExternalApps();
     const allApps = [...APPS, ...dynamicExternalApps];
- 
+
     if (allApps.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty-state';
@@ -368,10 +472,10 @@
     } else {
       allApps.forEach((app, i) => grid.appendChild(makeCard(app, i)));
     }
- 
+
     grid.appendChild(makeAddNewCard());
   }
- 
+
   render();
 </script>
 </body>
