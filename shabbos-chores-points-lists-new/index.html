@@ -705,6 +705,7 @@
     <button class="close-x" id="choreDetailClose">&times;</button>
     <h2 id="choreDetailTitle"></h2>
     <div class="chore-detail-points" id="choreDetailPoints"></div>
+    <div id="choreDetailAssignee" style="margin-bottom:10px; display:none;"></div>
     <div class="chore-detail-desc" id="choreDetailDesc"></div>
     <div class="chore-detail-actions" id="choreDetailActions"></div>
   </div>
@@ -1618,7 +1619,12 @@
   }
 
   async function adjustPoints(kidId, kidName, sign, rawAmount) {
-    const amount = Math.max(1, Math.floor(Number(rawAmount)) || 1);
+    const trimmed = String(rawAmount || '').trim();
+    const amount = trimmed === '' ? 0 : Math.max(0, Math.floor(Number(trimmed)) || 0);
+    if (amount === 0) {
+      showToast(`Add a number to add or remove from ${kidName}`);
+      return;
+    }
     const kid = appData.kids.find(k => k.kid_id === kidId);
     if (!kid) return;
     const delta = sign * amount;
@@ -1923,6 +1929,16 @@
     const actions = document.getElementById('choreDetailActions');
     const isAssignedChore = chore.status === 'assigned';
     const isCompletedChore = chore.status === 'completed';
+    const assigneeEl = document.getElementById('choreDetailAssignee');
+    if (isAssignedChore || isCompletedChore) {
+      const kid = appData.kids.find(k => k.kid_id === chore.assigned_kid_id);
+      assigneeEl.innerHTML = kid
+        ? `<span class="chore-assignee-tag" style="background:${getKidColor(kid.kid_id)};">${kid.name}</span>`
+        : `<span class="chore-assignee-tag unassigned">Unknown kid</span>`;
+      assigneeEl.style.display = 'block';
+    } else {
+      assigneeEl.style.display = 'none';
+    }
     const repeatable = isRepeatable(chore);
     const consistent = isConsistent(chore);
     const timesCount = Number(chore.times_completed) || 0;
