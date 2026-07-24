@@ -496,6 +496,15 @@
     opacity: 1; transform: translateX(-50%) translateY(0) scale(1);
   }
 
+  .chore-filter-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .chore-filter-tab {
+    background: var(--bg); border: 1px solid rgba(38,40,63,0.12); color: var(--ink-soft);
+    padding: 6px 12px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .chore-filter-tab:hover { border-color: var(--sky); }
+  .chore-filter-tab.active { background: var(--sky); border-color: var(--sky); color: #fff; }
+  .chore-loaded-check { color: var(--mint); font-weight: 700; }
   .unassigned-search {
     width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(38,40,63,0.15);
     background: var(--bg); color: var(--ink); font-size: 0.9rem; font-family: 'Inter', sans-serif;
@@ -733,7 +742,10 @@
         <button class="points-adjust-btn minus" id="profileSubPointsBtn" title="Deduct points">&minus;</button>
       </div>
     </div>
-    <div class="profile-section-label">Assigned Chores</div>
+    <div class="profile-section-label chores-header-row" style="margin-bottom:8px;">
+      <span>Assigned Chores</span>
+      <button class="drawer-view-toggle" id="profileCompleteAllBtn" style="display:none;">Complete All</button>
+    </div>
     <div id="profileAssigned"></div>
     <div class="profile-section-label">Completed Chores</div>
     <div id="profileCompleted"></div>
@@ -758,8 +770,17 @@
         <h2>Chores</h2>
         <button class="drawer-view-toggle" id="showListsViewBtn">📁 Organize Lists</button>
       </div>
-      <input type="text" id="unassignedSearchInput" class="unassigned-search" placeholder="Search chores...">
-      <button class="btn-primary" style="width:100%; margin:12px 0 14px;" id="addChoreBtn">+ Add New Chore</button>
+      <div class="chore-filter-tabs" id="choreFilterTabs">
+        <button type="button" class="chore-filter-tab active" data-filter="all">All</button>
+        <button type="button" class="chore-filter-tab" data-filter="notlisted">Not Listed</button>
+        <button type="button" class="chore-filter-tab" data-filter="unassigned">Unassigned</button>
+        <button type="button" class="chore-filter-tab" data-filter="assigned">Assigned</button>
+      </div>
+      <input type="text" id="unassignedSearchInput" class="unassigned-search" placeholder="Search chores..." data-no-onscreen-kb="1">
+      <div style="display:flex; gap:8px; margin:12px 0 14px;">
+        <button class="btn-primary" style="flex:1;" id="addChoreBtn">+ Add New Chore</button>
+        <button class="btn-outline" style="flex:1;" id="unloadAllBtn">Unload All</button>
+      </div>
       <div id="unassignedList"></div>
     </div>
     <div id="choresListsView" style="display:none;">
@@ -767,7 +788,7 @@
         <h2>Chore Lists</h2>
         <button class="drawer-view-toggle" id="showChoresViewBtn">&larr; Back to Chores</button>
       </div>
-      <input type="text" id="listsSearchInput" class="unassigned-search" placeholder="Search lists..." style="margin-bottom:12px;">
+      <input type="text" id="listsSearchInput" class="unassigned-search" placeholder="Search lists..." style="margin-bottom:12px;" data-no-onscreen-kb="1">
       <button class="btn-primary" style="width:100%; margin-bottom:14px;" id="newListBtn">+ New List</button>
       <div id="listGrid" class="list-grid"></div>
     </div>
@@ -776,7 +797,11 @@
 
 <div class="side-drawer" id="publicUnassignedDrawer">
   <div class="side-drawer-content">
-    <div class="side-drawer-header"><h2>Unassigned Chores</h2></div>
+    <div class="side-drawer-header"><h2>Chores</h2></div>
+    <div class="chore-filter-tabs">
+      <button type="button" class="chore-filter-tab active" id="showPublicUnassignedBtn">Unassigned</button>
+      <button type="button" class="chore-filter-tab" id="showPublicLoadedBtn">This Week's Loaded</button>
+    </div>
     <div id="publicUnassignedList"></div>
   </div>
 </div>
@@ -1074,6 +1099,7 @@
   let activeManageListId = null;
   let editingChoreId = null;
   let pendingRequestContext = null;
+  let pendingIncompleteContext = null;
 
   const pinOverlay = document.getElementById('pinOverlay');
   const pinInput = document.getElementById('pinInput');
@@ -1143,9 +1169,13 @@
     const puDrawer = document.getElementById('publicUnassignedDrawer');
     uDrawer.style.display = isMommyMode ? '' : 'none';
     puDrawer.style.display = isMommyMode ? 'none' : '';
-    document.getElementById('unassignedFabTooltip').textContent = isMommyMode ? 'Chores' : 'Unassigned Chores';
+    document.getElementById('unassignedFabTooltip').textContent = 'Chores';
     if (!isMommyMode) { uDrawer.classList.remove('open'); showChoresView(); }
     if (isMommyMode) puDrawer.classList.remove('open');
+    else {
+      publicChoreView = 'unassigned';
+      document.querySelectorAll('#publicUnassignedDrawer .chore-filter-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    }
     syncDrawerFabIcons();
 
     renderProgressBar();
@@ -1234,12 +1264,48 @@
     });
   }
 
+  let publicChoreView = 'unassigned';
+
   function renderPublicUnassignedList() {
     const list = document.getElementById('publicUnassignedList');
     const unassigned = appData.chores.filter(c => c.status === 'unassigned');
     const claimingOn = isClaimingEnabled();
     updateUnassignedFabBadge(unassigned.length);
     list.innerHTML = '';
+
+    if (publicChoreView === 'loaded') {
+      const loaded = appData.chores.filter(c => ['unassigned', 'assigned', 'completed'].includes(c.status));
+      if (loaded.length === 0) {
+        list.innerHTML = '<div class="empty-note">Nothing loaded for this week yet.</div>';
+        return;
+      }
+      loaded.forEach(chore => {
+        const assignedKid = chore.status !== 'unassigned' ? appData.kids.find(k => k.kid_id === chore.assigned_kid_id) : null;
+        const doneMark = chore.status === 'completed' ? ` <span class="chore-loaded-check">&#10003;</span>` : '';
+        const tagHtml = chore.status === 'unassigned'
+          ? `<span class="chore-assignee-tag unassigned">Unassigned</span>`
+          : (assignedKid ? `<span class="chore-assignee-tag" style="background:${getKidColor(assignedKid.kid_id)};">${assignedKid.name}</span>${doneMark}` : '');
+        const card = document.createElement('div');
+        card.className = 'chore-card';
+        card.innerHTML = `
+          <div class="chore-card-info">
+            <div class="chore-title-row">
+              <div class="chore-name">${chore.name}</div>
+              <div class="chore-points">${chore.points} pts</div>
+            </div>
+            <div class="chore-desc">${chore.description || ''}</div>
+            ${tagHtml}
+          </div>
+          <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+            <button class="btn-small" style="width:auto;" data-action="view">View</button>
+          </div>
+        `;
+        card.addEventListener('click', () => openChoreDetailModal(chore));
+        list.appendChild(card);
+      });
+      return;
+    }
+
     if (!claimingOn) {
       list.innerHTML = '<div class="empty-note">🔒 Claiming is locked — tap a chore to request Mommy\'s approval.</div>';
     }
@@ -1267,12 +1333,32 @@
     });
   }
 
+  document.getElementById('showPublicUnassignedBtn').onclick = (e) => {
+    publicChoreView = 'unassigned';
+    document.querySelectorAll('#publicUnassignedDrawer .chore-filter-tab').forEach(t => t.classList.toggle('active', t === e.currentTarget));
+    renderPublicUnassignedList();
+  };
+  document.getElementById('showPublicLoadedBtn').onclick = (e) => {
+    publicChoreView = 'loaded';
+    document.querySelectorAll('#publicUnassignedDrawer .chore-filter-tab').forEach(t => t.classList.toggle('active', t === e.currentTarget));
+    renderPublicUnassignedList();
+  };
+
+  let choreFilterMode = 'all';
+
   function renderUnassignedChores() {
     const list = document.getElementById('unassignedList');
     const searchVal = (document.getElementById('unassignedSearchInput').value || '').trim().toLowerCase();
     const unassignedOnly = appData.chores.filter(c => c.status === 'unassigned');
     updateUnassignedFabBadge(unassignedOnly.length);
-    let allChores = appData.chores.filter(c => c.status === 'unassigned' || c.status === 'assigned');
+
+    // "All" = the whole active chore pool (loaded or not) — everything
+    // except chore-list templates, which are managed from Organize Lists.
+    let allChores = appData.chores.filter(c => ['unloaded', 'unassigned', 'assigned', 'completed'].includes(c.status));
+    if (choreFilterMode === 'notlisted') allChores = allChores.filter(c => !c.list_id);
+    else if (choreFilterMode === 'unassigned') allChores = allChores.filter(c => c.status === 'unassigned');
+    else if (choreFilterMode === 'assigned') allChores = allChores.filter(c => c.status === 'assigned' || c.status === 'completed');
+
     if (searchVal) {
       allChores = allChores.filter(c =>
         c.name.toLowerCase().includes(searchVal) ||
@@ -1281,7 +1367,7 @@
     }
     list.innerHTML = '';
     if (allChores.length === 0) {
-      list.innerHTML = `<div class="empty-note">${searchVal ? 'No matches.' : "No chores yet — add one to get started."}</div>`;
+      list.innerHTML = `<div class="empty-note">${searchVal ? 'No matches.' : "Nothing here yet."}</div>`;
       return;
     }
 
@@ -1308,11 +1394,38 @@
     });
   }
 
+  document.getElementById('choreFilterTabs').querySelectorAll('.chore-filter-tab').forEach(tab => {
+    tab.onclick = () => {
+      choreFilterMode = tab.dataset.filter;
+      document.getElementById('choreFilterTabs').querySelectorAll('.chore-filter-tab').forEach(t => t.classList.toggle('active', t === tab));
+      renderUnassignedChores();
+    };
+  });
+
+  document.getElementById('unloadAllBtn').onclick = unloadAllChores;
+
   function renderSingleChoreCard(list, chore) {
-    const assignedKid = chore.status === 'assigned' ? appData.kids.find(k => k.kid_id === chore.assigned_kid_id) : null;
-    const tagHtml = assignedKid
-      ? `<span class="chore-assignee-tag" style="background:${getKidColor(assignedKid.kid_id)};">${assignedKid.name}</span>`
-      : `<span class="chore-assignee-tag unassigned">Unassigned</span>`;
+    let tagHtml;
+    if (chore.status === 'unloaded') {
+      tagHtml = `<span class="chore-assignee-tag unassigned">Unloaded</span>`;
+    } else if (chore.status === 'unassigned') {
+      tagHtml = `<span class="chore-assignee-tag unassigned">Unassigned</span>`;
+    } else {
+      const assignedKid = appData.kids.find(k => k.kid_id === chore.assigned_kid_id);
+      const doneMark = chore.status === 'completed' ? ` <span class="chore-loaded-check">&#10003;</span>` : '';
+      tagHtml = assignedKid
+        ? `<span class="chore-assignee-tag" style="background:${getKidColor(assignedKid.kid_id)};">${assignedKid.name}</span>${doneMark}`
+        : `<span class="chore-assignee-tag unassigned">Unknown kid</span>${doneMark}`;
+    }
+
+    let extraBtn = '';
+    if (chore.status === 'unloaded') {
+      extraBtn = `<button class="btn-small" style="width:auto;" data-action="load">Load</button>`;
+    } else if (chore.status === 'unassigned') {
+      extraBtn = `<button class="btn-small" style="width:auto;" data-action="unload">Unload</button>`;
+    }
+    // Assigned/completed chores can't be unloaded — no extra button, just the View button.
+
     const card = document.createElement('div');
     card.className = 'chore-card';
     card.innerHTML = `
@@ -1324,10 +1437,15 @@
         <div class="chore-desc">${chore.description || ''}</div>
         ${tagHtml}
       </div>
-      <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+      <div class="chore-card-actions" style="grid-template-columns:${extraBtn ? '1fr 1fr' : '1fr'}; width:auto;">
         <button class="btn-small" style="width:auto;" data-action="view">View</button>
+        ${extraBtn}
       </div>
     `;
+    const loadBtn = card.querySelector('[data-action="load"]');
+    if (loadBtn) loadBtn.onclick = (e) => { e.stopPropagation(); loadChore(chore.chore_id, chore.name); };
+    const unloadBtn = card.querySelector('[data-action="unload"]');
+    if (unloadBtn) unloadBtn.onclick = (e) => { e.stopPropagation(); unloadChore(chore.chore_id, chore.name); };
     card.addEventListener('click', () => openChoreDetailModal(chore));
     list.appendChild(card);
   }
@@ -1448,7 +1566,7 @@
         <div class="list-card-count">${items.length} chore${items.length === 1 ? '' : 's'}</div>
         <div class="list-card-actions">
           <button class="btn-small" data-action="manage">Manage</button>
-          <button class="btn-small" data-action="addall">Add All</button>
+          <button class="btn-small" data-action="addall">Load List</button>
         </div>
       `;
       card.querySelector('[data-action="manage"]').onclick = () => openManageList(list.list_id);
@@ -1578,7 +1696,7 @@
   async function addListToUnassigned(listId, listName) {
     const items = appData.chores.filter(c => c.list_id === listId && c.status === 'template');
     if (items.length === 0) { showToast('This list is empty — add some chores to it first.'); return; }
-    showToast('Adding to Unassigned...');
+    showToast('Loading list...');
     const copies = items.map((c, i) => ({
       chore_id: 'c_' + Date.now() + '_' + i,
       name: c.name, points: c.points, description: c.description || '',
@@ -1588,7 +1706,7 @@
     }));
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: copies });
     await refreshAndRerender();
-    showToast(`${items.length} chore(s) from "${listName}" added to Unassigned!`);
+    showToast(`${items.length} chore(s) from "${listName}" loaded!`);
   }
 
   async function logPointsEvent(kidId, delta, note) {
@@ -1678,6 +1796,24 @@
     showToast(markComplete ? `+${pts} pts for ${kid.name}!` : `Points removed from ${kid.name}.`);
   }
 
+  async function completeAllAssigned(kidId, kidName) {
+    const toComplete = appData.chores.filter(c =>
+      c.assigned_kid_id === kidId && c.status === 'assigned' &&
+      !(isConsistent(c) && (Number(c.times_completed) || 0) >= 1)
+    );
+    if (toComplete.length === 0) { showToast('Nothing left to complete.'); return; }
+    showToast(`Completing all for ${kidName}...`);
+    for (const c of toComplete) {
+      if (isRepeatable(c) || isConsistent(c)) {
+        await logRepeatableCompletion(c.chore_id, kidId, 1);
+      } else {
+        await toggleChoreComplete(c.chore_id, kidId, true);
+      }
+    }
+    renderProfileModalContent(kidId);
+    showToast(`All chores completed for ${kidName}!`);
+  }
+
   async function unassignChore(choreId, choreName) {
     const chore = appData.chores.find(c => c.chore_id === choreId);
     if (!chore) return;
@@ -1686,6 +1822,39 @@
     await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
     await refreshAndRerender();
     showToast(`"${choreName}" moved back to Unassigned.`);
+  }
+
+  async function loadChore(choreId, choreName) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    if (!chore || chore.status !== 'unloaded') return;
+    showToast('Loading chore...');
+    const updated = Object.assign({}, chore, { status: 'unassigned' });
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
+    await refreshAndRerender();
+    showToast(`"${choreName}" loaded!`);
+  }
+
+  async function unloadChore(choreId, choreName) {
+    const chore = appData.chores.find(c => c.chore_id === choreId);
+    // Only unassigned chores can be unloaded — assigned/completed chores
+    // stay put, since pulling them out mid-task would lose track of them.
+    if (!chore || chore.status !== 'unassigned') return;
+    showToast('Unloading chore...');
+    const updated = Object.assign({}, chore, { status: 'unloaded' });
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: [updated] });
+    await refreshAndRerender();
+    showToast(`"${choreName}" unloaded.`);
+  }
+
+  async function unloadAllChores() {
+    const toUnload = appData.chores.filter(c => c.status === 'unassigned');
+    if (toUnload.length === 0) { showToast('Nothing unassigned to unload.'); return; }
+    if (!confirm(`Unload all ${toUnload.length} unassigned chore${toUnload.length === 1 ? '' : 's'}? They'll move out of the active pool but won't be deleted — you can reload them anytime.`)) return;
+    showToast('Unloading all chores...');
+    const updated = toUnload.map(c => Object.assign({}, c, { status: 'unloaded' }));
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: updated });
+    await refreshAndRerender();
+    showToast('All unassigned chores unloaded.');
   }
 
   async function deleteChore(choreId, choreName) {
@@ -1777,6 +1946,25 @@
     const { choreId, kidId } = pendingRequestContext;
     pendingRequestContext = null;
     await assignChore(choreId, kidId);
+  }
+
+  // Any kid can ask for a completed chore to be marked incomplete (e.g. they
+  // tapped Complete by mistake), but it only actually happens once Mommy's
+  // PIN confirms it — same "approve without fully logging in" pattern as
+  // claim requests.
+  function openIncompletePinRequest(choreId, kidId) {
+    pendingIncompleteContext = { choreId, kidId };
+    pinPurpose = 'incomplete';
+    pinInput.value = ''; pinError.textContent = '';
+    document.querySelector('#pinOverlay h2').textContent = "Ask Mommy to Approve";
+    pinOverlay.classList.add('open'); pinInput.focus();
+  }
+
+  async function approveIncomplete() {
+    if (!pendingIncompleteContext) return;
+    const { choreId, kidId } = pendingIncompleteContext;
+    pendingIncompleteContext = null;
+    await toggleChoreComplete(choreId, kidId, false);
   }
 
   function openPickChoreForKid(kidId, kidName) {
@@ -1929,6 +2117,7 @@
     const actions = document.getElementById('choreDetailActions');
     const isAssignedChore = chore.status === 'assigned';
     const isCompletedChore = chore.status === 'completed';
+    const isUnloadedChore = chore.status === 'unloaded';
     const assigneeEl = document.getElementById('choreDetailAssignee');
     if (isAssignedChore || isCompletedChore) {
       const kid = appData.kids.find(k => k.kid_id === chore.assigned_kid_id);
@@ -1971,7 +2160,12 @@
       } else if (isCompletedChore) {
         html += `<button class="btn-small" data-caction="incomplete">Mark Incomplete</button>`;
         wire.push(['incomplete', () => { choreDetailOverlay.classList.remove('open'); toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, false); }]);
+      } else if (isUnloadedChore) {
+        html += `<button class="btn-small" data-caction="load" style="grid-column:1 / -1;">Load Chore</button>`;
+        wire.push(['load', () => { choreDetailOverlay.classList.remove('open'); loadChore(chore.chore_id, chore.name); }]);
       } else {
+        html += `<button class="btn-small" data-caction="unload">Unload</button>`;
+        wire.push(['unload', () => { choreDetailOverlay.classList.remove('open'); unloadChore(chore.chore_id, chore.name); }]);
         html += `<button class="btn-small" data-caction="assign">Assign</button>`;
         wire.push(['assign', () => { choreDetailOverlay.classList.remove('open'); openPickKidForChore(chore.chore_id, chore.name); }]);
         html += `<button class="btn-small" data-caction="split">Split</button>`;
@@ -1979,7 +2173,10 @@
       }
       html += `<button class="mini-btn delete-btn" data-caction="delete">Delete</button>`;
       wire.push(['delete', () => { choreDetailOverlay.classList.remove('open'); deleteChore(chore.chore_id, chore.name); }]);
-    } else if (!isAssignedChore && !isCompletedChore) {
+    } else if (isCompletedChore) {
+      html += `<button class="btn-outline" style="border-color:var(--grape); color:var(--grape); grid-column:1 / -1;" data-caction="requestincomplete">Mark Incomplete</button>`;
+      wire.push(['requestincomplete', () => { choreDetailOverlay.classList.remove('open'); openIncompletePinRequest(chore.chore_id, chore.assigned_kid_id); }]);
+    } else if (!isAssignedChore && !isUnloadedChore) {
       if (isClaimingEnabled()) {
         html += `<button class="btn-primary" data-caction="claim" style="grid-column:1 / -1;">Claim</button>`;
         wire.push(['claim', () => { choreDetailOverlay.classList.remove('open'); openPickKidForChore(chore.chore_id, chore.name); }]);
@@ -2954,6 +3151,10 @@
 
     const assigned = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
     const completed = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'completed');
+    // Repeatable/consistent chores never move to status:'completed' — they
+    // stay assigned forever so they can be done again. But once they've been
+    // done at least once, that history should still show up here too.
+    const repeatDoneEntries = assigned.filter(c => (isRepeatable(c) || isConsistent(c)) && (Number(c.times_completed) || 0) > 0);
     const assignedEl = document.getElementById('profileAssigned');
     assignedEl.innerHTML = assigned.length
       ? assigned.map(c => {
@@ -2999,16 +3200,31 @@
       row.onclick = () => openChoreDetailModal(appData.chores.find(c => c.chore_id === row.dataset.chore));
     });
 
+    const completeAllBtn = document.getElementById('profileCompleteAllBtn');
+    const stillCompletable = assigned.filter(c => !(isConsistent(c) && (Number(c.times_completed) || 0) >= 1));
+    completeAllBtn.style.display = stillCompletable.length > 0 ? 'inline-block' : 'none';
+    completeAllBtn.onclick = () => completeAllAssigned(kidId, kid.name);
+
     const completedEl = document.getElementById('profileCompleted');
-    completedEl.innerHTML = completed.length
-      ? completed.map(c => `<div class="profile-chore-row chore-row-clickable" data-chore="${c.chore_id}">
+    const completedRowsHtml = completed.map(c => `<div class="profile-chore-row chore-row-clickable" data-chore="${c.chore_id}">
           <span>${c.name}</span>
           <span style="display:flex; align-items:center; gap:8px;">
             <span>${c.points} pts</span>
             <span style="opacity:.7;">&#10003; Done</span>
           </span>
-        </div>`).join('')
-      : '<div class="empty-note">Nothing completed yet this season.</div>';
+        </div>`);
+    const repeatDoneRowsHtml = repeatDoneEntries.map(c => {
+      const timesCount = Number(c.times_completed) || 0;
+      return `<div class="profile-chore-row chore-row-clickable" data-chore="${c.chore_id}">
+          <span>${c.name}</span>
+          <span style="display:flex; align-items:center; gap:8px;">
+            <span>${c.points} pts</span>
+            <span style="opacity:.7;">&#10003; &times;${timesCount}</span>
+          </span>
+        </div>`;
+    });
+    const allCompletedRows = [...completedRowsHtml, ...repeatDoneRowsHtml];
+    completedEl.innerHTML = allCompletedRows.length ? allCompletedRows.join('') : '<div class="empty-note">Nothing completed yet this season.</div>';
     completedEl.querySelectorAll('.chore-row-clickable').forEach(row => {
       row.onclick = () => openChoreDetailModal(appData.chores.find(c => c.chore_id === row.dataset.chore));
     });
@@ -3142,6 +3358,7 @@
       if (pinPurpose === 'claiming') { toggleClaiming(); }
       else if (pinPurpose === 'request') { approveRequest(); }
       else if (pinPurpose === 'deletekid') { performDeleteKid(); }
+      else if (pinPurpose === 'incomplete') { approveIncomplete(); }
       else { setMommyMode(true); }
     }
     else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
@@ -3240,6 +3457,7 @@
 
     function isTypingField(el) {
       if (!el) return false;
+      if (el.dataset && el.dataset.noOnscreenKb) return false;
       if (el.tagName === 'TEXTAREA') return true;
       if (el.tagName === 'INPUT') {
         const t = (el.type || 'text').toLowerCase();
