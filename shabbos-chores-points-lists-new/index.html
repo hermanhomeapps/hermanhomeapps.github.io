@@ -244,6 +244,14 @@
   .profile-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; margin: 4px 0 10px; }
   .profile-points { font-family: 'Fraunces', serif; font-weight: 800; font-size: 2rem; }
   .profile-points-label { font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.85; font-weight: 700; }
+  .profile-placement { margin-top: 10px; min-height: 1.4rem; }
+  .profile-placement-medal { font-size: 1.6rem; }
+  .profile-placement-link, .profile-placement-rank {
+    background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+    text-decoration: underline; color: rgba(255,255,255,0.9);
+  }
+  .profile-placement-link { font-size: 0.72rem; font-weight: 600; }
+  .profile-placement-rank { font-size: 0.85rem; font-weight: 700; }
   .profile-quote {
     font-family: 'Caveat', cursive; font-size: 1.5rem; font-weight: 700; line-height: 1.25;
     color: #fff; opacity: 0.95; margin: 2px 0 12px; max-width: 320px; margin-left: auto; margin-right: auto;
@@ -462,6 +470,8 @@
   }
   .side-drawer.open { transform: translateY(0); }
   .side-drawer-content { overflow-y: auto; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .drawer-handle { display: flex; align-items: center; justify-content: center; padding: 10px 0 4px; touch-action: none; cursor: grab; flex-shrink: 0; }
+  .drawer-handle::after { content: ''; width: 40px; height: 5px; border-radius: 999px; background: rgba(38,40,63,0.18); }
 
   .side-drawer-header { margin-bottom: 14px; }
   .chores-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -472,7 +482,7 @@
   .drawer-view-toggle:hover { color: var(--coral); text-decoration: underline; }
   .side-drawer-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; margin: 0; }
 
-  .drawer-fab-wrap { position: fixed; z-index: 210; }
+  .drawer-fab-wrap { position: fixed; z-index: 230; }
   .drawer-fab {
     position: relative; width: 50px; height: 50px; border-radius: 50%; border: none;
     background: var(--coral); color: #fff; font-size: 1.35rem; cursor: pointer;
@@ -734,6 +744,7 @@
       <div class="profile-quote" id="profileQuote" style="display:none;"></div>
       <div class="profile-points" id="profilePoints"></div>
       <div class="profile-points-label">POINTS</div>
+      <div class="profile-placement" id="profilePlacement"></div>
     </div>
     <div class="profile-admin-toolbar" id="profileAdminToolbar" style="display:none;">
       <div class="points-adjust-row" style="margin-top:0;">
@@ -764,6 +775,7 @@
 </div>
 
 <div class="side-drawer" id="unassignedDrawer" style="display:none;">
+  <div class="drawer-handle"></div>
   <div class="side-drawer-content">
     <div id="choresMainView">
       <div class="side-drawer-header chores-header-row">
@@ -796,6 +808,7 @@
 </div>
 
 <div class="side-drawer" id="publicUnassignedDrawer">
+  <div class="drawer-handle"></div>
   <div class="side-drawer-content">
     <div class="side-drawer-header"><h2>Chores</h2></div>
     <div class="chore-filter-tabs">
@@ -924,7 +937,7 @@
     <h2 id="manageListTitle"></h2>
     <div style="display:flex; gap:8px; margin-bottom:14px;">
       <button class="btn-primary" style="flex:1;" id="manageListAddChoreBtn">+ New Chore</button>
-      <button class="btn-outline" style="flex:1; border-color:var(--sky); color:var(--sky);" id="manageListAddExistingBtn">+ From Unassigned</button>
+      <button class="btn-outline" style="flex:1; border-color:var(--sky); color:var(--sky);" id="manageListAddExistingBtn">+ Existing Chore</button>
     </div>
     <div class="pick-list" id="manageListChores"></div>
     <button class="btn-cancel" style="width:100%; margin-top:14px; border:1px solid var(--error) !important; color: var(--error);" id="manageListDeleteBtn">Delete This List</button>
@@ -1032,6 +1045,43 @@
     let hash = 0;
     for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
     return KID_COLORS[hash % KID_COLORS.length];
+  }
+
+  function ordinalSuffix(n) {
+    const j = n % 10, k = n % 100;
+    if (j === 1 && k !== 11) return n + 'st';
+    if (j === 2 && k !== 12) return n + 'nd';
+    if (j === 3 && k !== 13) return n + 'rd';
+    return n + 'th';
+  }
+
+  function renderProfilePlacement(kid) {
+    const el = document.getElementById('profilePlacement');
+    const sortedKids = [...appData.kids].sort((a, b) => (Number(b.current_points) || 0) - (Number(a.current_points) || 0));
+    const rank = sortedKids.findIndex(k => k.kid_id === kid.kid_id) + 1;
+    const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+    if (rank >= 1 && rank <= 3) {
+      el.innerHTML = `<span class="profile-placement-medal">${medals[rank]}</span>`;
+      return;
+    }
+
+    const showing = String(kid.show_placement).toUpperCase() === 'TRUE';
+    if (showing) {
+      el.innerHTML = `<button class="profile-placement-rank" id="placementToggleBtn">${ordinalSuffix(rank)} place &middot; tap to hide</button>`;
+    } else {
+      el.innerHTML = `<button class="profile-placement-link" id="placementToggleBtn">Show Placement</button>`;
+    }
+    document.getElementById('placementToggleBtn').onclick = () => toggleShowPlacement(kid.kid_id, !showing);
+  }
+
+  async function toggleShowPlacement(kidId, newVal) {
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!kid) return;
+    const updated = Object.assign({}, kid, { show_placement: newVal });
+    await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+    await refreshAndRerender();
+    renderProfileModalContent(kidId);
   }
 
   function getKidColor(kidId) {
@@ -1404,6 +1454,44 @@
 
   document.getElementById('unloadAllBtn').onclick = unloadAllChores;
 
+  // ===== SWIPE-DOWN-TO-CLOSE (drawers) =====
+  // Scoped to the handle grip specifically, not the whole drawer — the
+  // drawer body needs normal vertical scrolling for the chore list, and
+  // making the entire sheet draggable would fight with that.
+  document.querySelectorAll('.drawer-handle').forEach(handle => {
+    const drawer = handle.closest('.side-drawer');
+    let startY = 0;
+    let dragY = 0;
+    let dragging = false;
+
+    handle.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+      dragY = 0;
+      dragging = true;
+      drawer.style.transition = 'none';
+    }, { passive: true });
+
+    handle.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      dragY = Math.max(0, e.touches[0].clientY - startY);
+      drawer.style.transform = `translateY(${dragY}px)`;
+    }, { passive: true });
+
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      drawer.style.transition = '';
+      drawer.style.transform = '';
+      if (dragY > 90) {
+        drawer.classList.remove('open');
+        syncDrawerFabIcons();
+      }
+      dragY = 0;
+    };
+    handle.addEventListener('touchend', endDrag);
+    handle.addEventListener('touchcancel', endDrag);
+  });
+
   function renderSingleChoreCard(list, chore) {
     let tagHtml;
     if (chore.status === 'unloaded') {
@@ -1651,12 +1739,13 @@
   function openPickExistingChoreForList() {
     pickTitle.textContent = 'Add an existing chore to this list:';
     pickList.innerHTML = '';
-    const unassignedChores = appData.chores.filter(c => c.status === 'unassigned');
-    if (unassignedChores.length === 0) pickList.innerHTML = '<div class="empty-note">No unassigned chores to pull in right now.</div>';
-    unassignedChores.forEach(chore => {
+    const candidates = appData.chores.filter(c => ['unloaded', 'unassigned', 'assigned', 'completed'].includes(c.status));
+    if (candidates.length === 0) pickList.innerHTML = '<div class="empty-note">No chores to pull in right now.</div>';
+    const statusLabel = { unloaded: 'unloaded', unassigned: 'unassigned', assigned: 'assigned', completed: 'completed' };
+    candidates.forEach(chore => {
       const item = document.createElement('div');
       item.className = 'pick-item';
-      item.innerHTML = `<span class="pick-item-name">${chore.name}</span><span class="pick-item-sub">${chore.points} pts</span>`;
+      item.innerHTML = `<span class="pick-item-name">${chore.name}</span><span class="pick-item-sub">${chore.points} pts &middot; ${statusLabel[chore.status]}</span>`;
       item.onclick = () => addExistingChoreToList(chore);
       pickList.appendChild(item);
     });
@@ -3140,6 +3229,7 @@
       quoteEl.style.display = 'none';
     }
     animatePointsChange(document.getElementById('profilePoints'), kid.current_points || 0, kidId);
+    renderProfilePlacement(kid);
 
     const adminToolbar = document.getElementById('profileAdminToolbar');
     adminToolbar.style.display = isMommyMode ? 'flex' : 'none';
@@ -3374,12 +3464,28 @@
   // watches every overlay and drawer for its 'open' class, and whenever one
   // gets opened, bumps it above whatever is currently the topmost — so the
   // most recently opened modal always wins, no matter the DOM order.
+  //
+  // Side-drawers get their own higher-numbered range specifically so they
+  // always render above the shared nav dock (a separate script, fixed at
+  // z-index 200) — the drawer is meant to cover the dock while it's open.
+  // Regular overlays don't need to beat the dock, so they keep the lower
+  // range; the drawer FAB itself is set even higher in CSS so it stays
+  // visible/clickable on top of its own drawer.
   let topModalZIndex = 50;
-  document.querySelectorAll('.overlay, .side-drawer').forEach(el => {
+  let topDrawerZIndex = 220;
+  document.querySelectorAll('.overlay').forEach(el => {
     new MutationObserver(() => {
       if (el.classList.contains('open')) {
         topModalZIndex += 1;
         el.style.zIndex = topModalZIndex;
+      }
+    }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+  document.querySelectorAll('.side-drawer').forEach(el => {
+    new MutationObserver(() => {
+      if (el.classList.contains('open')) {
+        topDrawerZIndex += 1;
+        el.style.zIndex = topDrawerZIndex;
       }
     }).observe(el, { attributes: true, attributeFilter: ['class'] });
   });
