@@ -74,9 +74,17 @@
   #profileClose {
     background: rgba(0,0,0,0.4); color: #fff; width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; font-size: 1.3rem; top: 14px; right: 14px;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease; z-index: 20;
   }
   #profileClose:hover { background: rgba(0,0,0,0.6); }
+  @media (max-width: 620px) {
+    /* 44px meets the standard minimum touch-target size on mobile. z-index
+       here is what actually fixes the clipping — the button previously had
+       no explicit stacking order of its own, so the header (and anything
+       else in the modal without an explicit z-index either) could end up
+       rendering over parts of it depending on paint order. */
+    #profileClose { width: 44px; height: 44px; font-size: 1.6rem; top: 10px; right: 10px; z-index: 20; }
+  }
 
   .field-wrap { position: relative; margin-bottom: 12px; }
   .field-wrap input, .field-wrap textarea, .field-wrap select { margin-bottom: 0; }
@@ -132,15 +140,13 @@
   .kid-blocks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
   @media (max-width: 560px) { .kid-blocks { grid-template-columns: 1fr; } }
   .kid-block {
-    background: linear-gradient(150deg, var(--kid-color, var(--sky)), color-mix(in srgb, var(--kid-color, var(--sky)) 60%, black));
+    background: var(--kid-gradient, linear-gradient(150deg, var(--sky), color-mix(in srgb, var(--sky) 60%, black)));
     border: none; border-radius: 20px; padding: 20px; position: relative; box-shadow: 0 10px 24px var(--card-shadow);
     color: #fff; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
   }
   .kid-block:hover { transform: translateY(-6px) scale(1.015); box-shadow: 0 18px 34px var(--card-shadow); }
   .kid-block-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
   .kid-emoji-display { font-size: 1.8rem; line-height: 1; }
-  .kid-delete-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #fff; opacity: 0.65; font-size: 1.1rem; cursor: pointer; line-height: 1; }
-  .kid-delete-btn:hover { opacity: 1; }
   .kid-block-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin: 0; color: #fff; }
   .kid-points-display { background: rgba(255,255,255,0.2); background-size: cover, cover; background-position: center, center; border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px; }
   .kid-points-number { display: block; font-family: 'Fraunces', serif; font-weight: 800; font-size: 2.2rem; line-height: 1; color: #fff; }
@@ -223,6 +229,17 @@
     border-radius: 16px; padding: 24px 20px; text-align: center; color: #fff; margin-bottom: 18px;
     background-size: cover, cover; background-position: center, center; position: relative;
   }
+  .profile-avatar-wrap { position: relative; width: 68px; height: 68px; margin: 0 auto 2px; display: flex; align-items: center; justify-content: center; }
+  .profile-avatar-photo {
+    width: 68px; height: 68px; border-radius: 50%; background-size: cover; background-position: center;
+    border: 3px solid rgba(255,255,255,0.85); box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .profile-avatar-wrap.has-photo .profile-emoji {
+    position: absolute; bottom: -3px; right: -3px; font-size: 1.05rem; line-height: 1;
+    background: #fff; border-radius: 50%; width: 27px; height: 27px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.9);
+  }
   .profile-emoji { font-size: 2.2rem; }
   .profile-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; margin: 4px 0 10px; }
   .profile-points { font-family: 'Fraunces', serif; font-weight: 800; font-size: 2rem; }
@@ -249,7 +266,12 @@
   .profile-nav-btn:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
   .profile-nav-left { left: 8px; }
   .profile-nav-right { right: 8px; }
-  #profileOverlay { perspective: 1200px; }
+  /* Explicitly below the base .overlay z-index (50) — the profile modal is
+     meant to stay open in the background while another modal (chore detail,
+     Edit Kid menu, color/emoji/photo/quote pickers) opens on top of it. Since
+     all overlays otherwise share the same z-index, relying on HTML source
+     order to decide which one wins is fragile; this pins it permanently. */
+  #profileOverlay { perspective: 1200px; z-index: 45; }
   @media (max-width: 620px) {
     .profile-nav-btn { width: 36px; height: 36px; font-size: 1.2rem; }
     .profile-nav-left { left: 2px; }
@@ -369,6 +391,7 @@
   .kid-block .btn-small:hover { background: rgba(255,255,255,0.85); }
 
   .points-adjust-row { display: flex; gap: 6px; margin-top: 10px; }
+  .card-points-adjust { margin: 0 0 12px; }
   .profile-admin-toolbar { display: flex; gap: 10px; align-items: center; margin: -6px 0 16px; flex-wrap: wrap; }
   .profile-admin-toolbar .btn-small { flex-shrink: 0; }
   .profile-admin-toolbar .points-adjust-row { flex: 1; min-width: 140px; }
@@ -433,7 +456,7 @@
   .side-drawer {
     position: fixed; left: 0; right: 0; bottom: 0; max-height: 75vh; width: auto;
     max-width: 720px; margin: 0 auto;
-    background: var(--bg-card); z-index: 205; transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+    background: var(--bg-card); z-index: 47; transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
     border-radius: 20px 20px 0 0; box-shadow: 0 -10px 30px var(--card-shadow);
     transform: translateY(105%); display: flex; flex-direction: column;
   }
@@ -498,9 +521,17 @@
     font-size: 0.68rem; font-weight: 700; color: #fff;
   }
   .chore-assignee-tag.unassigned { background: var(--ink-soft); }
+  .chore-assignee-tags-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
   .chore-row-clickable { cursor: pointer; transition: background 0.15s ease; }
   .chore-row-clickable:hover { background: rgba(38,40,63,0.05); }
   .chore-points { color: var(--coral); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+  .group-member-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .group-member-name-tag {
+    display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; color: #fff;
+  }
   .empty-note { font-size: 0.85rem; color: var(--ink-soft); text-align: center; padding: 10px 0; }
 
   .list-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
@@ -639,6 +670,32 @@
       <button class="btn-small" id="editKidEmojiBtn" style="margin:0;">&#128512; Change Emoji</button>
       <button class="btn-small" id="editKidPhotoBtn" style="margin:0;">&#128247; Change Photo</button>
       <button class="btn-small" id="editKidQuoteBtn" style="margin:0;">&#128172; Edit Quote</button>
+      <button class="mini-btn delete-btn" id="editKidDeleteBtn" style="margin:8px 0 0; width:100%; padding:9px;">&#128465; Delete Kid</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="deleteKidWarningOverlay">
+  <div class="modal">
+    <button class="close-x" id="deleteKidWarningClose">&times;</button>
+    <h2>Delete Kid?</h2>
+    <p class="hint" id="deleteKidWarningText" style="margin-top:10px; font-size:0.85rem;"></p>
+    <div class="modal-actions" style="margin-top:18px;">
+      <button class="btn-cancel" id="deleteKidWarningCancel">Cancel</button>
+      <button class="btn-confirm" id="deleteKidWarningContinue" style="background:var(--error);">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="groupDetailOverlay">
+  <div class="modal modal-wide">
+    <button class="close-x" id="groupDetailClose">&times;</button>
+    <h2 id="groupDetailTitle"></h2>
+    <p class="hint">This chore is shared across multiple kids. Each person completes their own part.</p>
+    <div id="groupDetailMembers"></div>
+    <div class="chore-detail-actions" style="margin-top:16px;">
+      <button class="btn-small" id="groupDetailEditBtn">Edit Details</button>
+      <button class="mini-btn delete-btn" id="groupDetailDeleteBtn">Delete Entire Group</button>
     </div>
   </div>
 </div>
@@ -659,14 +716,16 @@
     <button class="close-x" id="profileClose">&times;</button>
     <div id="profileHeader" class="profile-header">
       <button class="profile-editkid-btn" id="profileEditKidBtn" title="Edit Kid">&#9998; Edit Kid</button>
-      <div class="profile-emoji" id="profileEmoji"></div>
+      <div class="profile-avatar-wrap" id="profileAvatarWrap">
+        <div class="profile-avatar-photo" id="profileAvatarPhoto" style="display:none;"></div>
+        <div class="profile-emoji" id="profileEmoji"></div>
+      </div>
       <div class="profile-name" id="profileName"></div>
       <div class="profile-quote" id="profileQuote" style="display:none;"></div>
       <div class="profile-points" id="profilePoints"></div>
       <div class="profile-points-label">POINTS</div>
     </div>
     <div class="profile-admin-toolbar" id="profileAdminToolbar" style="display:none;">
-      <button class="btn-small" id="profileManageChoresBtn" style="margin-top:0;">Manage Chores</button>
       <div class="points-adjust-row" style="margin-top:0;">
         <input type="number" class="points-adjust-input" id="profilePointsInput" min="1" placeholder="amt">
         <button class="points-adjust-btn plus" id="profileAddPointsBtn" title="Add points">+</button>
@@ -707,6 +766,7 @@
         <h2>Chore Lists</h2>
         <button class="drawer-view-toggle" id="showChoresViewBtn">&larr; Back to Chores</button>
       </div>
+      <input type="text" id="listsSearchInput" class="unassigned-search" placeholder="Search lists..." style="margin-bottom:12px;">
       <button class="btn-primary" style="width:100%; margin-bottom:14px;" id="newListBtn">+ New List</button>
       <div id="listGrid" class="list-grid"></div>
     </div>
@@ -926,7 +986,9 @@
   <div class="modal">
     <button class="close-x" id="colorPickerClose">&times;</button>
     <h2 id="colorPickerTitle">Choose a Color</h2>
+    <p class="hint" id="colorPickerHint" style="display:none;">Tap to select one or more colors — picking more than one blends them into a gradient.</p>
     <div class="color-swatch-grid" id="colorSwatchGrid"></div>
+    <button class="btn-confirm" id="colorPickerSaveBtn" style="width:100%; margin-top:16px; display:none;">Save Colors</button>
   </div>
 </div>
 
@@ -948,8 +1010,24 @@
 
   function getKidColor(kidId) {
     const kid = appData.kids.find(k => k.kid_id === kidId);
-    if (kid && kid.kid_color) return kid.kid_color;
-    return colorForKid(kidId);
+    const raw = (kid && kid.kid_color) ? kid.kid_color : colorForKid(kidId);
+    return String(raw).split(',')[0].trim();
+  }
+
+  // Kids can now pick multiple colors (stored as a comma-separated string in
+  // kid_color) which combine into a gradient. A single color still gets the
+  // original look (base color fading to a darker shade of itself).
+  function getKidColors(kidId) {
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    const raw = (kid && kid.kid_color) ? kid.kid_color : colorForKid(kidId);
+    return String(raw).split(',').map(c => c.trim()).filter(Boolean);
+  }
+
+  function getKidGradient(kidId) {
+    const colors = getKidColors(kidId);
+    if (colors.length > 1) return `linear-gradient(150deg, ${colors.join(', ')})`;
+    const color = colors[0];
+    return `linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black))`;
   }
 
   function getKidEmoji(kidId) {
@@ -1098,7 +1176,7 @@
 
       const block = document.createElement('div');
       block.className = 'kid-block';
-      block.style.setProperty('--kid-color', getKidColor(kid.kid_id));
+      block.style.setProperty('--kid-gradient', getKidGradient(kid.kid_id));
 
       const previewChores = assigned.slice(0, 3);
       const extraCount = assigned.length - previewChores.length;
@@ -1112,7 +1190,6 @@
       }
 
       block.innerHTML = `
-        ${isMommyMode ? `<button class="kid-delete-btn" data-kid="${kid.kid_id}" data-name="${kid.name}">&times;</button>` : ''}
         <div class="kid-block-header kid-name-tooltip-wrap">
           <div class="kid-block-name">${kid.name}</div>
           <div class="kid-emoji-display">${getKidEmoji(kid.kid_id)}</div>
@@ -1122,6 +1199,13 @@
           <span class="kid-points-number" id="pointsNum-${kid.kid_id}">${kid.current_points || 0}</span>
           <span class="kid-points-label">POINTS</span>
         </div>
+        ${isMommyMode ? `
+        <div class="points-adjust-row card-points-adjust">
+          <input type="number" class="points-adjust-input" min="1" placeholder="amt">
+          <button class="points-adjust-btn plus" data-action="cardaddpoints" title="Add points">+</button>
+          <button class="points-adjust-btn minus" data-action="cardsubpoints" title="Deduct points">&minus;</button>
+        </div>
+        ` : ''}
         ${previewHtml}
         <button class="view-kid-btn" data-action="viewkid">View Kid</button>
       `;
@@ -1133,8 +1217,9 @@
       if (numEl) animatePointsChange(numEl, kid.current_points || 0, kid.kid_id);
 
       if (isMommyMode) {
-        const kidDeleteBtn = block.querySelector('.kid-delete-btn');
-        if (kidDeleteBtn) kidDeleteBtn.onclick = (e) => deleteKid(e.target.dataset.kid, e.target.dataset.name);
+        const cardPointsInput = block.querySelector('.card-points-adjust .points-adjust-input');
+        block.querySelector('[data-action="cardaddpoints"]').onclick = (e) => { e.stopPropagation(); adjustPoints(kid.kid_id, kid.name, 1, cardPointsInput.value); };
+        block.querySelector('[data-action="cardsubpoints"]').onclick = (e) => { e.stopPropagation(); adjustPoints(kid.kid_id, kid.name, -1, cardPointsInput.value); };
       }
 
       block.querySelector('[data-action="viewkid"]').onclick = () => openKidProfileModal(kid.kid_id, block);
@@ -1198,29 +1283,79 @@
       list.innerHTML = `<div class="empty-note">${searchVal ? 'No matches.' : "No chores yet — add one to get started."}</div>`;
       return;
     }
+
+    // Chores split across multiple kids (via "Split") share a group_id and
+    // are separate rows under the hood — but should read as ONE chore here,
+    // not one card per kid. Only rows still actively assigned count toward
+    // a "group" — if someone's been unassigned from it, their row goes back
+    // to showing individually rather than dragging a stale tag along.
+    const renderedIds = new Set();
+    const groupsSeen = new Set();
     allChores.forEach(chore => {
-      const assignedKid = chore.status === 'assigned' ? appData.kids.find(k => k.kid_id === chore.assigned_kid_id) : null;
-      const tagHtml = assignedKid
-        ? `<span class="chore-assignee-tag" style="background:${getKidColor(assignedKid.kid_id)};">${assignedKid.name}</span>`
-        : `<span class="chore-assignee-tag unassigned">Unassigned</span>`;
-      const card = document.createElement('div');
-      card.className = 'chore-card';
-      card.innerHTML = `
-        <div class="chore-card-info">
-          <div class="chore-title-row">
-            <div class="chore-name">${chore.name}</div>
-            <div class="chore-points">${chore.points} pts</div>
-          </div>
-          <div class="chore-desc">${chore.description || ''}</div>
-          ${tagHtml}
-        </div>
-        <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-          <button class="btn-small" style="width:auto;" data-action="view">View</button>
-        </div>
-      `;
-      card.addEventListener('click', () => openChoreDetailModal(chore));
-      list.appendChild(card);
+      if (renderedIds.has(chore.chore_id)) return;
+      if (chore.group_id && chore.status === 'assigned' && !groupsSeen.has(chore.group_id)) {
+        const groupAssignedMembers = allChores.filter(c => c.group_id === chore.group_id && c.status === 'assigned');
+        if (groupAssignedMembers.length > 1) {
+          groupsSeen.add(chore.group_id);
+          groupAssignedMembers.forEach(m => renderedIds.add(m.chore_id));
+          renderGroupedChoreCard(list, chore, groupAssignedMembers);
+          return;
+        }
+      }
+      renderedIds.add(chore.chore_id);
+      renderSingleChoreCard(list, chore);
     });
+  }
+
+  function renderSingleChoreCard(list, chore) {
+    const assignedKid = chore.status === 'assigned' ? appData.kids.find(k => k.kid_id === chore.assigned_kid_id) : null;
+    const tagHtml = assignedKid
+      ? `<span class="chore-assignee-tag" style="background:${getKidColor(assignedKid.kid_id)};">${assignedKid.name}</span>`
+      : `<span class="chore-assignee-tag unassigned">Unassigned</span>`;
+    const card = document.createElement('div');
+    card.className = 'chore-card';
+    card.innerHTML = `
+      <div class="chore-card-info">
+        <div class="chore-title-row">
+          <div class="chore-name">${chore.name}</div>
+          <div class="chore-points">${chore.points} pts</div>
+        </div>
+        <div class="chore-desc">${chore.description || ''}</div>
+        ${tagHtml}
+      </div>
+      <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+        <button class="btn-small" style="width:auto;" data-action="view">View</button>
+      </div>
+    `;
+    card.addEventListener('click', () => openChoreDetailModal(chore));
+    list.appendChild(card);
+  }
+
+  function renderGroupedChoreCard(list, repChore, members) {
+    const tagsHtml = members.map(m => {
+      const kid = appData.kids.find(k => k.kid_id === m.assigned_kid_id);
+      return kid ? `<span class="chore-assignee-tag" style="background:${getKidColor(kid.kid_id)};">${kid.name}</span>` : '';
+    }).join('');
+    const pointsSummary = members.every(m => Number(m.points) === Number(members[0].points))
+      ? `${members[0].points} pts each`
+      : `${members.reduce((sum, m) => sum + (Number(m.points) || 0), 0)} pts total`;
+    const card = document.createElement('div');
+    card.className = 'chore-card';
+    card.innerHTML = `
+      <div class="chore-card-info">
+        <div class="chore-title-row">
+          <div class="chore-name">${repChore.name}</div>
+          <div class="chore-points">${pointsSummary}</div>
+        </div>
+        <div class="chore-desc">${repChore.description || ''}</div>
+        <div class="chore-assignee-tags-row">${tagsHtml}</div>
+      </div>
+      <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
+        <button class="btn-small" style="width:auto;" data-action="view">View</button>
+      </div>
+    `;
+    card.addEventListener('click', () => openGroupDetailModal(repChore.group_id));
+    list.appendChild(card);
   }
 
   const unassignedDrawer = document.getElementById('unassignedDrawer');
@@ -1292,12 +1427,18 @@
 
   function renderChoreLists() {
     const grid = document.getElementById('listGrid');
+    const searchVal = (document.getElementById('listsSearchInput').value || '').trim().toLowerCase();
+    const lists = searchVal
+      ? appData.chore_lists.filter(l => l.list_name.toLowerCase().includes(searchVal))
+      : appData.chore_lists;
     grid.innerHTML = '';
-    if (appData.chore_lists.length === 0) {
-      grid.innerHTML = '<div class="empty-note">No lists yet — create one to group chores together.</div>';
+    if (lists.length === 0) {
+      grid.innerHTML = appData.chore_lists.length === 0
+        ? '<div class="empty-note">No lists yet — create one to group chores together.</div>'
+        : '<div class="empty-note">No matches.</div>';
       return;
     }
-    appData.chore_lists.forEach(list => {
+    lists.forEach(list => {
       const items = appData.chores.filter(c => c.list_id === list.list_id && c.status === 'template');
       const card = document.createElement('div');
       card.className = 'list-card';
@@ -1314,11 +1455,13 @@
       grid.appendChild(card);
     });
   }
+  document.getElementById('listsSearchInput').addEventListener('input', () => renderChoreLists());
 
   document.getElementById('newListBtn').onclick = () => {
-    document.getElementById('listNameInput').value = '';
+    document.getElementById('listNameInput').value = document.getElementById('listsSearchInput').value.trim();
     document.getElementById('newListOverlay').classList.add('open');
     document.getElementById('listNameInput').focus();
+    if (document.getElementById('listNameInput').value) document.getElementById('listNameInput').select();
   };
   document.getElementById('newListCancel').onclick = () => document.getElementById('newListOverlay').classList.remove('open');
   document.getElementById('newListClose').onclick = () => document.getElementById('newListOverlay').classList.remove('open');
@@ -1548,7 +1691,6 @@
   }
 
   async function deleteKid(kidId, kidName) {
-    if (!confirm(`Delete ${kidName}? Their assigned (not-yet-completed) chores will move back to Unassigned. Completed chore history stays in the Sheet. This can't be undone.`)) return;
     showToast('Deleting kid...');
     const theirChores = appData.chores.filter(c => c.assigned_kid_id === kidId && c.status === 'assigned');
     if (theirChores.length) {
@@ -1558,6 +1700,13 @@
     await postData({ sheet: 'kids', action: 'delete', id_field: 'kid_id', ids: [kidId] });
     await refreshAndRerender();
     showToast(`${kidName} removed.`);
+  }
+
+  function performDeleteKid() {
+    if (!pendingDeleteKid) return;
+    const { kid_id, name } = pendingDeleteKid;
+    pendingDeleteKid = null;
+    deleteKid(kid_id, name);
   }
 
   const addKidOverlay = document.getElementById('addKidOverlay');
@@ -1679,25 +1828,92 @@
     updateChoreModeButtons();
   };
 
-  document.getElementById('addChoreBtn').onclick = () => { currentChoreTarget = { type: 'unassigned' }; openAddChoreModal(); };
+  document.getElementById('addChoreBtn').onclick = () => {
+    currentChoreTarget = { type: 'unassigned' };
+    openAddChoreModal(document.getElementById('unassignedSearchInput').value.trim());
+  };
   document.getElementById('addChoreCancel').onclick = closeAddChoreModal;
   document.getElementById('addChoreClose').onclick = closeAddChoreModal;
 
-  function openAddChoreModal() {
+  function openAddChoreModal(prefillName) {
     editingChoreId = null;
     document.getElementById('addChoreTitle').textContent = currentChoreTarget.type === 'list' ? 'Add Chore to List' : 'Add New Chore';
-    choreNameInput.value = ''; chorePointsInput.value = ''; choreDescInput.innerHTML = '';
+    choreNameInput.value = prefillName || ''; chorePointsInput.value = ''; choreDescInput.innerHTML = '';
     choreModeRepeatable = false; choreModeConsistent = false; updateChoreModeButtons();
     selectedExistingChoreName = null;
     typeaheadList.classList.remove('open');
     document.getElementById('addChoreComplete').textContent = 'Complete';
     addChoreOverlay.classList.add('open');
     choreNameInput.focus();
+    if (prefillName) choreNameInput.select();
   }
   function closeAddChoreModal() { addChoreOverlay.classList.remove('open'); }
 
   const choreDetailOverlay = document.getElementById('choreDetailOverlay');
   document.getElementById('choreDetailClose').onclick = () => choreDetailOverlay.classList.remove('open');
+
+  const groupDetailOverlay = document.getElementById('groupDetailOverlay');
+  document.getElementById('groupDetailClose').onclick = () => groupDetailOverlay.classList.remove('open');
+
+  function openGroupDetailModal(groupId) {
+    const members = appData.chores.filter(c => c.group_id === groupId && (c.status === 'assigned' || c.status === 'completed'));
+    if (members.length === 0) { groupDetailOverlay.classList.remove('open'); return; }
+    const repChore = members[0];
+    document.getElementById('groupDetailTitle').textContent = repChore.name;
+
+    const membersEl = document.getElementById('groupDetailMembers');
+    membersEl.innerHTML = members.map(m => {
+      const kid = appData.kids.find(k => k.kid_id === m.assigned_kid_id);
+      const kidName = kid ? kid.name : 'Unknown';
+      const kidColor = kid ? getKidColor(kid.kid_id) : 'var(--ink-soft)';
+      const isDone = m.status === 'completed';
+      const repeatable = isRepeatable(m);
+      const consistent = isConsistent(m);
+      const timesCount = Number(m.times_completed) || 0;
+      const isDoneOnce = consistent && timesCount >= 1;
+      let actionBtn;
+      if (isDone) {
+        actionBtn = `<span style="opacity:.7; font-weight:700; color:var(--mint);">&#10003; Done</span>`;
+      } else if (isDoneOnce) {
+        actionBtn = `<span style="opacity:.6; font-weight:700; color:var(--mint);">&#10003; Done</span>`;
+      } else if (repeatable || consistent) {
+        actionBtn = `<button class="mini-btn" data-chore="${m.chore_id}" data-kid="${m.assigned_kid_id}" data-action="grpdone">+1 Done</button>`;
+      } else {
+        actionBtn = `<button class="mini-btn" data-chore="${m.chore_id}" data-kid="${m.assigned_kid_id}" data-action="grpcomplete">Complete</button>`;
+      }
+      const unassignBtn = !isDone ? `<button class="mini-btn undo-btn" data-chore="${m.chore_id}" data-name="${m.name}" data-action="grpunassign">Unassign</button>` : '';
+      return `<div class="group-member-row">
+        <span class="group-member-name-tag" style="background:${kidColor};">${kidName}</span>
+        <span style="font-size:0.82rem; color:var(--ink-soft);">${m.points} pts</span>
+        <span style="display:flex; gap:6px; flex-wrap:wrap;">${unassignBtn}${actionBtn}</span>
+      </div>`;
+    }).join('');
+
+    membersEl.querySelectorAll('[data-action="grpdone"]').forEach(btn => {
+      btn.onclick = async () => { btn.disabled = true; await logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1); openGroupDetailModal(groupId); };
+    });
+    membersEl.querySelectorAll('[data-action="grpcomplete"]').forEach(btn => {
+      btn.onclick = async () => { btn.disabled = true; await toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true); openGroupDetailModal(groupId); };
+    });
+    membersEl.querySelectorAll('[data-action="grpunassign"]').forEach(btn => {
+      btn.onclick = async () => { await unassignChore(btn.dataset.chore, btn.dataset.name); openGroupDetailModal(groupId); };
+    });
+
+    document.getElementById('groupDetailEditBtn').onclick = () => {
+      groupDetailOverlay.classList.remove('open');
+      openEditChoreModal(repChore);
+    };
+    document.getElementById('groupDetailDeleteBtn').onclick = async () => {
+      if (!confirm(`Delete "${repChore.name}" for everyone it's assigned to? This removes it completely, including from history. This can't be undone.`)) return;
+      groupDetailOverlay.classList.remove('open');
+      showToast('Deleting chore...');
+      await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: members.map(m => m.chore_id) });
+      await refreshAndRerender();
+      showToast('Chore deleted.');
+    };
+
+    groupDetailOverlay.classList.add('open');
+  }
 
   function openChoreDetailModal(chore) {
     document.getElementById('choreDetailTitle').textContent = chore.name;
@@ -2280,12 +2496,46 @@
   const colorPickerOverlay = document.getElementById('colorPickerOverlay');
   document.getElementById('colorPickerClose').onclick = () => colorPickerOverlay.classList.remove('open');
 
+  let pendingKidColors = [];
+
   function openColorPicker(type, kidId, displayName, currentColor) {
     currentColorTarget = { type, kidId };
     document.getElementById('colorPickerTitle').textContent = `Choose ${displayName}'s Color`;
     const grid = document.getElementById('colorSwatchGrid');
+    const hint = document.getElementById('colorPickerHint');
+    const saveBtn = document.getElementById('colorPickerSaveBtn');
     grid.innerHTML = '';
+
     if (type === 'kid') {
+      pendingKidColors = currentColor ? String(currentColor).split(',').map(c => c.trim()).filter(Boolean) : [];
+      hint.style.display = 'block';
+      saveBtn.style.display = 'block';
+
+      const auto = document.createElement('button');
+      auto.type = 'button';
+      auto.className = 'color-swatch auto-swatch' + (pendingKidColors.length === 0 ? ' selected' : '');
+      auto.textContent = 'AUTO';
+      auto.title = 'Automatically assigned';
+      auto.onclick = () => { pendingKidColors = []; refreshColorSwatchSelection(); };
+      grid.appendChild(auto);
+
+      KID_COLORS.forEach(hex => {
+        const sw = document.createElement('button');
+        sw.type = 'button';
+        sw.dataset.hex = hex;
+        sw.className = 'color-swatch' + (pendingKidColors.includes(hex) ? ' selected' : '');
+        sw.style.background = hex;
+        sw.onclick = () => {
+          const idx = pendingKidColors.indexOf(hex);
+          if (idx === -1) pendingKidColors.push(hex); else pendingKidColors.splice(idx, 1);
+          refreshColorSwatchSelection();
+        };
+        grid.appendChild(sw);
+      });
+      saveBtn.onclick = () => saveKidColors(kidId);
+    } else {
+      hint.style.display = 'none';
+      saveBtn.style.display = 'none';
       const auto = document.createElement('button');
       auto.type = 'button';
       auto.className = 'color-swatch auto-swatch' + (!currentColor ? ' selected' : '');
@@ -2293,16 +2543,38 @@
       auto.title = 'Automatically assigned';
       auto.onclick = () => selectColor(null);
       grid.appendChild(auto);
+
+      KID_COLORS.forEach(hex => {
+        const sw = document.createElement('button');
+        sw.type = 'button';
+        sw.className = 'color-swatch' + (currentColor === hex ? ' selected' : '');
+        sw.style.background = hex;
+        sw.onclick = () => selectColor(hex);
+        grid.appendChild(sw);
+      });
     }
-    KID_COLORS.forEach(hex => {
-      const sw = document.createElement('button');
-      sw.type = 'button';
-      sw.className = 'color-swatch' + (currentColor === hex ? ' selected' : '');
-      sw.style.background = hex;
-      sw.onclick = () => selectColor(hex);
-      grid.appendChild(sw);
-    });
     colorPickerOverlay.classList.add('open');
+  }
+
+  function refreshColorSwatchSelection() {
+    const grid = document.getElementById('colorSwatchGrid');
+    grid.querySelectorAll('.color-swatch').forEach(sw => {
+      const hex = sw.dataset.hex;
+      const isAuto = sw.classList.contains('auto-swatch');
+      sw.classList.toggle('selected', isAuto ? pendingKidColors.length === 0 : pendingKidColors.includes(hex));
+    });
+  }
+
+  async function saveKidColors(kidId) {
+    colorPickerOverlay.classList.remove('open');
+    showToast('Saving color...');
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (kid) {
+      const updated = Object.assign({}, kid, { kid_color: pendingKidColors.join(',') });
+      await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
+    }
+    await refreshAndRerender();
+    showToast('Color updated!');
   }
 
   async function selectColor(hex) {
@@ -2367,7 +2639,7 @@
     selectEmoji(val);
   };
 
-  // ===== EDIT KID MENU (consolidates Color/Emoji/Photo/Quote) =====
+  // ===== EDIT KID MENU (consolidates Color/Emoji/Photo/Quote/Delete) =====
   const editKidMenuOverlay = document.getElementById('editKidMenuOverlay');
   document.getElementById('editKidMenuClose').onclick = () => editKidMenuOverlay.classList.remove('open');
 
@@ -2377,8 +2649,29 @@
     document.getElementById('editKidEmojiBtn').onclick = () => { editKidMenuOverlay.classList.remove('open'); openEmojiPicker(kid.kid_id, kid.name, kid.kid_emoji); };
     document.getElementById('editKidPhotoBtn').onclick = () => { editKidMenuOverlay.classList.remove('open'); openPhotoPicker(kid.kid_id, kid.name, kid.kid_photo); };
     document.getElementById('editKidQuoteBtn').onclick = () => { editKidMenuOverlay.classList.remove('open'); openQuotePicker(kid.kid_id, kid.name, kid.kid_quote); };
+    document.getElementById('editKidDeleteBtn').onclick = () => { editKidMenuOverlay.classList.remove('open'); openDeleteKidWarning(kid); };
     editKidMenuOverlay.classList.add('open');
   }
+
+  // ===== DELETE KID: warning modal, then PIN, then the actual delete =====
+  const deleteKidWarningOverlay = document.getElementById('deleteKidWarningOverlay');
+  let pendingDeleteKid = null;
+
+  function openDeleteKidWarning(kid) {
+    pendingDeleteKid = kid;
+    document.getElementById('deleteKidWarningText').textContent =
+      `Delete ${kid.name}? Their assigned (not-yet-completed) chores will move back to Unassigned. Completed chore history stays in the Sheet. This can't be undone.`;
+    deleteKidWarningOverlay.classList.add('open');
+  }
+  document.getElementById('deleteKidWarningClose').onclick = () => deleteKidWarningOverlay.classList.remove('open');
+  document.getElementById('deleteKidWarningCancel').onclick = () => deleteKidWarningOverlay.classList.remove('open');
+  document.getElementById('deleteKidWarningContinue').onclick = () => {
+    deleteKidWarningOverlay.classList.remove('open');
+    pinPurpose = 'deletekid';
+    pinInput.value = ''; pinError.textContent = '';
+    document.querySelector('#pinOverlay h2').textContent = "Enter Mommy's PIN to Confirm";
+    pinOverlay.classList.add('open'); pinInput.focus();
+  };
 
   // ===== QUOTE PICKER =====
   let currentQuoteKidId = null;
@@ -2549,7 +2842,7 @@
       const color = getKidColor(kid.kid_id);
       const photoStyle = kid.kid_photo
         ? `background-image: linear-gradient(rgba(20,20,20,0.35), rgba(20,20,20,0.55)), url('${kid.kid_photo}'); background-size: cover; background-position: center;`
-        : `background: linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black));`;
+        : `background: ${getKidGradient(kid.kid_id)};`;
       li.innerHTML = `
         <a class="leaderboard-row" data-kid="${kid.kid_id}">
           <span class="leaderboard-rank">${i + 1}</span>
@@ -2609,12 +2902,21 @@
     const showNav = appData.kids.length > 1;
     document.getElementById('profilePrevBtn').style.display = showNav ? '' : 'none';
     document.getElementById('profileNextBtn').style.display = showNav ? '' : 'none';
-    const color = getKidColor(kidId);
     const header = document.getElementById('profileHeader');
     header.style.backgroundImage = kid.kid_photo
       ? `linear-gradient(rgba(20,20,20,0.35), rgba(20,20,20,0.55)), url('${kid.kid_photo}')`
-      : `linear-gradient(150deg, ${color}, color-mix(in srgb, ${color} 60%, black))`;
+      : getKidGradient(kidId);
     document.getElementById('profileEmoji').textContent = getKidEmoji(kidId);
+    const avatarWrap = document.getElementById('profileAvatarWrap');
+    const avatarPhoto = document.getElementById('profileAvatarPhoto');
+    if (kid.kid_photo) {
+      avatarWrap.classList.add('has-photo');
+      avatarPhoto.style.backgroundImage = `url('${kid.kid_photo}')`;
+      avatarPhoto.style.display = 'block';
+    } else {
+      avatarWrap.classList.remove('has-photo');
+      avatarPhoto.style.display = 'none';
+    }
     document.getElementById('profileEditKidBtn').onclick = () => openEditKidMenu(kid);
     document.getElementById('profileName').textContent = kid.name;
     const quoteEl = document.getElementById('profileQuote');
@@ -2629,13 +2931,6 @@
     const adminToolbar = document.getElementById('profileAdminToolbar');
     adminToolbar.style.display = isMommyMode ? 'flex' : 'none';
     if (isMommyMode) {
-      document.getElementById('profileManageChoresBtn').onclick = () => {
-        flipModalClose(profileOverlay);
-        unassignedDrawer.classList.add('open');
-        showChoresView();
-        renderUnassignedChores();
-        syncDrawerFabIcons();
-      };
       const pointsInput = document.getElementById('profilePointsInput');
       document.getElementById('profileAddPointsBtn').onclick = async () => { await adjustPoints(kid.kid_id, kid.name, 1, pointsInput.value); renderProfileModalContent(kidId); };
       document.getElementById('profileSubPointsBtn').onclick = async () => { await adjustPoints(kid.kid_id, kid.name, -1, pointsInput.value); renderProfileModalContent(kidId); };
@@ -2746,7 +3041,7 @@
     else if (e.key === 'ArrowRight') shuffleProfile(1);
   });
 
-  // Swipe right = the right button (next kid); swipe left = the left button (prev kid).
+  // Swipe left = the right button (next kid); swipe right = the left button (prev kid).
   let profileTouchStartX = 0;
   let profileTouchStartY = 0;
   profileOverlay.addEventListener('touchstart', (e) => {
@@ -2757,8 +3052,8 @@
     const dx = e.changedTouches[0].clientX - profileTouchStartX;
     const dy = e.changedTouches[0].clientY - profileTouchStartY;
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return; // require a mostly-horizontal swipe past a threshold
-    if (dx > 0) shuffleProfile(1);
-    else shuffleProfile(-1);
+    if (dx > 0) shuffleProfile(-1);
+    else shuffleProfile(1);
   }, { passive: true });
 
   let lastModalOriginRect = null;
@@ -2830,12 +3125,31 @@
       pinOverlay.classList.remove('open');
       if (pinPurpose === 'claiming') { toggleClaiming(); }
       else if (pinPurpose === 'request') { approveRequest(); }
+      else if (pinPurpose === 'deletekid') { performDeleteKid(); }
       else { setMommyMode(true); }
     }
     else { pinError.textContent = 'Incorrect PIN, try again.'; pinInput.value = ''; pinInput.focus(); }
   }
   pinConfirm.onclick = tryPin;
   pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
+
+  // ===== DYNAMIC MODAL STACKING =====
+  // Every overlay/drawer shares roughly the same base z-index, which makes
+  // "which one is on top" depend on HTML source order rather than which one
+  // was actually opened more recently — that's what caused the kid profile
+  // modal to wrongly cover things opened from within it earlier. This
+  // watches every overlay and drawer for its 'open' class, and whenever one
+  // gets opened, bumps it above whatever is currently the topmost — so the
+  // most recently opened modal always wins, no matter the DOM order.
+  let topModalZIndex = 50;
+  document.querySelectorAll('.overlay, .side-drawer').forEach(el => {
+    new MutationObserver(() => {
+      if (el.classList.contains('open')) {
+        topModalZIndex += 1;
+        el.style.zIndex = topModalZIndex;
+      }
+    }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
 
   async function init() {
     await loadData();
