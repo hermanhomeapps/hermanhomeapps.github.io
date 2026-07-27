@@ -1,0 +1,74 @@
+**This file is the standing-instructions file for every Claude Code session in this project, not just a file-edit lock.** Read it in full at the start of any new chat, before doing anything else — it's where cross-session coordination, durable how-things-work knowledge, and any instruction the owner wants remembered all get folded in over time. If the owner gives an instruction meant to apply beyond the current turn, add it here (in whichever section fits, or a new one) rather than letting it live only in that conversation.
+
+Standing instructions:
+1. Always tell the owner exactly what to do once an update is finished. Do not assume they'll remember.
+2. Always expect to be given more instructions, and add them here when that happens.
+3. Maintain the "Things Not Yet Confirmed Manually Complete" section below — log every manual action item there (not just in chat), and at the end of any turn where a task completes, give a short debrief of everything still outstanding in that section (not just what this session added).
+
+# SESSION_MANAGER.md — cross-session edit coordination
+
+This repo (`hermanhomeapps.github.io`, a public GitHub Pages static site) may get worked on across multiple Claude Code sessions/days. This file is how they avoid stepping on each other when editing the same file — there's no real-time link between sessions, so this is a manual, advisory lock: read it before editing a shared file, claim your file(s) here, release when done.
+
+**Shared files to watch:**
+- `index.html` (homepage hub)
+- `shared/apps.json`, `shared/dock.js` (drive every app's homepage tile + nav dock — used by ALL apps)
+- `new-app/index.html`
+- `shabbos-chores-points-lists-new/index.html`
+- `mommy-camp/index.html`
+- `backend-scripts/*.gs` (gitignored, local-only — see debrief below)
+- `.gitignore`
+
+**Rules:**
+1. Before editing a shared file, check the table below. If someone else has an `OPEN` claim on a file you need, don't edit it — tell the owner and wait, or ask them to confirm the other session is done.
+2. Before you start editing a shared file, add a row (or update your existing one) with status `OPEN`.
+3. The moment you're done editing that file for this turn, flip your row to `RELEASED` — don't leave stale `OPEN` claims sitting around.
+4. Pick a short, stable session label (what you're working on) so the owner and other sessions can tell you apart across turns.
+
+## Backend / deploy architecture — quick debrief
+
+This site is 100% static (GitHub Pages) — every app (`shabbos-chores-points-lists-new`, `mommy-camp`, `new-app`) is a single self-contained `index.html` that talks to a **Google Apps Script Web App** as its backend (`doGet`/`doPost` against a Google Sheet or Drive folder). Backend code must never be committed to this repo since it's public — the `.gitignore` excludes `backend-scripts/` and `*.gs` entirely; that folder is a local-only working copy.
+
+**One unified backend project (owner explicitly wants ONE `.gs` that does everything — do not re-split this):** `backend-scripts/hermanhomeapps-backend.gs` is deployed as a single Apps Script Web App, bound to the Shabbos Chores Sheet (`getActiveSpreadsheet()` — Sheet ID `1NVlbMvzIse-GO82ghtaSt1JRStoReB9fF6EzF2PcLEg`, opened via Extensions > Apps Script from inside that Sheet). It handles THREE things off one exec URL, routed by request shape (not URL) in `doGet`/`doPost`:
+- Shabbos Chores + Mommy Camp point-tracking (Mommy Camp's tabs prefixed `camp_` to avoid colliding with Shabbos Chores' own `kids`/`points_log`)
+- New App Wizard drafts, saved to a Drive folder (`FOLDER_ID` = `1zt4A8oaaUuH-MeVCEY62IGFZM3HdANRL`)
+- The external-apps registry, a separate small Sheet opened by ID (`EXTERNAL_APPS_SHEET_ID`)
+
+Wizard requests are detected by `action` being one of `list`/`load`/`listApps` (GET) or `save`/`discard`/`confirm` (POST); everything else falls through to the Chores/Camp sheet-CRUD logic (`sheet`/`upsert`/`delete`/`append`). The single exec URL (`AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax`) is now hardcoded in ALL FOUR places that call the backend: `shared/apps.json` (statusUrl), `shabbos-chores-points-lists-new/index.html` + `mommy-camp/index.html` (`BACKEND_URL`), and `new-app/index.html` + root `index.html` (`APPS_SCRIPT_URL`, repointed off the old separate wizard-drafts URL this session). The old two-file split (`shabbos-chores-backend.gs` / `wizard-drafts-backend.gs`) and the second Apps Script project/deployment it lived in are retired — the owner can delete that old project in script.google.com whenever, it's no longer referenced anywhere.
+
+**Self-healing schema:** the merged `.gs` runs an `ensureSchema()`/`ensureAppsSheetSchema()` pass at the top of `doGet`/`doPost` that creates any missing sheet tab + header row, and appends any missing header columns to existing tabs — reconciled against a `TABS_SCHEMA` object hardcoded in the script (verified against a real xlsx export of the live Sheet, not guessed). It NEVER reorders/renames/deletes existing columns or touches existing data rows, and results are cached 6h via `CacheService` (bump `SCHEMA_VERSION` after any future schema edit to force an immediate recheck). `camp_kids` also auto-seeds the 3 default campers, but only the very first time that tab is created from nothing.
+
+**Deploy is currently manual:** editing the `.gs` file locally does nothing live until you paste it into the Apps Script editor (script.google.com, the project bound to the Chores Sheet) and do **Deploy → Manage deployments → edit icon → Version: New version → Deploy** — just saving in the editor does NOT update the live exec URL.
+
+**In progress:** setting up `clasp` (Google's official Apps Script CLI, installed globally via npm) so a session can `clasp push`/`clasp deploy` directly instead of manual copy-paste. Blocked — see Outstanding below. Since there's now only one project, just need: its Script ID (Project Settings gear icon in the Apps Script editor) + its existing Deployment ID (Deploy → Manage deployments) so redeploys update the SAME url instead of minting a new one and breaking every hardcoded `BACKEND_URL`/`APPS_SCRIPT_URL` reference across the frontend.
+
+**Also found:** this machine has a permanent root CA from "Techloq" (network content-filtering appliance) installed in the Windows trust store, intercepting/re-signing ALL HTTPS traffic including Google's OAuth endpoints. Node.js uses its own separate CA bundle (not Windows'), so `clasp login`'s token exchange fails with `unable to get local issuer certificate` until Node is told to trust it too (`NODE_EXTRA_CA_CERTS`) — the owner is confirming with Techloq first before that gets enabled site-wide for Node.
+
+## Things Not Yet Confirmed Manually Complete
+
+Running, cumulative list of manual action items other sessions are waiting on the owner for — deploying a file, setting a config value, testing something against a live system, anything that requires a human hand outside the coding environment. Belongs here, not just in a chat reply that scrolls away.
+
+**Process for every session:**
+1. Whenever your work leaves something for the owner to do manually, add it here as a checklist item under the right feature heading (create a new heading if it's a new feature).
+2. At the END of any turn where you complete a task — whether or not you personally added anything here — re-read this whole section and give a short debrief of everything still outstanding, not just your own session's items.
+3. Only check off / remove an item once the owner has explicitly confirmed they did it — "the code is ready" from a session doesn't count, only their own confirmation does.
+4. Keep items short and action-oriented (what to click/paste/run), not status narration — the Claims log below is where the narrative/history lives.
+
+### Outstanding
+
+**Backend deploy / schema fix**
+- [ ] Paste `backend-scripts/hermanhomeapps-backend.gs` (unified — replaces BOTH old `.gs` files; self-healing schema + `last_updated`/`kid_emoji`/`kid_quote`/`consistent` column fixes + wizard-drafts logic merged in) into the Chores-bound Apps Script project's editor, replacing everything there, then redeploy (Deploy → Manage deployments → edit icon → New version → Deploy). Until this happens: the emoji/quote/consistent-chore fields keep silently not saving, and the New App Wizard keeps hitting its old separate (still-working, unretired) deployment.
+- [ ] Once confirmed working on the unified URL: optionally delete the old standalone Wizard Drafts Apps Script project in script.google.com — nothing references it anymore.
+
+**clasp sync/redeploy setup**
+- [ ] Call Techloq, confirm the HTTPS interception on this machine is intentional/sanctioned, and confirm it's OK to make Node.js trust their root CA via `NODE_EXTRA_CA_CERTS` so `clasp login` can complete.
+- [ ] Once cert issue resolved: run `clasp.cmd login` again to finish OAuth (previous attempt didn't save `~/.clasprc.json` — token exchange failed).
+- [ ] Send the Script ID for the (now unified) backend Apps Script project (Project Settings gear icon in the editor).
+- [ ] Send its existing Deployment ID (Deploy → Manage deployments), so `clasp deploy` updates the same live URL instead of creating a new one.
+
+**Git / GitHub**
+- [ ] None currently — collaborator access confirmed working (test push succeeded).
+
+## Claims
+
+| Session | File(s) | Status | Last updated | Notes |
+|---|---|---|---|---|

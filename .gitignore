@@ -1,0 +1,16 @@
+# Backend / server-side scripts (Google Apps Script, credentials, config)
+# — this repo is served publicly via GitHub Pages, so nothing backend-facing
+# should ever be committed here. Keep .gs files and any private working
+# folder local-only.
+backend-scripts/
+*.gs
+
+# Local zip drops / scratch archives
+*.zip
+
+# Local Claude Code settings (per-machine permissions, not shared)
+.claude/settings.local.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

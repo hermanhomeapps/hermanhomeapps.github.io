@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/session_start_manager.py",
+            "statusMessage": "Reading SESSION_MANAGER.md"
+          }
+        ]
+      }
+    ]
+  }
+}

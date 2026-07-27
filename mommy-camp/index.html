@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mommy Camp — Point Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B1450;
+    --navy-deep: #1A1440;
+    --tan-bg-1: #F6E8C9;
+    --tan-bg-2: #E6DCE4;
+    --tan-bg-3: #C9C3D6;
+    --teal: #1FA8B8;
+    --gold: #6b5636;
+    --card-shadow: rgba(0,0,0,0.18);
+    --error: #B8262A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: linear-gradient(180deg, var(--tan-bg-1) 0%, var(--tan-bg-2) 55%, var(--tan-bg-3) 100%);
+    font-family: 'Quicksand', sans-serif; color: var(--navy);
+    padding: 24px 16px 110px;
+  }
+  .page { max-width: 680px; margin: 0 auto; position: relative; }
+
+  .bsd { position: absolute; top: 0; right: 0; font-size: 0.72rem; font-weight: 700; color: var(--navy); }
+
+  header { text-align: center; padding: 24px 0 8px; }
+  .year-script { font-family: 'Dancing Script', cursive; color: var(--teal); font-size: 1.6rem; font-weight: 600; }
+  .wordmark {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800; color: var(--navy);
+    font-size: clamp(2.2rem, 9vw, 3rem); letter-spacing: 1px; line-height: 1;
+    border-bottom: 4px solid var(--navy); display: inline-block; padding-bottom: 4px; margin: 4px 0;
+  }
+  .subtitle { font-family: 'Baloo 2', sans-serif; font-weight: 700; color: var(--gold); font-size: 0.85rem; letter-spacing: 3px; margin-top: 6px; }
+
+  .day-strip { display: flex; justify-content: center; gap: 4px; margin: 26px 0 4px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .day-flag { flex: 1; min-width: 0; text-align: center; }
+  .day-triangle {
+    width: 0; height: 0; margin: 0 auto;
+    border-left: 26px solid transparent; border-right: 26px solid transparent; border-bottom: 40px solid var(--flag-color);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .day-name {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 0.62rem;
+    position: relative; top: -14px; white-space: nowrap;
+  }
+  .day-theme { font-size: 0.66rem; color: var(--navy); font-weight: 600; margin-top: 2px; line-height: 1.2; }
+
+  .chesed-bar {
+    background: #7FC4D6; border-radius: 999px; padding: 10px 16px; margin: 18px 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 0.95rem;
+    box-shadow: 0 4px 10px var(--card-shadow);
+  }
+
+  .leader-banner {
+    background: var(--teal); border-radius: 999px; padding: 12px 18px; margin: 18px 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;
+    box-shadow: 0 4px 12px var(--card-shadow); text-align: center;
+  }
+
+  .save-warning {
+    text-align: center; font-size: 0.78rem; margin-bottom: 14px; padding: 9px 14px;
+    border-radius: 10px; background: #FBEAEA; color: var(--error);
+  }
+
+  .kid-flag-notch {
+    width: 0; height: 0; margin: 0 auto -2px;
+    border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 28px solid var(--kid-color);
+  }
+  .kid-card {
+    border-radius: 18px; padding: 18px; margin-bottom: 20px; background: var(--kid-color);
+    box-shadow: 0 4px 10px var(--card-shadow); transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kid-card.is-leader { box-shadow: 0 0 0 3px #F6C453, 0 6px 14px var(--card-shadow); }
+  .kid-card.pop-up { transform: scale(1.015); }
+  .kid-card.pop-down { transform: scale(0.985); }
+
+  .kid-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .kid-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 1.1rem; }
+  .kid-score { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: #fff; font-size: 2.1rem; line-height: 1; }
+
+  .kid-input-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .kid-input-row input {
+    font-family: 'Quicksand', sans-serif; font-weight: 700; border: none; border-radius: 10px;
+    padding: 9px 12px; font-size: 0.88rem; color: var(--kid-color-dark);
+  }
+  .kid-amount-input { width: 90px; text-align: center; }
+  .kid-reason-input { flex: 1; min-width: 140px; font-weight: 500 !important; }
+
+  .kid-btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .kid-btn { flex: 1; border: none; border-radius: 10px; padding: 10px; font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.86rem; cursor: pointer; }
+  .kid-btn-add { background: rgba(255,255,255,0.95); color: var(--kid-color-dark); }
+  .kid-btn-take { background: rgba(0,0,0,0.25); color: #fff; }
+  .kid-btn:hover { filter: brightness(1.05); }
+
+  .kid-history { background: rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; }
+  .kid-history-label { padding: 7px 12px 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.9); }
+  .kid-history-list { max-height: 130px; overflow-y: auto; padding: 0 12px 8px; }
+  .kid-history-empty { font-size: 0.75rem; color: rgba(255,255,255,0.75); }
+  .kid-history-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.74rem;
+    color: #fff; padding: 5px 0; border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .kid-history-row:first-child { border-top: none; }
+  .kid-history-reason { flex: 1; }
+  .kid-history-meta { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .kid-history-time { opacity: 0.75; }
+  .kid-history-delta { font-weight: 700; }
+
+  .reset-area { text-align: center; margin-top: 26px; }
+  .reset-link { background: none; border: none; color: var(--gold); font-size: 0.85rem; font-weight: 600; text-decoration: underline; cursor: pointer; }
+  .reset-confirm { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .reset-confirm span { color: var(--gold); font-size: 0.85rem; font-weight: 600; }
+  .reset-yes, .reset-cancel { border: none; border-radius: 999px; padding: 7px 16px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .reset-yes { background: var(--error); color: #fff; }
+  .reset-cancel { background: #e0e0e0; color: #333; }
+
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; z-index: 199;
+    transform: translateX(-50%) translateY(10px) scale(0.85); opacity: 0; pointer-events: none;
+    background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18); color: var(--navy); padding: 10px 20px; border-radius: 999px;
+    font-size: 0.85rem; font-weight: 700; max-width: 85vw; text-align: center;
+    transition: opacity 0.3s cubic-bezier(0.34,1.56,0.64,1), transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+  .loading-note { text-align: center; padding: 60px 0; color: var(--gold); font-weight: 600; }
+
+  @media (max-width: 480px) {
+    .day-name { font-size: 0.55rem; }
+    .day-theme { font-size: 0.58rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bsd">בס״ד</div>
+  <header>
+    <div class="year-script">Year 5786</div>
+    <h1 class="wordmark">MOMMY CAMP</h1>
+    <div class="subtitle">POINT TRACKER</div>
+  </header>
+
+  <div class="day-strip" id="dayStrip"></div>
+
+  <div class="chesed-bar">💙 Chesed</div>
+
+  <div class="leader-banner" id="leaderBanner"></div>
+  <div class="save-warning" id="saveWarning" style="display:none;">Having trouble saving — trying again in the background. Keep this tab open until this message clears.</div>
+
+  <div id="kidCards">
+    <div class="loading-note">Loading…</div>
+  </div>
+
+  <div class="reset-area" id="resetArea"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /*
+    BACKEND SETUP — this app shares the SAME Apps Script deployment (and the
+    same Google Sheet) that Shabbos Chores already uses, instead of needing
+    its own. Nothing to set up in the Sheet by hand:
+
+    1. Update the Shabbos Chores Apps Script project's Code.gs with the
+       merged version (self-heals its own schema — creates the camp_kids /
+       camp_points_log tabs and headers automatically the first time it
+       runs, and seeds camp_kids with the 3 campers below) — then Deploy >
+       Manage deployments > edit icon > Version: New version > Deploy. This
+       is required for any .gs edit; just saving the code does not update
+       the live URL.
+
+    Default campers seeded automatically on first run (edit/add/remove
+    afterward directly in the Sheet — the backend never re-seeds once the
+    tab exists):
+      kid_id=k_alumah   name=Alumah          kid_color=#E8922F  kid_color_dark=#7A4A10
+      kid_id=k_maayan   name=Maayan          kid_color=#1FA8B8  kid_color_dark=#0E5057
+      kid_id=k_shlomo   name=Shlomo Nosson   kid_color=#2E2560  kid_color_dark=#1A1440
+
+    That's it — BACKEND_URL below already points at that shared deployment.
+  */
+  // Shares the same Apps Script deployment as Shabbos Chores — Mommy Camp's
+  // tables live in that same Sheet, named camp_kids / camp_points_log so
+  // they don't collide with Shabbos Chores' own kids / points_log tabs.
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec";
+
+  const DAYS = [
+    { name: 'Monday', theme: 'Self Care Day', color: '#E8A63C' },
+    { name: 'Tuesday', theme: 'Sharing Day', color: '#A85A32' },
+    { name: 'Wednesday', theme: 'Trip Day!!', color: '#5B2A3A' },
+    { name: 'Thursday', theme: 'Giving Day', color: '#241C4A' },
+    { name: 'Friday', theme: 'Got Ready for Shabbos!', color: '#1F3D8C' },
+    { name: 'Shabbos', theme: 'Parshas Eikev', color: '#C9A876' }
+  ];
+
+  let appData = { kids: [], points_log: [] };
+  let inputs = {}; // { kid_id: { amount: '', reason: '' } }
+
+  function backendConfigured() {
+    return BACKEND_URL && !BACKEND_URL.startsWith('PASTE_');
+  }
+
+  async function loadData() {
+    if (!backendConfigured()) return;
+    try {
+      const res = await fetch(BACKEND_URL);
+      const data = await res.json();
+      appData.kids = data.camp_kids || [];
+      appData.points_log = data.camp_points_log || [];
+      appData.kids.forEach(k => { if (!inputs[k.kid_id]) inputs[k.kid_id] = { amount: '', reason: '' }; });
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    }
+  }
+
+  async function postData(payload) {
+    await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+  }
+
+  let toastTimer = null;
+  function showToast(msg) {
+    clearTimeout(toastTimer);
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function renderDayStrip() {
+    const el = document.getElementById('dayStrip');
+    el.innerHTML = DAYS.map(d => `
+      <div class="day-flag">
+        <div class="day-triangle" style="--flag-color:${d.color};"><span class="day-name">${d.name}</span></div>
+        <div class="day-theme">${d.theme}</div>
+      </div>
+    `).join('');
+  }
+
+  function getLeaders() {
+    const maxScore = Math.max(0, ...appData.kids.map(k => Number(k.current_points) || 0));
+    if (maxScore === 0) return { leaders: [], maxScore: 0 };
+    return { leaders: appData.kids.filter(k => (Number(k.current_points) || 0) === maxScore), maxScore };
+  }
+
+  function renderLeaderBanner() {
+    const { leaders, maxScore } = getLeaders();
+    const el = document.getElementById('leaderBanner');
+    if (leaders.length === 0) {
+      el.innerHTML = `<span>✨</span><span>Let the points begin!</span>`;
+    } else if (leaders.length === 1) {
+      el.innerHTML = `<span>🏆</span><span>Leader: ${leaders[0].name} — ${maxScore} pts</span>`;
+    } else {
+      el.innerHTML = `<span>🏆</span><span>It's a tie! ${leaders.map(l => l.name).join(' & ')} — ${maxScore} pts</span>`;
+    }
+  }
+
+  function formatTime(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' +
+      d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function renderKidCards() {
+    const wrap = document.getElementById('kidCards');
+    if (appData.kids.length === 0) {
+      wrap.innerHTML = `<div class="loading-note">No kids yet — add rows to the "kids" tab in the Sheet to get started.</div>`;
+      return;
+    }
+    const { leaders } = getLeaders();
+    wrap.innerHTML = '';
+    appData.kids.forEach(kid => {
+      const isLeader = leaders.some(l => l.kid_id === kid.kid_id);
+      const kidLog = appData.points_log
+        .filter(l => l.kid_id === kid.kid_id)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const historyHtml = kidLog.length
+        ? kidLog.map(l => {
+            const d = Number(l.delta) || 0;
+            return `<div class="kid-history-row">
+              <span class="kid-history-reason">${escapeHtml(l.reason || 'No reason given')}</span>
+              <span class="kid-history-meta">
+                <span class="kid-history-time">${formatTime(l.timestamp)}</span>
+                <span class="kid-history-delta">${d > 0 ? '+' + d : d}</span>
+              </span>
+            </div>`;
+          }).join('')
+        : `<div class="kid-history-empty">No entries yet</div>`;
+
+      const notch = document.createElement('div');
+      notch.className = 'kid-flag-notch';
+      notch.style.setProperty('--kid-color', kid.kid_color || '#1FA8B8');
+
+      const card = document.createElement('div');
+      card.className = 'kid-card' + (isLeader ? ' is-leader' : '');
+      card.id = `kidCard-${kid.kid_id}`;
+      card.style.setProperty('--kid-color', kid.kid_color || '#1FA8B8');
+      card.style.setProperty('--kid-color-dark', kid.kid_color_dark || '#0E5057');
+      card.innerHTML = `
+        <div class="kid-card-top">
+          <div class="kid-name">${isLeader ? '👑 ' : ''}${escapeHtml(kid.name)}</div>
+          <div class="kid-score">${kid.current_points || 0}</div>
+        </div>
+        <div class="kid-input-row">
+          <input type="number" min="1" placeholder="Amount" class="kid-amount-input" id="amount-${kid.kid_id}" value="${inputs[kid.kid_id]?.amount || ''}">
+          <input type="text" placeholder="Reason (optional)" class="kid-reason-input" id="reason-${kid.kid_id}" value="${escapeAttr(inputs[kid.kid_id]?.reason || '')}">
+        </div>
+        <div class="kid-btn-row">
+          <button class="kid-btn kid-btn-add" data-kid="${kid.kid_id}" data-sign="1">Add</button>
+          <button class="kid-btn kid-btn-take" data-kid="${kid.kid_id}" data-sign="-1">Take Away</button>
+        </div>
+        <div class="kid-history">
+          <div class="kid-history-label">HISTORY</div>
+          <div class="kid-history-list">${historyHtml}</div>
+        </div>
+      `;
+
+      const wrapDiv = document.createElement('div');
+      wrapDiv.appendChild(notch);
+      wrapDiv.appendChild(card);
+      wrap.appendChild(wrapDiv);
+
+      document.getElementById(`amount-${kid.kid_id}`).addEventListener('input', e => {
+        inputs[kid.kid_id] = inputs[kid.kid_id] || {};
+        inputs[kid.kid_id].amount = e.target.value;
+      });
+      document.getElementById(`reason-${kid.kid_id}`).addEventListener('input', e => {
+        inputs[kid.kid_id] = inputs[kid.kid_id] || {};
+        inputs[kid.kid_id].reason = e.target.value;
+      });
+      card.querySelectorAll('.kid-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyChange(kid.kid_id, Number(btn.dataset.sign)));
+      });
+    });
+  }
+
+  async function applyChange(kidId, sign) {
+    const raw = inputs[kidId]?.amount;
+    const amt = parseInt(raw, 10);
+    if (!amt || amt <= 0) { showToast('Enter an amount first.'); return; }
+    const reason = (inputs[kidId]?.reason || '').trim();
+    const delta = sign * amt;
+
+    const kid = appData.kids.find(k => k.kid_id === kidId);
+    if (!kid) return;
+    const newTotal = Math.max(0, (Number(kid.current_points) || 0) + delta);
+    const updatedKid = Object.assign({}, kid, { current_points: newTotal });
+
+    const logEntry = {
+      log_id: 'log_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      kid_id: kidId, delta: delta, reason: reason || 'No reason given',
+      timestamp: new Date().toISOString()
+    };
+
+    showToast(sign > 0 ? `Adding ${amt} pts...` : `Taking away ${amt} pts...`);
+    const card = document.getElementById(`kidCard-${kidId}`);
+    if (card) card.classList.add(sign > 0 ? 'pop-up' : 'pop-down');
+
+    try {
+      await postData({ sheet: 'camp_kids', action: 'upsert', id_field: 'kid_id', rows: [updatedKid] });
+      await postData({ sheet: 'camp_points_log', action: 'append', rows: [logEntry] });
+      document.getElementById('saveWarning').style.display = 'none';
+    } catch (e) {
+      document.getElementById('saveWarning').style.display = 'block';
+    }
+
+    inputs[kidId] = { amount: '', reason: '' };
+    await refreshAndRerender();
+  }
+
+  function renderResetArea() {
+    const el = document.getElementById('resetArea');
+    el.innerHTML = `<button class="reset-link" id="resetLinkBtn">Reset all points &amp; history</button>`;
+    document.getElementById('resetLinkBtn').onclick = () => {
+      el.innerHTML = `
+        <div class="reset-confirm">
+          <span>Reset everything?</span>
+          <button class="reset-yes" id="resetYesBtn">Yes, reset</button>
+          <button class="reset-cancel" id="resetCancelBtn">Cancel</button>
+        </div>`;
+      document.getElementById('resetYesBtn').onclick = resetAll;
+      document.getElementById('resetCancelBtn').onclick = renderResetArea;
+    };
+  }
+
+  async function resetAll() {
+    showToast('Resetting...');
+    const zeroedKids = appData.kids.map(k => Object.assign({}, k, { current_points: 0 }));
+    await postData({ sheet: 'camp_kids', action: 'upsert', id_field: 'kid_id', rows: zeroedKids });
+    const logIds = appData.points_log.map(l => l.log_id);
+    if (logIds.length) await postData({ sheet: 'camp_points_log', action: 'delete', id_field: 'log_id', ids: logIds });
+    await refreshAndRerender();
+    renderResetArea();
+    showToast('All reset.');
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
+
+  async function refreshAndRerender() {
+    await loadData();
+    renderLeaderBanner();
+    renderKidCards();
+  }
+
+  async function init() {
+    renderDayStrip();
+    if (!backendConfigured()) {
+      document.getElementById('kidCards').innerHTML =
+        '<div class="loading-note">Backend not set up yet — see the BACKEND_URL comment in this file.</div>';
+      return;
+    }
+    await loadData();
+    renderLeaderBanner();
+    renderKidCards();
+    renderResetArea();
+  }
+  init();
+</script>
+<script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
+</body>
+</html>

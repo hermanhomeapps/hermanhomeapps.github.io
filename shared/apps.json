@@ -5,5 +5,12 @@
     "icon": "🕯️",
     "statusUrl": "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec?status=1",
     "color": "var(--sunflower)"
+  },
+  {
+    "name": "Mommy Camp",
+    "path": "/mommy-camp/",
+    "icon": "🏕️",
+    "statusUrl": "https://script.google.com/macros/s/AKfycbx2h9qFRVB4yBifHUy5-RHGkHd2nxDrOg5G98_rAS1MWKblV-qe1SLD14MaKuUMZoax/exec?status=camp",
+    "color": "var(--mint)"
   }
 ]
