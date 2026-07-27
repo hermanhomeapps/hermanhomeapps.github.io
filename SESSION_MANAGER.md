@@ -39,6 +39,8 @@ Wizard requests are detected by `action` being one of `list`/`load`/`listApps` (
 
 **Deploy is currently manual:** editing the `.gs` file locally does nothing live until you paste it into the Apps Script editor (script.google.com, the project bound to the Chores Sheet) and do **Deploy → Manage deployments → edit icon → Version: New version → Deploy** — just saving in the editor does NOT update the live exec URL.
 
+**Manual schema trigger:** the deployed script also has a `setupSpreadsheet()` function (bottom of the file) you can run directly from the editor's function dropdown + Run button, no redeploy needed — clears the schema cache and force-runs `ensureSchema`/`ensureAppsSheetSchema` immediately instead of waiting for a live request. Uses `SpreadsheetApp.openById(CHORES_SHEET_ID)`, not `getActiveSpreadsheet()`, because running a function directly from the standalone editor has no "active spreadsheet" context (that only exists inside a real web app request) — `getActiveSpreadsheet()` returns `null` there and throws. **Confirmed working by owner:** ran it, `camp_kids`/`camp_points_log` tabs (+ seeded campers) were created successfully.
+
 **In progress:** setting up `clasp` (Google's official Apps Script CLI, installed globally via npm) so a session can `clasp push`/`clasp deploy` directly instead of manual copy-paste. Blocked — see Outstanding below. Since there's now only one project, just need: its Script ID (Project Settings gear icon in the Apps Script editor) + its existing Deployment ID (Deploy → Manage deployments) so redeploys update the SAME url instead of minting a new one and breaking every hardcoded `BACKEND_URL`/`APPS_SCRIPT_URL` reference across the frontend.
 
 **Also found:** this machine has a permanent root CA from "Techloq" (network content-filtering appliance) installed in the Windows trust store, intercepting/re-signing ALL HTTPS traffic including Google's OAuth endpoints. Node.js uses its own separate CA bundle (not Windows'), so `clasp login`'s token exchange fails with `unable to get local issuer certificate` until Node is told to trust it too (`NODE_EXTRA_CA_CERTS`) — the owner is confirming with Techloq first before that gets enabled site-wide for Node.
@@ -56,7 +58,8 @@ Running, cumulative list of manual action items other sessions are waiting on th
 ### Outstanding
 
 **Backend deploy / schema fix**
-- [x] Paste `backend-scripts/hermanhomeapps-backend.gs` (unified — replaces BOTH old `.gs` files; self-healing schema + `last_updated`/`kid_emoji`/`kid_quote`/`consistent` column fixes + wizard-drafts logic merged in) into the Chores-bound Apps Script project's editor, replacing everything there, then redeploy. — **Owner confirmed: redeployed as v10.** Same exec URL (`AKfycbx2...`), so no frontend changes needed. First live request will run `ensureSchema()`/`ensureAppsSheetSchema()` and backfill any missing tabs/columns.
+- [x] Paste `backend-scripts/hermanhomeapps-backend.gs` (unified — replaces BOTH old `.gs` files) into the Chores-bound Apps Script project's editor, replacing everything there, then redeploy. — **Owner confirmed: redeployed as v10.** Same exec URL, no frontend changes needed.
+- [x] `camp_kids`/`camp_points_log` tabs actually created + seeded. — **Owner confirmed:** ran the `setupSpreadsheet()` manual-trigger function from the editor (added after the lazy on-request version needed manual poking), tabs now exist in the Sheet with the 3 default campers.
 - [ ] Once confirmed working on the unified URL: optionally delete the old standalone Wizard Drafts Apps Script project in script.google.com — nothing references it anymore (New App Wizard now points at the same unified URL as everything else, repointed in commit `09b225b`).
 
 **clasp sync/redeploy setup**
