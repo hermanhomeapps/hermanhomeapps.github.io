@@ -167,17 +167,28 @@
 
 <script>
   /*
-    BACKEND SETUP — this app shares the SAME Apps Script deployment (and the
-    same Google Sheet) that Shabbos Chores already uses, instead of needing
-    its own. Nothing to set up in the Sheet by hand:
+    BACKEND SETUP — this app shares the SAME unified Apps Script deployment
+    (hermanhomeapps-backend.gs, bound to the Shabbos Chores Sheet) that every
+    other app on this site uses — one exec URL for everything. Nothing to
+    set up in the Sheet by hand:
 
-    1. Update the Shabbos Chores Apps Script project's Code.gs with the
-       merged version (self-heals its own schema — creates the camp_kids /
-       camp_points_log tabs and headers automatically the first time it
-       runs, and seeds camp_kids with the 3 campers below) — then Deploy >
-       Manage deployments > edit icon > Version: New version > Deploy. This
-       is required for any .gs edit; just saving the code does not update
-       the live URL.
+    1. The backend self-heals its own schema on every request (ensureSchema)
+       — creates the camp_kids / camp_points_log tabs and headers
+       automatically, and seeds camp_kids with the 3 campers below the very
+       first time that tab is created.
+    2. It also has a setupSpreadsheet() function you can run directly from
+       the Apps Script editor's function dropdown (no redeploy needed) to
+       force that check immediately instead of waiting for a live request —
+       useful right after pasting in a schema change.
+
+    IMPORTANT gotcha we actually hit: editing Code.gs and saving, or running
+    a function manually from the editor, does NOT update what the live exec
+    URL serves. Manual runs (like setupSpreadsheet) always use the latest
+    saved code, but the deployed Web App keeps serving whatever was live
+    last time you did Deploy > Manage deployments > edit icon > Version:
+    New version > Deploy — for THIS specific deployment. If new fields show
+    up via setupSpreadsheet/direct sheet queries but not through the app
+    itself, the live deployment version is stale — redeploy it.
 
     Default campers seeded automatically on first run (edit/add/remove
     afterward directly in the Sheet — the backend never re-seeds once the
