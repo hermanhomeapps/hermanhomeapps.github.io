@@ -56,8 +56,8 @@ Running, cumulative list of manual action items other sessions are waiting on th
 ### Outstanding
 
 **Backend deploy / schema fix**
-- [ ] Paste `backend-scripts/hermanhomeapps-backend.gs` (unified — replaces BOTH old `.gs` files; self-healing schema + `last_updated`/`kid_emoji`/`kid_quote`/`consistent` column fixes + wizard-drafts logic merged in) into the Chores-bound Apps Script project's editor, replacing everything there, then redeploy (Deploy → Manage deployments → edit icon → New version → Deploy). Until this happens: the emoji/quote/consistent-chore fields keep silently not saving, and the New App Wizard keeps hitting its old separate (still-working, unretired) deployment.
-- [ ] Once confirmed working on the unified URL: optionally delete the old standalone Wizard Drafts Apps Script project in script.google.com — nothing references it anymore.
+- [x] Paste `backend-scripts/hermanhomeapps-backend.gs` (unified — replaces BOTH old `.gs` files; self-healing schema + `last_updated`/`kid_emoji`/`kid_quote`/`consistent` column fixes + wizard-drafts logic merged in) into the Chores-bound Apps Script project's editor, replacing everything there, then redeploy. — **Owner confirmed: redeployed as v10.** Same exec URL (`AKfycbx2...`), so no frontend changes needed. First live request will run `ensureSchema()`/`ensureAppsSheetSchema()` and backfill any missing tabs/columns.
+- [ ] Once confirmed working on the unified URL: optionally delete the old standalone Wizard Drafts Apps Script project in script.google.com — nothing references it anymore (New App Wizard now points at the same unified URL as everything else, repointed in commit `09b225b`).
 
 **clasp sync/redeploy setup**
 - [ ] Call Techloq, confirm the HTTPS interception on this machine is intentional/sanctioned, and confirm it's OK to make Node.js trust their root CA via `NODE_EXTRA_CA_CERTS` so `clasp login` can complete.
