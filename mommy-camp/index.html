@@ -64,6 +64,14 @@
     font-family: 'Baloo 2', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;
     box-shadow: 0 4px 12px var(--card-shadow); text-align: center;
   }
+  .leader-banner.podium {
+    flex-direction: column; align-items: stretch; border-radius: 20px;
+    padding: 14px 18px; gap: 4px;
+  }
+  .podium-row { display: flex; align-items: center; gap: 10px; }
+  .podium-medal { font-size: 1.15rem; line-height: 1; flex: none; }
+  .podium-name { flex: 1; text-align: left; font-size: 0.92rem; }
+  .podium-pts { font-weight: 800; white-space: nowrap; }
 
   .save-warning {
     text-align: center; font-size: 0.78rem; margin-bottom: 14px; padding: 9px 14px;
@@ -262,16 +270,37 @@
     return { leaders: appData.kids.filter(k => (Number(k.current_points) || 0) === maxScore), maxScore };
   }
 
+  const MEDALS = ['🥇', '🥈', '🥉'];
+
+  function getPodium() {
+    // Dense ranking by distinct point totals — ties share a medal, the next
+    // distinct total takes the next medal down (so 2 golds is followed by
+    // silver, not bronze). Kids with 0 points never place.
+    const scores = [...new Set(appData.kids.map(k => Number(k.current_points) || 0))]
+      .filter(s => s > 0)
+      .sort((a, b) => b - a)
+      .slice(0, 3);
+    return scores.map(score => ({
+      score,
+      names: appData.kids.filter(k => (Number(k.current_points) || 0) === score).map(k => k.name)
+    }));
+  }
+
   function renderLeaderBanner() {
-    const { leaders, maxScore } = getLeaders();
+    const podium = getPodium();
     const el = document.getElementById('leaderBanner');
-    if (leaders.length === 0) {
+    el.classList.toggle('podium', podium.length > 0);
+    if (podium.length === 0) {
       el.innerHTML = `<span>✨</span><span>Let the points begin!</span>`;
-    } else if (leaders.length === 1) {
-      el.innerHTML = `<span>🏆</span><span>Leader: ${leaders[0].name} — ${maxScore} pts</span>`;
-    } else {
-      el.innerHTML = `<span>🏆</span><span>It's a tie! ${leaders.map(l => l.name).join(' & ')} — ${maxScore} pts</span>`;
+      return;
     }
+    el.innerHTML = podium.map((tier, i) => `
+      <div class="podium-row">
+        <span class="podium-medal">${MEDALS[i]}</span>
+        <span class="podium-name">${tier.names.join(' & ')}</span>
+        <span class="podium-pts">${tier.score} pts</span>
+      </div>
+    `).join('');
   }
 
   function formatTime(iso) {
