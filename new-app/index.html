@@ -60,20 +60,13 @@
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #C7CFE8; display: inline-block; }
   .status-dot.on { background: var(--mint); }
 
-  .progress { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 30px; }
-  .peg {
-    width: 30px; height: 30px; border-radius: 50%; background: var(--paper);
-    border: 2px solid var(--bg-deep); display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); transition: all 0.2s ease;
-  }
-  .peg.active { background: var(--sky); border-color: var(--sky); color: #fff; transform: scale(1.15); }
-  .peg.done { background: var(--mint); border-color: var(--mint); color: #fff; }
-  .peg-line { width: 24px; height: 2px; background: var(--bg-deep); }
-
-  .panel {
-    background: var(--paper); border-radius: 20px; padding: 36px 32px;
+  .form-section {
+    background: var(--paper); border-radius: 20px; padding: 32px 30px;
     box-shadow: 0 10px 24px var(--card-shadow); border-top: 6px solid var(--sky);
+    margin-bottom: 20px;
   }
+  .form-section.type-icon { border-top-color: var(--sunflower); }
+  .form-section.type-submit { border-top-color: var(--coral); text-align: center; }
 
   .step-title { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 1.4rem; margin: 0 0 6px; }
   .step-sub { color: var(--ink-soft); font-size: 0.95rem; margin: 0 0 24px; }
@@ -110,31 +103,22 @@
   }
   .icon-option.selected { border-color: var(--sky); background: var(--bg-deep); }
 
-  .review-block { background: var(--bg); border-radius: 14px; padding: 16px 18px; margin-top: 8px; font-size: 0.9rem; line-height: 1.6; }
-  .review-block dt { font-weight: 700; margin-top: 10px; }
-  .review-block dt:first-child { margin-top: 0; }
-  .review-block dd { margin: 2px 0 0; color: var(--ink-soft); white-space: pre-wrap; }
-
-  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; gap: 12px; }
+  .actions { display: flex; justify-content: center; align-items: center; margin-top: 10px; gap: 12px; flex-wrap: wrap; }
   button.btn {
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 12px 22px;
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1rem; padding: 14px 30px;
     border-radius: 999px; border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   button.btn:hover { transform: translateY(-2px); }
   button.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-  .btn-primary { background: var(--coral); color: #fff; box-shadow: 0 6px 14px rgba(255,107,91,0.35); margin-left: auto; }
-  .btn-secondary { background: var(--bg-deep); color: var(--ink); }
-  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .skip-link {
-    background: none; border: none; color: var(--ink-soft); font-family: 'Inter', sans-serif;
-    font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;
-  }
+  .btn-primary { background: var(--coral); color: #fff; box-shadow: 0 6px 14px rgba(255,107,91,0.35); }
+  .btn-secondary { background: var(--bg-deep); color: var(--ink); font-size: 0.9rem; padding: 12px 22px; }
 
   .output-block { margin-top: 18px; }
   .output-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
   pre.output {
     background: var(--ink); color: #EAF0FB; border-radius: 14px; padding: 18px; font-size: 0.82rem;
     line-height: 1.55; overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 340px; overflow-y: auto;
+    text-align: left;
   }
   .output-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
   .btn-small {
@@ -161,8 +145,10 @@
   .draft-row .draft-time { font-size: 0.8rem; color: var(--ink-soft); }
   .draft-row .row-actions { display: flex; gap: 8px; }
 
+  #output-section { display: none; }
+
   @media (max-width: 480px) {
-    .panel, .resume-panel { padding: 26px 18px; }
+    .form-section, .resume-panel { padding: 26px 18px; }
     .type-choice { grid-template-columns: 1fr; }
     .draft-row { flex-direction: column; align-items: flex-start; }
   }
@@ -174,14 +160,81 @@
 
   <header>
     <h1 class="wordmark">+ New App</h1>
-    <p class="tagline">Answer a few questions, get a ready-to-paste brief for your AI coder</p>
+    <p class="tagline">Fill in whatever you know, skip the rest, hit submit</p>
   </header>
 
   <div class="status-bar" id="status-bar"></div>
   <div id="resume-container"></div>
 
-  <div class="progress" id="progress"></div>
-  <div class="panel" id="panel"></div>
+  <div class="form-section">
+    <p class="step-title">What are we building?</p>
+    <p class="step-sub">Everything on this whole page is optional except a name.</p>
+    <label for="f-name">App name</label>
+    <input type="text" id="f-name" placeholder="e.g. Laundry Rotation">
+    <label for="f-desc">What should it accomplish?</label>
+    <p class="hint">Optional, but a sentence or two helps later.</p>
+    <textarea id="f-desc" placeholder="e.g. Tracks whose turn it is to do laundry among the adults in the house, and lets whoever's turn it is mark it done."></textarea>
+  </div>
+
+  <div class="form-section">
+    <p class="step-title">What kind of app is this?</p>
+    <p class="step-sub">Integrated apps plug into the hub's shared backend and show live status on their tile. External apps are just a link out.</p>
+    <div class="type-choice">
+      <div class="type-card" data-type="integrated" id="type-card-integrated">
+        <span class="emoji">🔗</span>
+        <div class="label">Integrated</div>
+        <div class="desc">Lives inside the hub, uses the Sheets + Apps Script pattern, can show live status</div>
+      </div>
+      <div class="type-card" data-type="external" id="type-card-external">
+        <span class="emoji">🌐</span>
+        <div class="label">External</div>
+        <div class="desc">Built independently, hub just links out to it</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section" id="section-external" style="display:none;">
+    <p class="step-title">Where does it live?</p>
+    <p class="step-sub">Optional — if it's not built or deployed yet, leave this blank and fill it in later.</p>
+    <label for="f-url">App URL</label>
+    <input type="url" id="f-url" placeholder="https://...">
+  </div>
+
+  <div class="form-section" id="section-integrated" style="display:none;">
+    <p class="step-title">What does it need to track?</p>
+    <p class="step-sub">All optional — skip anything you're not sure about yet.</p>
+    <label for="f-fields">Data fields</label>
+    <p class="hint">Plain language is fine — e.g. "current turn, rotation order, last updated date"</p>
+    <textarea id="f-fields" placeholder="e.g. current_turn (who's up), rotation_order (list of names), last_updated (timestamp)"></textarea>
+
+    <label for="f-behavior">Any special behavior?</label>
+    <p class="hint">Rotation logic, timers, validation rules, reminders — whatever's relevant</p>
+    <textarea id="f-behavior" placeholder="e.g. Rotates automatically after someone marks their turn done. Should flag if no one's marked a turn done in 3 days."></textarea>
+
+    <label>Common patterns (check any that apply)</label>
+    <div class="checkbox-row"><input type="checkbox" id="f-trigger"><label for="f-trigger" style="margin:0;font-weight:500;">Needs a manual "tick to run" trigger (checkbox pattern)</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="f-timestamps"><label for="f-timestamps" style="margin:0;font-weight:500;">Needs to track timestamps</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="f-multiuser"><label for="f-multiuser" style="margin:0;font-weight:500;">Multiple people will interact with it</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="f-schedule"><label for="f-schedule" style="margin:0;font-weight:500;">Has scheduled/recurring logic (daily, weekly, etc.)</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="f-status"><label for="f-status" style="margin:0;font-weight:500;">Should show a live status snippet on its hub tile</label></div>
+  </div>
+
+  <div class="form-section type-icon">
+    <p class="step-title">Pick an icon</p>
+    <p class="step-sub">This shows up on the hub tile. Skip it and a default gets used.</p>
+    <div class="icon-picker" id="icon-picker"></div>
+  </div>
+
+  <div class="form-section type-submit">
+    <p class="step-title">Ready?</p>
+    <p class="step-sub" style="margin-bottom:16px;">Blank fields just get flagged for the AI coder to ask you about — nothing here blocks submitting.</p>
+    <div class="actions">
+      <button class="btn btn-secondary" id="btn-reset">Reset form</button>
+      <button class="btn btn-primary" id="btn-submit">Generate My Brief</button>
+    </div>
+  </div>
+
+  <div class="form-section" id="output-section"></div>
 </div>
 
 <script>
@@ -215,7 +268,6 @@
   let state = freshState();
   function freshState() {
     return {
-      step: 0,
       name: "", description: "", type: "",
       dataFields: "", behaviorNotes: "",
       hasTrigger: false, hasTimestamps: false, hasMultiUser: false,
@@ -231,8 +283,6 @@
     return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "untitled";
   }
 
-  function totalSteps() { return 6; }
-
   // ---------- APPS SCRIPT DRAFT BACKEND ----------
   let autosaveTimer = null;
 
@@ -241,6 +291,8 @@
   }
 
   window.addEventListener('load', async () => {
+    renderIconPicker();
+    bindFormEvents();
     renderStatusBar();
     if (backendConfigured() && !state._driveFileId) {
       try {
@@ -283,7 +335,7 @@
     const parsed = await res.json();
     state = Object.assign(freshState(), parsed, { _driveFileId: fileId });
     document.getElementById('resume-container').innerHTML = '';
-    render();
+    populateFormFromState();
   }
 
   async function discardDraftFile(fileId) {
@@ -373,132 +425,88 @@
     if (dismiss) dismiss.addEventListener('click', () => { container.innerHTML = ''; });
   }
 
-  // ---------- WIZARD STEPS ----------
-  function renderProgress() {
-    const el = document.getElementById('progress');
-    el.innerHTML = '';
-    for (let i = 0; i < totalSteps(); i++) {
-      if (i > 0) {
-        const line = document.createElement('div');
-        line.className = 'peg-line';
-        el.appendChild(line);
-      }
-      const peg = document.createElement('div');
-      peg.className = 'peg' + (i === state.step ? ' active' : i < state.step ? ' done' : '');
-      peg.textContent = i < state.step ? '✓' : (i + 1);
-      el.appendChild(peg);
-    }
+  // ---------- SINGLE-PAGE FORM ----------
+  function renderIconPicker() {
+    const picker = document.getElementById('icon-picker');
+    picker.innerHTML = ICONS.map(i => `<button type="button" class="icon-option ${state.icon === i ? 'selected' : ''}" data-icon="${i}">${i}</button>`).join('');
+    picker.querySelectorAll('.icon-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.icon = btn.dataset.icon;
+        picker.querySelectorAll('.icon-option').forEach(b => b.classList.toggle('selected', b === btn));
+        scheduleAutosave();
+      });
+    });
   }
 
-  function goTo(step) {
-    state.step = step;
-    render();
-    scheduleAutosave();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function updateTypeSection() {
+    document.getElementById('type-card-integrated').classList.toggle('selected', state.type === 'integrated');
+    document.getElementById('type-card-external').classList.toggle('selected', state.type === 'external');
+    document.getElementById('section-integrated').style.display = state.type === 'integrated' ? '' : 'none';
+    document.getElementById('section-external').style.display = state.type === 'external' ? '' : 'none';
   }
 
-  function renderStep0() {
-    return `
-      <p class="step-title">What are we building?</p>
-      <p class="step-sub">Give it a name — everything else here is optional.</p>
-      <label for="f-name">App name</label>
-      <input type="text" id="f-name" value="${escapeAttr(state.name)}" placeholder="e.g. Laundry Rotation">
-      <label for="f-desc">What should it accomplish?</label>
-      <p class="hint">Optional, but a sentence or two helps later.</p>
-      <textarea id="f-desc" placeholder="e.g. Tracks whose turn it is to do laundry among the adults in the house, and lets whoever's turn it is mark it done.">${escapeHtml(state.description)}</textarea>
-    `;
+  // Repopulates every field from `state` — used when resuming a saved draft.
+  function populateFormFromState() {
+    document.getElementById('f-name').value = state.name;
+    document.getElementById('f-desc').value = state.description;
+    document.getElementById('f-url').value = state.externalUrl;
+    document.getElementById('f-fields').value = state.dataFields;
+    document.getElementById('f-behavior').value = state.behaviorNotes;
+    document.getElementById('f-trigger').checked = state.hasTrigger;
+    document.getElementById('f-timestamps').checked = state.hasTimestamps;
+    document.getElementById('f-multiuser').checked = state.hasMultiUser;
+    document.getElementById('f-schedule').checked = state.hasSchedule;
+    document.getElementById('f-status').checked = state.hasStatusSnippet;
+    renderIconPicker();
+    updateTypeSection();
+    document.getElementById('output-section').style.display = 'none';
+    document.getElementById('output-section').innerHTML = '';
   }
 
-  function renderStep1() {
-    return `
-      <p class="step-title">What kind of app is this?</p>
-      <p class="step-sub">Integrated apps plug into the hub's shared backend and show live status on their tile. External apps are just a link out.</p>
-      <div class="type-choice">
-        <div class="type-card ${state.type === 'integrated' ? 'selected' : ''}" data-type="integrated">
-          <span class="emoji">🔗</span>
-          <div class="label">Integrated</div>
-          <div class="desc">Lives inside the hub, uses the Sheets + Apps Script pattern, can show live status</div>
-        </div>
-        <div class="type-card ${state.type === 'external' ? 'selected' : ''}" data-type="external">
-          <span class="emoji">🌐</span>
-          <div class="label">External</div>
-          <div class="desc">Built independently, hub just links out to it</div>
-        </div>
-      </div>
-    `;
+  function bindFormEvents() {
+    document.getElementById('f-name').addEventListener('input', e => { state.name = e.target.value; scheduleAutosave(); });
+    document.getElementById('f-desc').addEventListener('input', e => { state.description = e.target.value; scheduleAutosave(); });
+    document.getElementById('f-url').addEventListener('input', e => { state.externalUrl = e.target.value; scheduleAutosave(); });
+    document.getElementById('f-fields').addEventListener('input', e => { state.dataFields = e.target.value; scheduleAutosave(); });
+    document.getElementById('f-behavior').addEventListener('input', e => { state.behaviorNotes = e.target.value; scheduleAutosave(); });
+
+    const bindCheckbox = (id, key) => {
+      document.getElementById(id).addEventListener('change', e => { state[key] = e.target.checked; scheduleAutosave(); });
+    };
+    bindCheckbox('f-trigger', 'hasTrigger');
+    bindCheckbox('f-timestamps', 'hasTimestamps');
+    bindCheckbox('f-multiuser', 'hasMultiUser');
+    bindCheckbox('f-schedule', 'hasSchedule');
+    bindCheckbox('f-status', 'hasStatusSnippet');
+
+    document.querySelectorAll('.type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        state.type = card.dataset.type;
+        updateTypeSection();
+        scheduleAutosave();
+      });
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', async () => {
+      if (state._driveFileId && backendConfigured()) { await discardDraftFile(state._driveFileId); }
+      state = freshState();
+      populateFormFromState();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.getElementById('btn-submit').addEventListener('click', () => {
+      renderOutput();
+      scheduleAutosave();
+      document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
-  function renderStep2() {
-    if (state.type === 'external') {
-      return `
-        <p class="step-title">Where does it live?</p>
-        <p class="step-sub">Optional — if it's not built or deployed yet, leave this blank and fill it in later.</p>
-        <label for="f-url">App URL</label>
-        <input type="url" id="f-url" value="${escapeAttr(state.externalUrl)}" placeholder="https://...">
-      `;
-    }
-    return `
-      <p class="step-title">What does it need to track?</p>
-      <p class="step-sub">All optional — skip anything you're not sure about yet.</p>
-      <label for="f-fields">Data fields</label>
-      <p class="hint">Plain language is fine — e.g. "current turn, rotation order, last updated date"</p>
-      <textarea id="f-fields" placeholder="e.g. current_turn (who's up), rotation_order (list of names), last_updated (timestamp)">${escapeHtml(state.dataFields)}</textarea>
-
-      <label for="f-behavior">Any special behavior?</label>
-      <p class="hint">Rotation logic, timers, validation rules, reminders — whatever's relevant</p>
-      <textarea id="f-behavior" placeholder="e.g. Rotates automatically after someone marks their turn done. Should flag if no one's marked a turn done in 3 days.">${escapeHtml(state.behaviorNotes)}</textarea>
-
-      <label>Common patterns (check any that apply)</label>
-      <div class="checkbox-row"><input type="checkbox" id="f-trigger" ${state.hasTrigger ? 'checked' : ''}><label for="f-trigger" style="margin:0;font-weight:500;">Needs a manual "tick to run" trigger (checkbox pattern)</label></div>
-      <div class="checkbox-row"><input type="checkbox" id="f-timestamps" ${state.hasTimestamps ? 'checked' : ''}><label for="f-timestamps" style="margin:0;font-weight:500;">Needs to track timestamps</label></div>
-      <div class="checkbox-row"><input type="checkbox" id="f-multiuser" ${state.hasMultiUser ? 'checked' : ''}><label for="f-multiuser" style="margin:0;font-weight:500;">Multiple people will interact with it</label></div>
-      <div class="checkbox-row"><input type="checkbox" id="f-schedule" ${state.hasSchedule ? 'checked' : ''}><label for="f-schedule" style="margin:0;font-weight:500;">Has scheduled/recurring logic (daily, weekly, etc.)</label></div>
-      <div class="checkbox-row"><input type="checkbox" id="f-status" ${state.hasStatusSnippet ? 'checked' : ''}><label for="f-status" style="margin:0;font-weight:500;">Should show a live status snippet on its hub tile</label></div>
-    `;
-  }
-
-  function renderStep3() {
-    return `
-      <p class="step-title">Pick an icon</p>
-      <p class="step-sub">This shows up on the hub tile. A default's already picked if you want to skip this.</p>
-      <div class="icon-picker">
-        ${ICONS.map(i => `<button type="button" class="icon-option ${state.icon === i ? 'selected' : ''}" data-icon="${i}">${i}</button>`).join('')}
-      </div>
-    `;
-  }
-
-  function renderStep4() {
-    const slug = slugify(state.name);
-    return `
-      <p class="step-title">Review</p>
-      <p class="step-sub">Quick check before we generate your brief.</p>
-      <dl class="review-block">
-        <dt>Name</dt><dd>${escapeHtml(state.name) || '—'}</dd>
-        <dt>Description</dt><dd>${escapeHtml(state.description) || '—'}</dd>
-        <dt>Type</dt><dd>${state.type === 'integrated' ? 'Integrated (path: /' + slug + '/)' : 'External'}</dd>
-        ${state.type === 'integrated' ? `
-        <dt>Data fields</dt><dd>${escapeHtml(state.dataFields) || '—'}</dd>
-        <dt>Special behavior</dt><dd>${escapeHtml(state.behaviorNotes) || '—'}</dd>
-        <dt>Patterns</dt><dd>${[
-          state.hasTrigger && 'Manual trigger checkbox',
-          state.hasTimestamps && 'Timestamps',
-          state.hasMultiUser && 'Multi-user',
-          state.hasSchedule && 'Scheduled logic',
-          state.hasStatusSnippet && 'Live status on tile'
-        ].filter(Boolean).join(', ') || 'None checked'}</dd>
-        ` : `
-        <dt>URL</dt><dd>${escapeHtml(state.externalUrl) || 'Not live yet'}</dd>
-        `}
-        <dt>Icon</dt><dd>${state.icon}</dd>
-      </dl>
-    `;
-  }
-
-  function renderStep5() {
+  function renderOutput() {
+    const section = document.getElementById('output-section');
     const config = buildConfigSnippet();
 
     if (state.type === 'external') {
-      return `
+      section.innerHTML = `
         <div class="celebrate"><span class="emoji">🔗</span></div>
         <p class="step-title" style="text-align:center;">Ready to link</p>
         <p class="step-sub" style="text-align:center;">Click "Send to developer" to add this to the hub automatically — no manual editing needed. The config snippet below is just a manual fallback.</p>
@@ -512,34 +520,111 @@
         </div>
         ${state._driveFileId ? `<div class="output-block"><button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button></div>` : ''}
       `;
+    } else {
+      const prompt = buildPrompt();
+      section.innerHTML = `
+        <div class="celebrate"><span class="emoji">🎉</span></div>
+        <p class="step-title" style="text-align:center;">Your brief is ready</p>
+        <p class="step-sub" style="text-align:center;">Paste the first block into Claude, Claude Code, or any AI coding tool to start building.</p>
+
+        <div class="output-block">
+          <div class="output-label"><span>Brief for your AI coder</span></div>
+          <pre class="output" id="prompt-output">${escapeHtml(prompt)}</pre>
+          <div class="output-actions">
+            <button class="btn-small" id="copy-prompt">Copy to clipboard</button>
+            <button class="btn-small" id="download-prompt">Download .txt</button>
+            <button class="btn-small" id="send-developer">Send to developer</button>
+          </div>
+        </div>
+
+        <div class="output-block">
+          <div class="output-label"><span>Hub config snippet — paste into the APPS array in index.html once it's built</span></div>
+          <pre class="output" id="config-output">${escapeHtml(config)}</pre>
+          <div class="output-actions">
+            <button class="btn-small" id="copy-config">Copy to clipboard</button>
+          </div>
+        </div>
+
+        ${state._driveFileId ? `<div class="output-block"><button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button></div>` : ''}
+      `;
     }
+    section.style.display = '';
+    bindOutputEvents();
+  }
 
-    const prompt = buildPrompt();
-    return `
-      <div class="celebrate"><span class="emoji">🎉</span></div>
-      <p class="step-title" style="text-align:center;">Your brief is ready</p>
-      <p class="step-sub" style="text-align:center;">Paste the first block into Claude, Claude Code, or any AI coding tool to start building.</p>
+  function bindOutputEvents() {
+    const copyPromptBtn = document.getElementById('copy-prompt');
+    if (copyPromptBtn) copyPromptBtn.addEventListener('click', () => copyText(buildPrompt(), copyPromptBtn));
+    const copyConfigBtn = document.getElementById('copy-config');
+    if (copyConfigBtn) copyConfigBtn.addEventListener('click', () => copyText(buildConfigSnippet(), copyConfigBtn));
 
-      <div class="output-block">
-        <div class="output-label"><span>Brief for your AI coder</span></div>
-        <pre class="output" id="prompt-output">${escapeHtml(prompt)}</pre>
-        <div class="output-actions">
-          <button class="btn-small" id="copy-prompt">Copy to clipboard</button>
-          <button class="btn-small" id="download-prompt">Download .txt</button>
-          <button class="btn-small" id="send-developer">Send to developer</button>
-        </div>
-      </div>
+    const downloadBtn = document.getElementById('download-prompt');
+    if (downloadBtn) downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([buildPrompt()], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = slugify(state.name) + '-brief.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
 
-      <div class="output-block">
-        <div class="output-label"><span>Hub config snippet — paste into the APPS array in index.html once it's built</span></div>
-        <pre class="output" id="config-output">${escapeHtml(config)}</pre>
-        <div class="output-actions">
-          <button class="btn-small" id="copy-config">Copy to clipboard</button>
-        </div>
-      </div>
+    const sendBtn = document.getElementById('send-developer');
+    if (sendBtn) sendBtn.addEventListener('click', async () => {
+      if (!backendConfigured()) { sendBtn.textContent = 'Backend not set up'; return; }
+      sendBtn.textContent = 'Sending…';
+      try {
+        await sendToDeveloper();
+        sendBtn.textContent = 'Sent — check your email';
+        sendBtn.classList.add('copied');
+      } catch (e) {
+        console.error('Send to developer failed:', e);
+        const short = (e.message || 'Unknown error').slice(0, 60);
+        sendBtn.textContent = 'Failed: ' + short;
+        sendBtn.title = e.message || 'Unknown error';
+        sendBtn.classList.add('danger');
+      }
+    });
 
-      ${state._driveFileId ? `<div class="output-block"><button class="btn-small danger" id="discard-draft">Discard this draft from Drive</button></div>` : ''}
-    `;
+    const discardBtn = document.getElementById('discard-draft');
+    if (discardBtn) discardBtn.addEventListener('click', async () => {
+      await discardDraftFile(state._driveFileId);
+      state._driveFileId = null;
+      discardBtn.textContent = 'Discarded';
+      discardBtn.disabled = true;
+    });
+  }
+
+  function copyText(text, btn) {
+    const done = () => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, cb) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    cb();
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   }
 
   function buildPrompt() {
@@ -621,184 +706,6 @@
   icon: "${state.icon}"
 },`;
   }
-
-  function escapeHtml(str) {
-    return (str || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  }
-  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
-
-  function canAdvance() {
-    if (state.step === 0) return state.name.trim().length > 0;
-    if (state.step === 1) return state.type === 'integrated' || state.type === 'external';
-    return true;
-  }
-
-  function step2IsEmpty() {
-    if (state.type === 'external') return !state.externalUrl.trim();
-    return !state.dataFields.trim() && !state.behaviorNotes.trim() &&
-      !state.hasTrigger && !state.hasTimestamps && !state.hasMultiUser && !state.hasSchedule && !state.hasStatusSnippet;
-  }
-
-  function render() {
-    renderProgress();
-    renderStatusBar();
-    const panel = document.getElementById('panel');
-    let content = '';
-    if (state.step === 0) content = renderStep0();
-    else if (state.step === 1) content = renderStep1();
-    else if (state.step === 2) content = renderStep2();
-    else if (state.step === 3) content = renderStep3();
-    else if (state.step === 4) content = renderStep4();
-    else if (state.step === 5) content = renderStep5();
-
-    const isLast = state.step === totalSteps() - 1;
-    const isFirst = state.step === 0;
-    let nextLabel = 'Next';
-    if (state.step === 4) nextLabel = 'Generate my brief';
-    else if (state.step === 2 && step2IsEmpty()) nextLabel = 'Skip for now';
-
-    let actions = '';
-    if (!isLast) {
-      actions = `
-        <div class="actions">
-          <button class="btn btn-secondary" id="btn-back" ${isFirst ? 'disabled' : ''}>Back</button>
-          <button class="btn btn-primary" id="btn-next">${nextLabel}</button>
-        </div>`;
-    } else {
-      actions = `
-        <div class="actions">
-          <button class="btn btn-secondary" id="btn-restart">Start over</button>
-          <a class="btn btn-primary" href="../index.html" style="text-decoration:none;display:inline-flex;align-items:center;">Back to hub</a>
-        </div>`;
-    }
-
-    panel.innerHTML = content + actions;
-    bindStepEvents();
-  }
-
-  function bindStepEvents() {
-    const nameEl = document.getElementById('f-name');
-    if (nameEl) nameEl.addEventListener('input', e => { state.name = e.target.value; scheduleAutosave(); });
-    const descEl = document.getElementById('f-desc');
-    if (descEl) descEl.addEventListener('input', e => { state.description = e.target.value; scheduleAutosave(); });
-
-    document.querySelectorAll('.type-card').forEach(card => {
-      card.addEventListener('click', () => { state.type = card.dataset.type; render(); scheduleAutosave(); });
-    });
-
-    const urlEl = document.getElementById('f-url');
-    if (urlEl) urlEl.addEventListener('input', e => { state.externalUrl = e.target.value; scheduleAutosave(); render(); });
-    const fieldsEl = document.getElementById('f-fields');
-    if (fieldsEl) fieldsEl.addEventListener('input', e => { state.dataFields = e.target.value; scheduleAutosave(); });
-    const behaviorEl = document.getElementById('f-behavior');
-    if (behaviorEl) behaviorEl.addEventListener('input', e => { state.behaviorNotes = e.target.value; scheduleAutosave(); });
-
-    const bindCheckbox = (id, key) => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('change', e => { state[key] = e.target.checked; scheduleAutosave(); });
-    };
-    bindCheckbox('f-trigger', 'hasTrigger');
-    bindCheckbox('f-timestamps', 'hasTimestamps');
-    bindCheckbox('f-multiuser', 'hasMultiUser');
-    bindCheckbox('f-schedule', 'hasSchedule');
-    bindCheckbox('f-status', 'hasStatusSnippet');
-
-    document.querySelectorAll('.icon-option').forEach(btn => {
-      btn.addEventListener('click', () => { state.icon = btn.dataset.icon; render(); scheduleAutosave(); });
-    });
-
-    const backBtn = document.getElementById('btn-back');
-    if (backBtn) backBtn.addEventListener('click', () => goTo(Math.max(0, state.step - 1)));
-
-    const nextBtn = document.getElementById('btn-next');
-    if (nextBtn) nextBtn.addEventListener('click', () => {
-      if (!canAdvance()) {
-        nextBtn.style.background = '#ccc';
-        setTimeout(() => { nextBtn.style.background = ''; }, 250);
-        return;
-      }
-      goTo(state.step + 1);
-    });
-
-    const restartBtn = document.getElementById('btn-restart');
-    if (restartBtn) restartBtn.addEventListener('click', async () => {
-      if (state._driveFileId && backendConfigured()) { await discardDraftFile(state._driveFileId); }
-      state = freshState();
-      render();
-    });
-
-    const copyPromptBtn = document.getElementById('copy-prompt');
-    if (copyPromptBtn) copyPromptBtn.addEventListener('click', () => copyText(buildPrompt(), copyPromptBtn));
-    const copyConfigBtn = document.getElementById('copy-config');
-    if (copyConfigBtn) copyConfigBtn.addEventListener('click', () => copyText(buildConfigSnippet(), copyConfigBtn));
-
-    const downloadBtn = document.getElementById('download-prompt');
-    if (downloadBtn) downloadBtn.addEventListener('click', () => {
-      const blob = new Blob([buildPrompt()], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = slugify(state.name) + '-brief.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-
-    const sendBtn = document.getElementById('send-developer');
-    if (sendBtn) sendBtn.addEventListener('click', async () => {
-      if (!backendConfigured()) { sendBtn.textContent = 'Backend not set up'; return; }
-      sendBtn.textContent = 'Sending…';
-      try {
-        await sendToDeveloper();
-        sendBtn.textContent = 'Sent — check your email';
-        sendBtn.classList.add('copied');
-      } catch (e) {
-        console.error('Send to developer failed:', e);
-        const short = (e.message || 'Unknown error').slice(0, 60);
-        sendBtn.textContent = 'Failed: ' + short;
-        sendBtn.title = e.message || 'Unknown error';
-        sendBtn.classList.add('danger');
-      }
-    });
-
-    const discardBtn = document.getElementById('discard-draft');
-    if (discardBtn) discardBtn.addEventListener('click', async () => {
-      await discardDraftFile(state._driveFileId);
-      state._driveFileId = null;
-      discardBtn.textContent = 'Discarded';
-      discardBtn.disabled = true;
-    });
-  }
-
-  function copyText(text, btn) {
-    const done = () => {
-      const original = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
-    } else {
-      fallbackCopy(text, done);
-    }
-  }
-
-  function fallbackCopy(text, cb) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
-    cb();
-  }
-
-  render();
 </script>
-  <script src="https://hermanhomeapps.github.io/shared/dock.js"></script>
 </body>
 </html>
