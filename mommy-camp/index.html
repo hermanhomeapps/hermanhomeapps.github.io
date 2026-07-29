@@ -122,6 +122,60 @@
   .kid-history-time { opacity: 0.75; }
   .kid-history-delta { font-weight: 700; }
 
+  .bulk-area { text-align: center; margin-top: 22px; }
+  .bulk-link {
+    background: var(--navy); border: none; color: #fff; font-size: 0.85rem; font-weight: 700;
+    border-radius: 999px; padding: 10px 20px; cursor: pointer; font-family: 'Quicksand', sans-serif;
+  }
+  .bulk-link:hover { filter: brightness(1.1); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300;
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 18px; padding: 20px; width: 100%; max-width: 560px;
+    max-height: 86vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+  .modal-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: var(--navy); font-size: 1.2rem; margin-bottom: 14px; text-align: center; }
+  .bulk-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .bulk-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--tan-bg-1);
+    border-radius: 12px; padding: 8px;
+  }
+  .bulk-row select.bulk-kid-select {
+    font-family: 'Quicksand', sans-serif; font-weight: 700; border: 1px solid #ccc; border-radius: 8px;
+    padding: 8px; font-size: 0.85rem; color: var(--navy); flex: 1 1 120px;
+  }
+  .bulk-row input.bulk-amount-input {
+    font-family: 'Quicksand', sans-serif; font-weight: 700; border: 1px solid #ccc; border-radius: 8px;
+    padding: 8px; font-size: 0.85rem; width: 72px; text-align: center; color: var(--navy);
+  }
+  .bulk-row input.bulk-reason-input {
+    font-family: 'Quicksand', sans-serif; font-weight: 500; border: 1px solid #ccc; border-radius: 8px;
+    padding: 8px; font-size: 0.85rem; flex: 2 1 140px; color: var(--navy);
+  }
+  .bulk-sign-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; flex: none; }
+  .bulk-sign-btn {
+    border: none; background: #fff; color: var(--navy); font-weight: 800; font-size: 0.9rem;
+    padding: 8px 12px; cursor: pointer;
+  }
+  .bulk-sign-btn.active-plus { background: #2E9E4F; color: #fff; }
+  .bulk-sign-btn.active-minus { background: var(--error); color: #fff; }
+  .bulk-remove-btn {
+    border: none; background: none; color: var(--error); font-size: 1.1rem; font-weight: 800; cursor: pointer;
+    padding: 4px 8px; flex: none;
+  }
+  .bulk-add-line-btn {
+    background: none; border: 2px dashed var(--gold); color: var(--gold); border-radius: 10px; padding: 8px;
+    font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%;
+  }
+  .modal-btn-row { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-btn { flex: 1; border: none; border-radius: 10px; padding: 12px; font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+  .modal-btn-apply { background: var(--teal); color: #fff; }
+  .modal-btn-cancel { background: #e0e0e0; color: #333; }
+
   .reset-area { text-align: center; margin-top: 26px; }
   .reset-link { background: none; border: none; color: var(--gold); font-size: 0.85rem; font-weight: 600; text-decoration: underline; cursor: pointer; }
   .reset-confirm { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
@@ -168,7 +222,23 @@
     <div class="loading-note">Loading…</div>
   </div>
 
+  <div class="bulk-area" id="bulkArea">
+    <button class="bulk-link" id="bulkOpenBtn">Bulk Add / Deduct Points</button>
+  </div>
+
   <div class="reset-area" id="resetArea"></div>
+</div>
+
+<div class="modal-overlay" id="bulkModalOverlay">
+  <div class="modal-box">
+    <div class="modal-title">Bulk Add / Deduct Points</div>
+    <div class="bulk-rows" id="bulkRows"></div>
+    <button class="bulk-add-line-btn" id="bulkAddLineBtn">+ Add Line</button>
+    <div class="modal-btn-row">
+      <button class="modal-btn modal-btn-cancel" id="bulkCancelBtn">Cancel</button>
+      <button class="modal-btn modal-btn-apply" id="bulkApplyBtn">Apply</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -417,6 +487,94 @@
     await refreshAndRerender();
   }
 
+  let bulkLines = [];
+  let bulkLineSeq = 0;
+
+  function newBulkLine() {
+    return { id: 'bl_' + (++bulkLineSeq), kid_id: appData.kids[0]?.kid_id || '', amount: '', reason: '', sign: 1 };
+  }
+
+  function openBulkModal() {
+    bulkLines = [newBulkLine()];
+    renderBulkRows();
+    document.getElementById('bulkModalOverlay').classList.add('show');
+  }
+
+  function closeBulkModal() {
+    document.getElementById('bulkModalOverlay').classList.remove('show');
+  }
+
+  function renderBulkRows() {
+    const wrap = document.getElementById('bulkRows');
+    wrap.innerHTML = '';
+    bulkLines.forEach(line => {
+      const row = document.createElement('div');
+      row.className = 'bulk-row';
+      const kidOptions = appData.kids.map(k =>
+        `<option value="${k.kid_id}" ${k.kid_id === line.kid_id ? 'selected' : ''}>${escapeHtml(k.name)}</option>`
+      ).join('');
+      row.innerHTML = `
+        <select class="bulk-kid-select">${kidOptions}</select>
+        <input type="number" min="1" placeholder="Amount" class="bulk-amount-input" value="${escapeAttr(line.amount)}">
+        <input type="text" placeholder="Reason" class="bulk-reason-input" value="${escapeAttr(line.reason)}">
+        <div class="bulk-sign-toggle">
+          <button type="button" class="bulk-sign-btn bulk-plus-btn ${line.sign === 1 ? 'active-plus' : ''}">+</button>
+          <button type="button" class="bulk-sign-btn bulk-minus-btn ${line.sign === -1 ? 'active-minus' : ''}">−</button>
+        </div>
+        <button type="button" class="bulk-remove-btn" title="Remove line">✕</button>
+      `;
+      row.querySelector('.bulk-kid-select').addEventListener('change', e => { line.kid_id = e.target.value; });
+      row.querySelector('.bulk-amount-input').addEventListener('input', e => { line.amount = e.target.value; });
+      row.querySelector('.bulk-reason-input').addEventListener('input', e => { line.reason = e.target.value; });
+      row.querySelector('.bulk-plus-btn').addEventListener('click', () => { line.sign = 1; renderBulkRows(); });
+      row.querySelector('.bulk-minus-btn').addEventListener('click', () => { line.sign = -1; renderBulkRows(); });
+      row.querySelector('.bulk-remove-btn').addEventListener('click', () => {
+        bulkLines = bulkLines.filter(l => l.id !== line.id);
+        if (bulkLines.length === 0) bulkLines = [newBulkLine()];
+        renderBulkRows();
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  async function applyBulk() {
+    const validLines = bulkLines.filter(l => l.kid_id && parseInt(l.amount, 10) > 0);
+    if (validLines.length === 0) { showToast('Add at least one valid line first.'); return; }
+
+    const totals = {}; // kid_id -> delta sum
+    const logEntries = [];
+    validLines.forEach(l => {
+      const amt = parseInt(l.amount, 10);
+      const delta = l.sign * amt;
+      totals[l.kid_id] = (totals[l.kid_id] || 0) + delta;
+      logEntries.push({
+        log_id: 'log_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
+        kid_id: l.kid_id, delta: delta, reason: (l.reason || '').trim() || 'No reason given',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    const updatedKids = Object.keys(totals).map(kidId => {
+      const kid = appData.kids.find(k => k.kid_id === kidId);
+      const newTotal = Math.max(0, (Number(kid.current_points) || 0) + totals[kidId]);
+      return Object.assign({}, kid, { current_points: newTotal });
+    });
+
+    showToast('Applying bulk changes...');
+    closeBulkModal();
+
+    try {
+      if (updatedKids.length) await postData({ sheet: 'camp_kids', action: 'upsert', id_field: 'kid_id', rows: updatedKids });
+      if (logEntries.length) await postData({ sheet: 'camp_points_log', action: 'append', rows: logEntries });
+      document.getElementById('saveWarning').style.display = 'none';
+      showToast('Bulk changes applied.');
+    } catch (e) {
+      document.getElementById('saveWarning').style.display = 'block';
+    }
+
+    await refreshAndRerender();
+  }
+
   function renderResetArea() {
     const el = document.getElementById('resetArea');
     el.innerHTML = `<button class="reset-link" id="resetLinkBtn">Reset all points &amp; history</button>`;
@@ -465,6 +623,13 @@
     renderLeaderBanner();
     renderKidCards();
     renderResetArea();
+    document.getElementById('bulkOpenBtn').addEventListener('click', openBulkModal);
+    document.getElementById('bulkAddLineBtn').addEventListener('click', () => { bulkLines.push(newBulkLine()); renderBulkRows(); });
+    document.getElementById('bulkCancelBtn').addEventListener('click', closeBulkModal);
+    document.getElementById('bulkApplyBtn').addEventListener('click', applyBulk);
+    document.getElementById('bulkModalOverlay').addEventListener('click', e => {
+      if (e.target.id === 'bulkModalOverlay') closeBulkModal();
+    });
   }
   init();
 </script>
