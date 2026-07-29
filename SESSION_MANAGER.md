@@ -15,7 +15,7 @@ This repo (`hermanhomeapps.github.io`, a public GitHub Pages static site) may ge
 - `new-app/index.html`
 - `shabbos-chores-points-lists-new/index.html`
 - `mommy-camp/index.html`
-- `backend-scripts/*.gs` (gitignored, local-only — see debrief below)
+- `backend-scripts/` (gitignored, local-only — see debrief below; canonical backend source is `backend-scripts/clasp-project/Code.js`)
 - `.gitignore`
 
 **Rules:**
@@ -28,24 +28,37 @@ This repo (`hermanhomeapps.github.io`, a public GitHub Pages static site) may ge
 
 This site is 100% static (GitHub Pages) — every app (`shabbos-chores-points-lists-new`, `mommy-camp`, `new-app`) is a single self-contained `index.html` that talks to a **Google Apps Script Web App** as its backend (`doGet`/`doPost` against a Google Sheet or Drive folder). Backend code must never be committed to this repo since it's public — the `.gitignore` excludes `backend-scripts/` and `*.gs` entirely; that folder is a local-only working copy.
 
-**One unified backend project (owner explicitly wants ONE `.gs` that does everything — do not re-split this):** `backend-scripts/hermanhomeapps-backend.gs` is deployed as a single Apps Script Web App. **The permanent exec URL is `AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23`** (owner confirmed this explicitly — it's the OLD Wizard Drafts project's URL, not the old Chores project's URL; this session initially got that backwards and pointed everything at the wrong one, since corrected). It handles THREE things off that one exec URL, routed by request shape (not URL) in `doGet`/`doPost`:
+**One unified backend project (owner explicitly wants ONE `.gs` that does everything — do not re-split this):** canonical source is `backend-scripts/clasp-project/Code.js` (a real clasp-managed project — see the clasp workflow section below; there is no longer a separate standalone `.gs` copy, that got retired to avoid drift). Deployed as a single Apps Script Web App. **The permanent exec URL is `AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23`** (owner confirmed this explicitly — it's the OLD Wizard Drafts project's URL, not the old Chores project's URL; this session initially got that backwards and pointed everything at the wrong one, since corrected). It handles THREE things off that one exec URL, routed by request shape (not URL) in `doGet`/`doPost`:
 - Shabbos Chores + Mommy Camp point-tracking (Mommy Camp's tabs prefixed `camp_` to avoid colliding with Shabbos Chores' own `kids`/`points_log`)
 - New App Wizard drafts, saved to a Drive folder (`FOLDER_ID` = `1zt4A8oaaUuH-MeVCEY62IGFZM3HdANRL`)
-- The external-apps registry, a separate small Sheet opened by ID (`EXTERNAL_APPS_SHEET_ID`)
+- The external-apps registry — its own `external_apps` tab in the SAME main Sheet (migrated off a separate spreadsheet this session, managed by the same generic `ensureSchema`/`TABS_SCHEMA` system as every other tab, including a row-1 note seeded via `TAB_NOTES`)
 
 **Important: this script does NOT rely on being container-bound to the Chores Sheet.** It opens the Chores Sheet explicitly via `SpreadsheetApp.openById(CHORES_SHEET_ID)` (Sheet ID `1NVlbMvzIse-GO82ghtaSt1JRStoReB9fF6EzF2PcLEg`) everywhere, rather than `getActiveSpreadsheet()`. This was a real bug hit this session: the permanent deployment above lives in what was originally the standalone Wizard Drafts project, so `getActiveSpreadsheet()` returned `null` there and crashed every Chores/Camp request (`TypeError: Cannot read properties of null (reading 'getSheetByName')`) — fixed by switching to `openById` throughout. If this ever gets ported to a different/new Apps Script project again, `openById` means it'll keep working regardless of binding.
 
 Wizard requests are detected by `action` being one of `list`/`load`/`listApps` (GET) or `save`/`discard`/`confirm` (POST); everything else falls through to the Chores/Camp sheet-CRUD logic (`sheet`/`upsert`/`delete`/`append`). The permanent exec URL is hardcoded in ALL FIVE places that call the backend: `shared/apps.json` (statusUrl ×2), `shabbos-chores-points-lists-new/index.html` + `mommy-camp/index.html` (`BACKEND_URL`), and `new-app/index.html` + root `index.html` (`APPS_SCRIPT_URL`) — all consolidated to match this session. The old two-file split (`shabbos-chores-backend.gs` / `wizard-drafts-backend.gs`) is retired; the old Chores-bound project (whatever was at the other URL) is no longer referenced anywhere and can be deleted whenever.
 
-**Self-healing schema:** the merged `.gs` runs an `ensureSchema()`/`ensureAppsSheetSchema()` pass at the top of `doGet`/`doPost` that creates any missing sheet tab + header row, and appends any missing header columns to existing tabs — reconciled against a `TABS_SCHEMA` object hardcoded in the script (verified against a real xlsx export of the live Sheet, not guessed). It NEVER reorders/renames/deletes existing columns or touches existing data rows, and results are cached 6h via `CacheService` (bump `SCHEMA_VERSION` after any future schema edit to force an immediate recheck). `camp_kids` also auto-seeds the 3 default campers, but only the very first time that tab is created from nothing.
+**Self-healing schema:** the script runs a single `ensureSchema(ss)` pass at the top of `doGet`/`doPost` (including the wizard-request branches) that creates any missing sheet tab + header row (+ a row-1 note if one's defined in `TAB_NOTES`), and appends any missing header columns to existing tabs — reconciled against a `TABS_SCHEMA` object hardcoded in the script (verified against a real xlsx export of the live Sheet, not guessed). It NEVER reorders/renames/deletes existing columns or touches existing data rows, and results are cached 6h via `CacheService` (bump `SCHEMA_VERSION` after any future schema edit to force an immediate recheck). `camp_kids` also auto-seeds the 3 default campers, but only the very first time that tab is created from nothing.
 
-**Deploy is currently manual:** editing the `.gs` file locally does nothing live until you paste it into the Apps Script editor (script.google.com, the project serving the permanent URL above) and do **Deploy → Manage deployments → edit icon → Version: New version → Deploy** — just saving in the editor does NOT update the live exec URL.
+**Manual schema trigger:** the deployed script also has a `setupSpreadsheet()` function (bottom of the file) you can run directly from the editor's function dropdown + Run button — clears the schema cache and force-runs `ensureSchema` immediately instead of waiting for a live request. Uses `SpreadsheetApp.openById(CHORES_SHEET_ID)`, not `getActiveSpreadsheet()`, because running a function directly from the standalone editor has no "active spreadsheet" context (that only exists inside a real web app request) — `getActiveSpreadsheet()` returns `null` there and throws. Same reason `doGet`/`doPost` themselves use `openById` everywhere rather than relying on container binding (real bug hit and fixed this session — see git history if curious).
 
-**Manual schema trigger:** the deployed script also has a `setupSpreadsheet()` function (bottom of the file) you can run directly from the editor's function dropdown + Run button, no redeploy needed — clears the schema cache and force-runs `ensureSchema`/`ensureAppsSheetSchema` immediately instead of waiting for a live request. Uses `SpreadsheetApp.openById(CHORES_SHEET_ID)`, not `getActiveSpreadsheet()`, because running a function directly from the standalone editor has no "active spreadsheet" context (that only exists inside a real web app request) — `getActiveSpreadsheet()` returns `null` there and throws. **Confirmed working by owner:** ran it, `camp_kids`/`camp_points_log` tabs (+ seeded campers) were created successfully.
+## clasp workflow — deploy is now automated, no more manual copy-paste
 
-**In progress:** setting up `clasp` (Google's official Apps Script CLI, installed globally via npm) so a session can `clasp push`/`clasp deploy` directly instead of manual copy-paste. Blocked — see Outstanding below. Since there's now only one project, just need: its Script ID (Project Settings gear icon in the Apps Script editor) + its existing Deployment ID (Deploy → Manage deployments) so redeploys update the SAME url instead of minting a new one and breaking every hardcoded `BACKEND_URL`/`APPS_SCRIPT_URL` reference across the frontend.
+**Fully set up and verified working this session.** From `backend-scripts/clasp-project/` (gitignored, has its own `.clasp.json`):
+- **Script ID:** `1a1TOi-hw7hkPL26C798nyg_xYwm7ZMnRLEPOxwt8qXDi39J0bfQwFB7X`
+- **Permanent deployment ID** (same string as the exec URL slug): `AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23`
 
-**Also found:** this machine has a permanent root CA from "Techloq" (network content-filtering appliance) installed in the Windows trust store, intercepting/re-signing ALL HTTPS traffic including Google's OAuth endpoints. Node.js uses its own separate CA bundle (not Windows'), so `clasp login`'s token exchange fails with `unable to get local issuer certificate` until Node is told to trust it too (`NODE_EXTRA_CA_CERTS`) — the owner is confirming with Techloq first before that gets enabled site-wide for Node.
+**To ship a backend code change:**
+```bash
+cd backend-scripts/clasp-project
+# edit Code.js with the change
+clasp.cmd push
+clasp.cmd deploy -i AKfycbwJctPf1x6gGyipPT3jl1iuVmVgV6S-3CePmTykwV4birPAE8lMRLgrnw24ifwtxa23 -d "description of the change"
+```
+`clasp push` uploads a new saved version; `clasp deploy -i <that deployment id>` is what actually makes it live at the existing permanent URL — omitting `-i` would create a brand new deployment (new URL) instead, breaking every hardcoded `BACKEND_URL`/`APPS_SCRIPT_URL` reference across the frontend, so always include it.
+
+**Auth:** `clasp login` was blocked most of this session by the Techloq TLS interception (see below) — now resolved, `~/.clasprc.json` holds valid credentials for `hermanhome613@gmail.com`. If a future session needs to re-auth, just `clasp.cmd login` again (opens a browser). Also requires the Apps Script API toggle to be ON at script.google.com/home/usersettings for `clasp deploy` (not `push`) to work — owner already enabled this.
+
+**Techloq TLS interception — resolved:** this machine has a permanent root CA from "Techloq" (a network content-filtering appliance the owner intentionally uses) installed in the Windows trust store, intercepting/re-signing ALL HTTPS traffic. Node.js uses its own separate CA bundle (not Windows'), so `clasp login`'s token exchange failed with `unable to get local issuer certificate` until fixed. Techloq's own support instructions (confirmed legitimate, owner contacted them directly): download their bundled cert from cert.techloq.com, then `setx NODE_EXTRA_CA_CERTS "<path to .crt file>"` (a NEW terminal window is required after `setx` for it to take effect — this tripped us up twice). Owner's cert ended up at `C:\Users\kurku\Downloads\2023 techloq bundle certificate.crt`. If clasp (or any other Node-based tool) starts throwing the same cert error again on this machine, check that env var still points to a real, existing file first — same fix applies to `pip`/`npm`/`git`/etc. via their own respective CA-bundle settings, per Techloq's instructions, if those tools are ever needed too.
 
 ## Things Not Yet Confirmed Manually Complete
 
@@ -66,10 +79,10 @@ Running, cumulative list of manual action items other sessions are waiting on th
 - [ ] Optional cleanup: delete the old, now-unreferenced Chores-bound Apps Script project in script.google.com (whatever was serving the old `AKfycbx2...` URL) — nothing points at it anymore.
 
 **clasp sync/redeploy setup**
-- [ ] Call Techloq, confirm the HTTPS interception on this machine is intentional/sanctioned, and confirm it's OK to make Node.js trust their root CA via `NODE_EXTRA_CA_CERTS` so `clasp login` can complete.
-- [ ] Once cert issue resolved: run `clasp.cmd login` again to finish OAuth (previous attempt didn't save `~/.clasprc.json` — token exchange failed).
-- [ ] Send the Script ID for the (now unified) backend Apps Script project (Project Settings gear icon in the editor).
-- [ ] Send its existing Deployment ID (Deploy → Manage deployments), so `clasp deploy` updates the same live URL instead of creating a new one.
+- [x] Call Techloq, confirm the HTTPS interception is intentional, get their cert setup instructions. — **Owner confirmed:** contacted them directly, they provided legitimate setup steps, cert downloaded to `C:\Users\kurku\Downloads\2023 techloq bundle certificate.crt`, `NODE_EXTRA_CA_CERTS` set correctly.
+- [x] `clasp.cmd login` completes successfully. — **Owner confirmed:** logged in as `hermanhome613@gmail.com`, `~/.clasprc.json` verified present.
+- [x] Script ID + permanent Deployment ID collected (see clasp workflow section above).
+- [x] End-to-end push→deploy pipeline verified working. — Ran a real `clasp push` + `clasp deploy -i <deployment id>` (after also enabling the Apps Script API toggle, a one-time requirement), confirmed live data still serves correctly afterward (version bumped to @15 on the same permanent URL). **clasp is fully operational — no more manual copy-paste into the Apps Script editor needed going forward.**
 
 **Git / GitHub**
 - [ ] None currently — collaborator access confirmed working (test push succeeded).
