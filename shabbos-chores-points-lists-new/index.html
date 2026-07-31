@@ -2667,8 +2667,28 @@
     const assignedChores = appData.chores.filter(c => c.status === 'assigned');
     if (assignedChores.length === 0) { showToast('Nothing assigned right now.'); return; }
     showToast('Starting new week...');
-    const updated = assignedChores.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' }));
-    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: updated });
+
+    // Chores split across multiple kids (via "Split") are separate rows
+    // sharing a group_id. Once nothing's assigned anymore there's no reason
+    // to keep them as separate rows — that just showed up as the same chore
+    // appearing twice in Unassigned. Collapse each group back down to the
+    // one representative row and delete the rest.
+    const byGroup = {};
+    const singles = [];
+    assignedChores.forEach(c => {
+      if (c.group_id) { (byGroup[c.group_id] = byGroup[c.group_id] || []).push(c); }
+      else singles.push(c);
+    });
+    const toUpdate = singles.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' }));
+    const toDeleteIds = [];
+    Object.values(byGroup).forEach(members => {
+      const [keep, ...rest] = members;
+      toUpdate.push(Object.assign({}, keep, { status: 'unassigned', assigned_kid_id: '', assigned_at: '', group_id: '' }));
+      rest.forEach(m => toDeleteIds.push(m.chore_id));
+    });
+
+    await postData({ sheet: 'chores', action: 'upsert', id_field: 'chore_id', rows: toUpdate });
+    if (toDeleteIds.length) await postData({ sheet: 'chores', action: 'delete', id_field: 'chore_id', ids: toDeleteIds });
     await refreshAndRerender();
     showToast(`${assignedChores.length} job${assignedChores.length === 1 ? '' : 's'} unassigned — fresh start!`);
   };
