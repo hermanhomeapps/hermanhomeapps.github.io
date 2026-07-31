@@ -87,15 +87,20 @@ Running, cumulative list of manual action items other sessions are waiting on th
 **Git / GitHub**
 - [ ] None currently — collaborator access confirmed working (test push succeeded).
 
+**Recipe Generator & Saver — backend built (2026-07-31)**
+- [ ] Optional cleanup: two throwaway test images (`test-verify.png`, `_verify_delete_me.png`) got uploaded to Drive while verifying the new `uploadPhoto` action — safe to delete from the "HermanHomeApps — Recipe Photos" folder whenever, no data depends on them.
+
 **Shabbos Chores UX fixes (2026-07-31, 8 commits pushed, GitHub Pages auto-deploys)**
 - [ ] Owner to verify: "Save Colors" now refreshes the open kid profile card's color live instead of needing a close/reopen — couldn't test in-browser since Mommy mode needs the PIN, which this session didn't have.
 - [ ] Owner to verify: modal/drawer z-index was unified into one shared counter (previously drawers and overlays had separate ranges, causing modals opened from within an open drawer — Assign, Add Chore, etc. — to render behind it). Should fix both the "assign shows under the screen" and "add chore goes back to main screen" reports, since the owner confirmed both were the same underlying issue.
 - [ ] Owner to verify: "Assigned" filter tab in the Chores drawer now shows only chores still in progress, not old completed ones (completed chores are still preserved forever for points history — only this tab's filter changed, not the data).
 - [ ] Owner to verify: chore cards in the Chores drawer now show all management actions (Edit/Load/Unload/Assign/Split/Delete/Move/Complete/etc.) directly inline instead of behind a "See Details" popup — worth a look to confirm the buttons aren't too cramped on a real phone screen.
 - [ ] Owner to verify: "Print Jobs" button (new) in the Chores drawer opens a print-formatted job list grouped by kid.
+- [ ] Owner to verify: everywhere a plain "+1 Done" button used to appear for repeatable/consistent chores (chore cards, the split/group modal, the chore detail popup, and a kid's profile "Assigned Chores" list), there's now an amount field plus +/- buttons so multiple completions can be logged at once instead of tapping "+1 Done" repeatedly.
 
 ## Claims
 
 | Session | File(s) | Status | Last updated | Notes |
 |---|---|---|---|---|
 | chores-ux-fixes | shabbos-chores-points-lists-new/index.html | RELEASED | 2026-07-31 | Completed all 9 items from owner's list, pushed as 8 separate commits (see git log). Frontend-only, no backend/clasp changes needed. Details in "Things Not Yet Confirmed" below — several fixes need live manual verification since I couldn't get into Mommy mode without the PIN. |
+| recipe-generator-and-saver | backend-scripts/clasp-project/Code.js | RELEASED | 2026-07-31 | Added 7 new `recipe_`-prefixed tabs to TABS_SCHEMA (recipe_people, recipe_pantry_items, recipe_pantry_history, recipes, recipe_ingredients, recipe_favorites, recipe_kitchen_slots), a new `uploadPhoto` doPost action (finds/creates a "HermanHomeApps — Recipe Photos" Drive folder, saves file, sets link-viewable, returns URL), and a `?status=recipe` doGet branch. Bumped SCHEMA_VERSION to 2. Deployed as @16, fully verified live (all 7 tabs read correctly, status endpoint works, uploadPhoto tested end-to-end with a real image that loads publicly). No changes to existing Chores/Camp/Wizard logic. Next up (not yet done): add hub tile entry to shared/apps.json, then build the frontend at recipe-generator-and-saver/index.html. |
