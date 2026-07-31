@@ -449,12 +449,20 @@
   .mini-btn.delete-btn { border-color: var(--error); color: var(--error); }
   .empty-note-mini { font-size: 0.75rem; color: rgba(38,40,63,0.4); padding: 4px 0 10px; }
 
+  .bulk-done-control { display: inline-flex; align-items: center; gap: 4px; }
+  .bulk-done-input {
+    width: 40px; padding: 5px 4px; border-radius: 6px; border: 1px solid rgba(38,40,63,0.15);
+    background: var(--bg); color: var(--ink); text-align: center; font-size: 0.72rem; font-family: inherit;
+  }
+  .bulk-done-control .mini-btn { padding: 5px 9px; }
+
   .kid-block .mini-chore-row { background: rgba(255,255,255,0.18); color: #fff; }
   .kid-block .mini-chore-name { color: #fff; }
   .kid-block .mini-chore-pts { color: #fff; opacity: 0.85; }
   .kid-block .mini-btn { background: rgba(255,255,255,0.92); border: none; color: var(--ink); }
   .kid-block .mini-btn.undo-btn { color: var(--sky); }
   .kid-block .mini-btn.delete-btn { color: var(--error); }
+  .kid-block .bulk-done-input { background: rgba(255,255,255,0.92); border: none; color: var(--ink); }
   .kid-block .empty-note-mini { color: rgba(255,255,255,0.8); }
   .kid-block .done-tag { color: #fff; }
 
@@ -1559,9 +1567,9 @@
     const timesCount = Number(chore.times_completed) || 0;
     const isDoneOnce = consistent && timesCount >= 1;
 
-    if (chore.status === 'assigned' && !isDoneOnce) {
-      if (repeatable || consistent) actions.push(['done', '+1 Done', 'primary', () => logRepeatableCompletion(chore.chore_id, chore.assigned_kid_id, 1)]);
-      else actions.push(['complete', 'Complete', 'primary', () => toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, true)]);
+    const showBulkDone = chore.status === 'assigned' && !isDoneOnce && (repeatable || consistent);
+    if (chore.status === 'assigned' && !isDoneOnce && !showBulkDone) {
+      actions.push(['complete', 'Complete', 'primary', () => toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, true)]);
     }
     if (chore.status === 'unloaded') {
       actions.push(['load', 'Load', null, () => loadChore(chore.chore_id, chore.name)]);
@@ -1593,11 +1601,16 @@
         <div class="chore-desc">${chore.description || ''}</div>
         ${tagHtml}
       </div>
-      <div class="chore-card-inline-actions">${actionsHtml}</div>
+      <div class="chore-card-inline-actions">${showBulkDone ? bulkDoneControlHtml() : ''}${actionsHtml}</div>
     `;
     actions.forEach(([key, , , fn]) => {
       card.querySelector(`[data-caction="${key}"]`).onclick = (e) => { e.stopPropagation(); fn(); };
     });
+    if (showBulkDone) {
+      const bulkControl = card.querySelector('.bulk-done-control');
+      bulkControl.addEventListener('click', (e) => e.stopPropagation());
+      wireBulkDoneControl(bulkControl, chore.chore_id, chore.assigned_kid_id);
+    }
     list.appendChild(card);
   }
 
@@ -1926,6 +1939,28 @@
     showToast(delta > 0 ? `+${pts} pts for ${kid.name}! (${newCount}\u00D7)` : `Undone \u2014 ${kid.name} now at ${newCount}\u00D7`);
   }
 
+  // Reusable "log N completions at once" widget for repeatable/consistent
+  // chores \u2014 an amount field plus +/- buttons, everywhere a plain "+1 Done"
+  // button used to be. Markup only; call wireBulkDoneControl(container, ...)
+  // after inserting it to hook up the buttons.
+  function bulkDoneControlHtml(extraAttrs) {
+    return `<span class="bulk-done-control"${extraAttrs ? ' ' + extraAttrs : ''}>
+      <input type="number" class="bulk-done-input" placeholder="1" min="1">
+      <button class="mini-btn" style="background:var(--mint); color:#fff; border-color:var(--mint);" data-bulkdone="plus">+</button>
+      <button class="mini-btn undo-btn" data-bulkdone="minus">&minus;</button>
+    </span>`;
+  }
+  function wireBulkDoneControl(container, choreId, kidId, afterDone) {
+    const input = container.querySelector('.bulk-done-input');
+    const run = async (sign) => {
+      const amount = Math.max(1, Math.round(Number(input.value)) || 1);
+      await logRepeatableCompletion(choreId, kidId, sign * amount);
+      if (afterDone) afterDone();
+    };
+    container.querySelector('[data-bulkdone="plus"]').onclick = (e) => { e.stopPropagation(); run(1); };
+    container.querySelector('[data-bulkdone="minus"]').onclick = (e) => { e.stopPropagation(); run(-1); };
+  }
+
   async function toggleChoreComplete(choreId, kidId, markComplete) {
     const chore = appData.chores.find(c => c.chore_id === choreId);
     const kid = appData.kids.find(k => k.kid_id === kidId);
@@ -2223,7 +2258,7 @@
       } else if (isDoneOnce) {
         actionBtn = `<span style="opacity:.6; font-weight:700; color:var(--mint);">&#10003; Done</span>`;
       } else if (repeatable || consistent) {
-        actionBtn = `<button class="mini-btn" data-chore="${m.chore_id}" data-kid="${m.assigned_kid_id}" data-action="grpdone">+1 Done</button>`;
+        actionBtn = bulkDoneControlHtml(`data-chore="${m.chore_id}" data-kid="${m.assigned_kid_id}" data-action="grpdone"`);
       } else {
         actionBtn = `<button class="mini-btn" data-chore="${m.chore_id}" data-kid="${m.assigned_kid_id}" data-action="grpcomplete">Complete</button>`;
       }
@@ -2235,8 +2270,8 @@
       </div>`;
     }).join('');
 
-    membersEl.querySelectorAll('[data-action="grpdone"]').forEach(btn => {
-      btn.onclick = async () => { btn.disabled = true; await logRepeatableCompletion(btn.dataset.chore, btn.dataset.kid, 1); openGroupDetailModal(groupId); };
+    membersEl.querySelectorAll('[data-action="grpdone"]').forEach(el => {
+      wireBulkDoneControl(el, el.dataset.chore, el.dataset.kid, () => openGroupDetailModal(groupId));
     });
     membersEl.querySelectorAll('[data-action="grpcomplete"]').forEach(btn => {
       btn.onclick = async () => { btn.disabled = true; await toggleChoreComplete(btn.dataset.chore, btn.dataset.kid, true); openGroupDetailModal(groupId); };
@@ -2292,8 +2327,7 @@
       if (isDoneOnce) {
         html += `<span class="mini-btn" style="grid-column:1 / -1; text-align:center; padding:10px; opacity:.6; cursor:default; background:var(--mint); color:#fff; border-color:var(--mint);">&#10003; Already done</span>`;
       } else if (repeatable || consistent) {
-        html += `<button class="btn-primary" data-caction="logdone" style="grid-column:1 / -1;">+1 Done</button>`;
-        wire.push(['logdone', () => { choreDetailOverlay.classList.remove('open'); logRepeatableCompletion(chore.chore_id, chore.assigned_kid_id, 1); }]);
+        html += bulkDoneControlHtml(`data-caction="logdone" style="grid-column:1 / -1; justify-content:center;"`);
       } else {
         html += `<button class="btn-primary" data-caction="complete" style="grid-column:1 / -1;">Complete</button>`;
         wire.push(['complete', () => { choreDetailOverlay.classList.remove('open'); toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, true); }]);
@@ -2344,6 +2378,10 @@
       const btn = actions.querySelector(`[data-caction="${key}"]`);
       if (btn) btn.onclick = fn;
     });
+    const logDoneControl = actions.querySelector('[data-caction="logdone"]');
+    if (logDoneControl) {
+      wireBulkDoneControl(logDoneControl, chore.chore_id, chore.assigned_kid_id, () => choreDetailOverlay.classList.remove('open'));
+    }
     choreDetailOverlay.classList.add('open');
   }
 
@@ -3320,7 +3358,7 @@
           if (isDoneOnce) {
             doneBtn = `<span style="opacity:.6; font-weight:700; color:var(--mint);">&#10003; Done</span>`;
           } else if (repeatable || consistent) {
-            doneBtn = `<button class="mini-btn" data-chore="${c.chore_id}" data-action="quickdone">+1 Done</button>`;
+            doneBtn = bulkDoneControlHtml(`data-chore="${c.chore_id}" data-action="quickdone"`);
           } else {
             doneBtn = `<button class="mini-btn" data-chore="${c.chore_id}" data-action="quickcomplete">Complete</button>`;
           }
@@ -3338,8 +3376,9 @@
           </div>`;
         }).join('')
       : '<div class="empty-note">Nothing assigned right now.</div>';
-    assignedEl.querySelectorAll('[data-action="quickdone"]').forEach(btn => {
-      btn.onclick = async (e) => { e.stopPropagation(); btn.disabled = true; await logRepeatableCompletion(btn.dataset.chore, kidId, 1); renderProfileModalContent(kidId); };
+    assignedEl.querySelectorAll('[data-action="quickdone"]').forEach(el => {
+      el.addEventListener('click', (e) => e.stopPropagation());
+      wireBulkDoneControl(el, el.dataset.chore, kidId, () => renderProfileModalContent(kidId));
     });
     assignedEl.querySelectorAll('[data-action="quickcomplete"]').forEach(btn => {
       btn.onclick = async (e) => { e.stopPropagation(); btn.disabled = true; await toggleChoreComplete(btn.dataset.chore, kidId, true); renderProfileModalContent(kidId); };
