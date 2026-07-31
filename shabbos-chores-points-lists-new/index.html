@@ -2693,11 +2693,14 @@
       if (c.group_id) { (byGroup[c.group_id] = byGroup[c.group_id] || []).push(c); }
       else singles.push(c);
     });
-    const toUpdate = singles.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '' }));
+    // "Repeatable"/"consistent" completion counts are scoped to the week
+    // they were racked up in, not a lifetime total — a chore getting
+    // reloaded by New Week doesn't carry last week's completions forward.
+    const toUpdate = singles.map(c => Object.assign({}, c, { status: 'unassigned', assigned_kid_id: '', assigned_at: '', times_completed: 0 }));
     const toDeleteIds = [];
     Object.values(byGroup).forEach(members => {
       const [keep, ...rest] = members;
-      toUpdate.push(Object.assign({}, keep, { status: 'unassigned', assigned_kid_id: '', assigned_at: '', group_id: '' }));
+      toUpdate.push(Object.assign({}, keep, { status: 'unassigned', assigned_kid_id: '', assigned_at: '', group_id: '', times_completed: 0 }));
       rest.forEach(m => toDeleteIds.push(m.chore_id));
     });
 
