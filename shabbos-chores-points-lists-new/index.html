@@ -1347,7 +1347,7 @@
             ${tagHtml}
           </div>
           <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-            <button class="btn-small" style="width:auto;" data-action="view">View</button>
+            <button class="btn-small" style="width:auto;" data-action="view">See Details</button>
           </div>
         `;
         card.addEventListener('click', () => openChoreDetailModal(chore));
@@ -1375,7 +1375,7 @@
           <div class="chore-desc">${chore.description || ''}</div>
         </div>
         <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-          <button class="btn-small" style="width:auto;" data-action="view">View</button>
+          <button class="btn-small" style="width:auto;" data-action="view">See Details</button>
         </div>
       `;
       card.addEventListener('click', () => openChoreDetailModal(chore));
@@ -1526,7 +1526,7 @@
         ${tagHtml}
       </div>
       <div class="chore-card-actions" style="grid-template-columns:${extraBtn ? '1fr 1fr' : '1fr'}; width:auto;">
-        <button class="btn-small" style="width:auto;" data-action="view">View</button>
+        <button class="btn-small" style="width:auto;" data-action="view">See Details</button>
         ${extraBtn}
       </div>
     `;
@@ -1558,7 +1558,7 @@
         <div class="chore-assignee-tags-row">${tagsHtml}</div>
       </div>
       <div class="chore-card-actions" style="grid-template-columns:1fr; width:auto;">
-        <button class="btn-small" style="width:auto;" data-action="view">View</button>
+        <button class="btn-small" style="width:auto;" data-action="view">See Details</button>
       </div>
     `;
     card.addEventListener('click', () => openGroupDetailModal(repChore.group_id));
