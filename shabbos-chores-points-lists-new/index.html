@@ -3467,28 +3467,23 @@
   // gets opened, bumps it above whatever is currently the topmost — so the
   // most recently opened modal always wins, no matter the DOM order.
   //
-  // Side-drawers get their own higher-numbered range specifically so they
-  // always render above the shared nav dock (a separate script, fixed at
-  // z-index 200) — the drawer is meant to cover the dock while it's open.
-  // Regular overlays don't need to beat the dock, so they keep the lower
-  // range; the drawer FAB itself is set even higher in CSS so it stays
-  // visible/clickable on top of its own drawer.
-  let topModalZIndex = 50;
-  let topDrawerZIndex = 220;
-  document.querySelectorAll('.overlay').forEach(el => {
+  // Overlays and drawers previously had SEPARATE counters, with drawers
+  // starting much higher (to beat the shared nav dock, fixed at z-index
+  // 200). That meant once a side-drawer (like the Chores drawer) was open,
+  // any regular modal opened on top of it (Assign, Add Chore, etc.) only
+  // ever reached the low overlay range and rendered BEHIND the drawer —
+  // a real bug. One shared counter fixes it: whichever opens most recently,
+  // overlay or drawer, always wins. Wraps well below the drawer FAB (230)
+  // and the on-screen keyboard (250) so neither ever gets buried.
+  let topLayerZIndex = 201;
+  const MAX_LAYER_Z_INDEX = 228;
+  function bumpLayerToFront(el) {
+    topLayerZIndex = topLayerZIndex >= MAX_LAYER_Z_INDEX ? 201 : topLayerZIndex + 1;
+    el.style.zIndex = topLayerZIndex;
+  }
+  document.querySelectorAll('.overlay, .side-drawer').forEach(el => {
     new MutationObserver(() => {
-      if (el.classList.contains('open')) {
-        topModalZIndex += 1;
-        el.style.zIndex = topModalZIndex;
-      }
-    }).observe(el, { attributes: true, attributeFilter: ['class'] });
-  });
-  document.querySelectorAll('.side-drawer').forEach(el => {
-    new MutationObserver(() => {
-      if (el.classList.contains('open')) {
-        topDrawerZIndex += 1;
-        el.style.zIndex = topDrawerZIndex;
-      }
+      if (el.classList.contains('open')) bumpLayerToFront(el);
     }).observe(el, { attributes: true, attributeFilter: ['class'] });
   });
 
