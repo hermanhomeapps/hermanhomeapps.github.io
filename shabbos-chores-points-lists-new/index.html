@@ -1405,7 +1405,10 @@
     let allChores = appData.chores.filter(c => ['unloaded', 'unassigned', 'assigned', 'completed'].includes(c.status));
     if (choreFilterMode === 'notlisted') allChores = allChores.filter(c => !c.list_id);
     else if (choreFilterMode === 'unassigned') allChores = allChores.filter(c => c.status === 'unassigned');
-    else if (choreFilterMode === 'assigned') allChores = allChores.filter(c => c.status === 'assigned' || c.status === 'completed');
+    // "Assigned" means still in progress — completed chores never get
+    // cleared out on New Week (so points/history stay intact), so lumping
+    // them into this tab too made it fill up with old, already-done jobs.
+    else if (choreFilterMode === 'assigned') allChores = allChores.filter(c => c.status === 'assigned');
 
     if (searchVal) {
       allChores = allChores.filter(c =>
