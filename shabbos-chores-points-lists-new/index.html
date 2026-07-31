@@ -532,6 +532,9 @@
   .chore-card-info { flex: 1; min-width: 0; }
   .chore-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; width: 168px; }
   .chore-card-actions button { width: 100%; margin: 0; white-space: nowrap; }
+  .chore-card.chore-card--mgmt { flex-direction: column; align-items: stretch; cursor: default; }
+  .chore-card-inline-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chore-card-inline-actions .mini-btn { flex: none; padding: 6px 10px; font-size: 0.72rem; }
   .chore-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .chore-name { font-weight: 600; font-size: 0.95rem; }
   .chore-desc { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -1546,16 +1549,41 @@
         : `<span class="chore-assignee-tag unassigned">Unknown kid</span>${doneMark}`;
     }
 
-    let extraBtn = '';
-    if (chore.status === 'unloaded') {
-      extraBtn = `<button class="btn-small" style="width:auto;" data-action="load">Load</button>`;
-    } else if (chore.status === 'unassigned') {
-      extraBtn = `<button class="btn-small" style="width:auto;" data-action="unload">Unload</button>`;
+    // Same actions the old "See Details" popup offered (Edit/Unload/Assign/
+    // Split/Delete etc.) — now inline on the card itself so mommy doesn't
+    // have to open a popup for every routine action. Kept as [key, label, fn]
+    // triples so they're easy to wire up without repeating stopPropagation.
+    const actions = [];
+    const repeatable = isRepeatable(chore);
+    const consistent = isConsistent(chore);
+    const timesCount = Number(chore.times_completed) || 0;
+    const isDoneOnce = consistent && timesCount >= 1;
+
+    if (chore.status === 'assigned' && !isDoneOnce) {
+      if (repeatable || consistent) actions.push(['done', '+1 Done', 'primary', () => logRepeatableCompletion(chore.chore_id, chore.assigned_kid_id, 1)]);
+      else actions.push(['complete', 'Complete', 'primary', () => toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, true)]);
     }
-    // Assigned/completed chores can't be unloaded — no extra button, just the View button.
+    if (chore.status === 'unloaded') {
+      actions.push(['load', 'Load', null, () => loadChore(chore.chore_id, chore.name)]);
+    } else if (chore.status === 'unassigned') {
+      actions.push(['unload', 'Unload', null, () => unloadChore(chore.chore_id, chore.name)]);
+      actions.push(['assign', 'Assign', null, () => openPickKidForChore(chore.chore_id, chore.name)]);
+      actions.push(['split', 'Split', null, () => openMultiAssignModal(chore)]);
+    } else if (chore.status === 'assigned') {
+      actions.push(['move', 'Move to...', null, () => openPickKidForChore(chore.chore_id, chore.name, chore.assigned_kid_id)]);
+      actions.push(['unassign', 'Unassign', 'undo', () => unassignChore(chore.chore_id, chore.name)]);
+    } else if (chore.status === 'completed') {
+      actions.push(['incomplete', 'Mark Incomplete', 'undo', () => toggleChoreComplete(chore.chore_id, chore.assigned_kid_id, false)]);
+    }
+    actions.push(['edit', 'Edit', null, () => openEditChoreModal(chore)]);
+    actions.push(['delete', 'Delete', 'delete', () => deleteChore(chore.chore_id, chore.name)]);
+
+    const actionsHtml = actions.map(([key, label, variant]) =>
+      `<button class="mini-btn${variant === 'delete' ? ' delete-btn' : variant === 'undo' ? ' undo-btn' : ''}"${variant === 'primary' ? ' style="background:var(--mint); color:#fff;"' : ''} data-caction="${key}">${label}</button>`
+    ).join('');
 
     const card = document.createElement('div');
-    card.className = 'chore-card';
+    card.className = 'chore-card chore-card--mgmt';
     card.innerHTML = `
       <div class="chore-card-info">
         <div class="chore-title-row">
@@ -1565,16 +1593,11 @@
         <div class="chore-desc">${chore.description || ''}</div>
         ${tagHtml}
       </div>
-      <div class="chore-card-actions" style="grid-template-columns:${extraBtn ? '1fr 1fr' : '1fr'}; width:auto;">
-        <button class="btn-small" style="width:auto;" data-action="view">See Details</button>
-        ${extraBtn}
-      </div>
+      <div class="chore-card-inline-actions">${actionsHtml}</div>
     `;
-    const loadBtn = card.querySelector('[data-action="load"]');
-    if (loadBtn) loadBtn.onclick = (e) => { e.stopPropagation(); loadChore(chore.chore_id, chore.name); };
-    const unloadBtn = card.querySelector('[data-action="unload"]');
-    if (unloadBtn) unloadBtn.onclick = (e) => { e.stopPropagation(); unloadChore(chore.chore_id, chore.name); };
-    card.addEventListener('click', () => openChoreDetailModal(chore));
+    actions.forEach(([key, , , fn]) => {
+      card.querySelector(`[data-caction="${key}"]`).onclick = (e) => { e.stopPropagation(); fn(); };
+    });
     list.appendChild(card);
   }
 
