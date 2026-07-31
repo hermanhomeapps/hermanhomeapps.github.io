@@ -1259,15 +1259,13 @@
       block.className = 'kid-block';
       block.style.setProperty('--kid-gradient', getKidGradient(kid.kid_id));
 
-      const previewChores = assigned.slice(0, 3);
-      const extraCount = assigned.length - previewChores.length;
       let previewHtml;
       if (assigned.length === 0) {
         previewHtml = '<div class="empty-note-mini">No chores assigned yet</div>';
       } else {
-        previewHtml = '<div class="kid-chore-preview">' + previewChores.map(c =>
+        previewHtml = '<div class="kid-chore-preview">' + assigned.map(c =>
           `<div class="kid-chore-preview-row"><span>${c.name}</span><span>${c.points} pts</span></div>`
-        ).join('') + (extraCount > 0 ? `<div class="kid-chore-preview-more">+${extraCount} more</div>` : '') + '</div>';
+        ).join('') + '</div>';
       }
 
       block.innerHTML = `
