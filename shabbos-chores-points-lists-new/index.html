@@ -872,7 +872,7 @@
     </div>
     <div class="field-wrap">
       <label class="field-label">Points</label>
-      <input type="number" id="chorePointsInput" min="1" placeholder="10">
+      <input type="number" id="chorePointsInput" min="0" placeholder="10">
     </div>
     <div class="chore-mode-row">
       <button type="button" class="mode-toggle-btn" id="choreRepeatableToggle">Make Repeatable</button>
@@ -2476,12 +2476,15 @@
 
   document.getElementById('addChoreComplete').onclick = () => {
     const name = choreNameInput.value.trim();
-    const points = Number(chorePointsInput.value);
+    const pointsRaw = chorePointsInput.value.trim();
+    const points = Number(pointsRaw);
     const description = choreDescInput.textContent.trim() ? choreDescInput.innerHTML : '';
     const repeatable = choreModeRepeatable;
     const consistent = choreModeConsistent;
     if (!name) { showToast('Give the chore a name first.'); return; }
-    if (!points || points <= 0) { showToast('Points must be a positive number.'); return; }
+    // 0 is allowed on purpose — some chores are tracked for accountability,
+    // not points.
+    if (pointsRaw === '' || isNaN(points) || points < 0) { showToast('Points must be zero or a positive number.'); return; }
 
     if (editingChoreId) {
       finalizeEditChore({ name, points, description, repeatable, consistent });
