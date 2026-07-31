@@ -789,9 +789,10 @@
         <button type="button" class="chore-filter-tab" data-filter="assigned">Assigned</button>
       </div>
       <input type="text" id="unassignedSearchInput" class="unassigned-search" placeholder="Search chores..." data-no-onscreen-kb="1">
-      <div style="display:flex; gap:8px; margin:12px 0 14px;">
-        <button class="btn-primary" style="flex:1;" id="addChoreBtn">+ Add New Chore</button>
-        <button class="btn-outline" style="flex:1;" id="unloadAllBtn">Unload All</button>
+      <div style="display:flex; gap:8px; margin:12px 0 14px; flex-wrap:wrap;">
+        <button class="btn-primary" style="flex:1; min-width:140px;" id="addChoreBtn">+ Add New Chore</button>
+        <button class="btn-outline" style="flex:1; min-width:110px;" id="unloadAllBtn">Unload All</button>
+        <button class="btn-outline" style="flex:1; min-width:110px;" id="printJobsBtn">🖨️ Print Jobs</button>
       </div>
       <div id="unassignedList"></div>
     </div>
@@ -1454,6 +1455,44 @@
   });
 
   document.getElementById('unloadAllBtn').onclick = unloadAllChores;
+  document.getElementById('printJobsBtn').onclick = printJobs;
+
+  function printJobs() {
+    const rows = [];
+    appData.kids.forEach(kid => {
+      const jobs = appData.chores.filter(c => c.assigned_kid_id === kid.kid_id && (c.status === 'assigned' || c.status === 'completed'));
+      if (jobs.length === 0) return;
+      rows.push(`<h2>${escapeHtml(kid.name)}</h2><ul>` + jobs.map(c =>
+        `<li>${escapeHtml(c.name)} <span class="pts">${c.points} pts</span>${c.status === 'completed' ? ' &#10003;' : ''}</li>`
+      ).join('') + '</ul>');
+    });
+    const unassigned = appData.chores.filter(c => c.status === 'unassigned');
+    if (unassigned.length > 0) {
+      rows.push('<h2>Unassigned</h2><ul>' + unassigned.map(c =>
+        `<li>${escapeHtml(c.name)} <span class="pts">${c.points} pts</span></li>`
+      ).join('') + '</ul>');
+    }
+    const body = rows.length ? rows.join('') : '<p>Nothing loaded right now.</p>';
+    const win = window.open('', '_blank');
+    if (!win) { showToast("Couldn't open the print window — check your popup blocker."); return; }
+    win.document.write(`<!DOCTYPE html><html><head><title>Shabbos Chores — Job List</title><style>
+      body { font-family: -apple-system, Arial, sans-serif; padding: 24px; color: #1a1a1a; }
+      h1 { margin-bottom: 4px; }
+      .date { color: #666; margin-bottom: 24px; }
+      h2 { margin: 20px 0 6px; border-bottom: 2px solid #1a1a1a; padding-bottom: 4px; }
+      ul { margin: 0 0 10px; padding-left: 20px; }
+      li { margin-bottom: 6px; font-size: 1.05rem; }
+      .pts { color: #666; font-size: 0.9rem; }
+      @media print { body { padding: 0; } }
+    </style></head><body>
+      <h1>🕯️ Shabbos Chores — Job List</h1>
+      <div class="date">${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      ${body}
+    </body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
 
   // ===== SWIPE-DOWN-TO-CLOSE (drawers) =====
   // Scoped to the handle grip specifically, not the whole drawer — the
