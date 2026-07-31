@@ -2876,6 +2876,7 @@
       await postData({ sheet: 'kids', action: 'upsert', id_field: 'kid_id', rows: [updated] });
     }
     await refreshAndRerender();
+    if (profileOverlay.classList.contains('open') && currentProfileKidId === kidId) renderProfileModalContent(kidId);
     showToast('Color updated!');
   }
 
