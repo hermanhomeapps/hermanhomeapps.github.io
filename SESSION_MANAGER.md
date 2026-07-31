@@ -97,6 +97,7 @@ Running, cumulative list of manual action items other sessions are waiting on th
 - [ ] Owner to verify: chore cards in the Chores drawer now show all management actions (Edit/Load/Unload/Assign/Split/Delete/Move/Complete/etc.) directly inline instead of behind a "See Details" popup — worth a look to confirm the buttons aren't too cramped on a real phone screen.
 - [ ] Owner to verify: "Print Jobs" button (new) in the Chores drawer opens a print-formatted job list grouped by kid.
 - [ ] Owner to verify: everywhere a plain "+1 Done" button used to appear for repeatable/consistent chores (chore cards, the split/group modal, the chore detail popup, and a kid's profile "Assigned Chores" list), there's now an amount field plus +/- buttons so multiple completions can be logged at once instead of tapping "+1 Done" repeatedly.
+- [ ] Owner to verify: "New Week" no longer leaves a chore that was Split between kids showing twice in Unassigned — it now collapses split rows back into one row (root cause: Split creates one row per kid sharing a group_id; once nothing's assigned, those looked like duplicate chores instead of one).
 
 ## Claims
 
